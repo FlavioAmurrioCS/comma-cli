@@ -1,0 +1,11 @@
+version: '3.7'
+services:
+  geckobuild:
+    build: .
+    container_name: geckobuild
+    command: [tail, -f, /dev/null]
+    volumes:
+      - ./mozilla-central-a2601693650d:/tmp/mozilla
+    #   - /usr/share/appdata/wireguard/config:/config
+    #   - /usr/src:/usr/src # location of kernel headers
+    #   - /lib/modules:/lib/modules

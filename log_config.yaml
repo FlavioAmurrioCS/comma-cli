@@ -1,0 +1,17 @@
+# 03/22 08:51:01 INFO   :...locate_configFile: Specified configuration file: /u/user10/rsvpd1.conf
+log_pattern: '(?P<TIMESTAMP>^[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) (?P<LOGLEVEL>[A-Z]+)[ ]*:[\.]+(?P<CLASS>[^:]+): (?P<MSG>.*)'
+print_format: '[cyan]{TIMESTAMP} [yellow][{LOGLEVEL: ^7}] [red]{CLASS: >22}: [reset]{MSG}'
+
+# [TIMESTAMP]
+
+# LOGLEVEL:
+#   # - TRACE
+#   - WARNING
+
+CLASS:
+  - entity_initialize
+
+MSG:
+  - allocated and initialized
+  - mailbox allocated for timer
+#   - LINK12 has address
