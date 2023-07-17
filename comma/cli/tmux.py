@@ -4,6 +4,7 @@ import logging
 from typing import NamedTuple
 
 import typer
+
 from comma.utils.fzf import fzf
 from comma.utils.machine.local_machine import LocalMachine
 from comma.utils.machine.machine import Machine

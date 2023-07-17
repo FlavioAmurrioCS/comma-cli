@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typer
+
 from comma.api.server import server
 from comma.cli.code import c
 from comma.cli.code import rc

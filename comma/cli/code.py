@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Optional
 
 import typer
+
 from comma.utils.fzf import fzf
 from comma.utils.machine.local_machine import LocalMachine
 from comma.utils.machine.ssh_machine import SshMachine
