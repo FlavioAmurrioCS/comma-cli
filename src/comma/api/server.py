@@ -1,0 +1,32 @@
+from __future__ import annotations
+
+from typing import Any
+from typing import Union
+
+
+def server() -> None:
+
+    from fastapi import FastAPI
+
+    app = FastAPI()
+
+    @app.get('/')
+    def read_root() -> dict[str, str]:
+        return {'Hello': 'World'}
+
+    @app.get('/items/{item_id}')
+    def read_item(item_id: int, q: Union[str, None] = None) -> dict[str, Any]:
+        return {'item_id': item_id, 'q': q}
+
+    import uvicorn
+    config = uvicorn.Config(
+        app,
+        port=5000,
+        log_level='info',
+    )
+    server = uvicorn.Server(config)
+    server.run()
+
+
+if __name__ == '__main__':
+    server()
