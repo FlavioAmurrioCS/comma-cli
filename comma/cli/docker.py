@@ -4,9 +4,10 @@ import json
 from typing import List
 
 import typer
+from typing_extensions import TypedDict
+
 from comma.utils.command import Command
 from comma.utils.fzf import fzf
-from typing_extensions import TypedDict
 
 app_docker: typer.Typer = typer.Typer(
     name='docker',

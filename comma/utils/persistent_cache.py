@@ -16,10 +16,11 @@ from typing import Callable
 from typing import Dict
 from typing import Optional
 
-from comma.utils.ftypes import R
-from comma.utils.ftypes import T
 from typing_extensions import ParamSpec
 from typing_extensions import TypedDict
+
+from comma.utils.ftypes import R
+from comma.utils.ftypes import T
 
 CACHE_HOME = os.path.expanduser('~/opt/cache')
 

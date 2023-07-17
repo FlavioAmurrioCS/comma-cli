@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typer
+
 from comma.utils.fzf import fzf
 from comma.utils.machine.local_machine import LocalMachine
 

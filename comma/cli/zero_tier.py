@@ -9,6 +9,7 @@ from typing import NamedTuple
 from typing import TYPE_CHECKING
 
 import typer
+
 from comma.utils.fzf import fzf
 from comma.utils.machine.ssh_machine import SshMachine
 from comma.utils.persistent_cache import sqlite_cache
