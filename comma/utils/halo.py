@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import functools
+import platform
 import typing
 from types import TracebackType
 from typing import Callable
@@ -12,6 +13,8 @@ from rich.console import Console
 from rich.console import RenderableType
 from rich.status import Status
 from rich.style import StyleType
+from typing_extensions import TypedDict
+
 if typing.TYPE_CHECKING:
     from typing_extensions import Literal
     from typing_extensions import ParamSpec
@@ -41,6 +44,27 @@ if typing.TYPE_CHECKING:
     R = TypeVar('R')
 
 
+class _Symbols(TypedDict):
+    info: str
+    success: str
+    warning: str
+    error: str
+
+
+# pip install log_symbols
+symbols: _Symbols = {
+    'info': 'ℹ',
+    'success': '✔',
+    'warning': '⚠',
+    'error': '✖',
+}if platform.system() != 'Windows' else {
+    'info': '¡',
+    'success': 'v',
+    'warning': '!!',
+    'error': '×',
+}
+
+
 class FHalo(Status):
     def __init__(
         self,
@@ -60,7 +84,7 @@ class FHalo(Status):
             speed=speed,
             refresh_per_second=refresh_per_second,
         )
-        self._success: str = f'✨ {status}'
+        self._success: str = f'{symbols["info"]} {status}'
 
     def __enter__(self) -> Self:
         return typing.cast('Self', super().__enter__())
@@ -77,10 +101,10 @@ class FHalo(Status):
         return wrapped
 
     def succeed(self, text: Optional[str] = None) -> None:
-        self._success = f'[green bold]check[/green bold] {text or self.status}'
+        self._success = f'[green bold]{symbols["success"]}[/green bold] {text or self.status}'
 
     def fail(self, text: Optional[str] = None) -> None:
-        self._success = f'[red bold]cross[/red bold] {text or self.status}'
+        self._success = f'[red bold]{symbols["error"]}[/red bold] {text or self.status}'
 
     def warn(self, text: Optional[str] = None) -> None:
-        self._success = f'[yellow bold]warning[/yellow bold] {text or self.status}'
+        self._success = f'[yellow bold]{symbols["warning"]}[/yellow bold] {text or self.status}'
