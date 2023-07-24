@@ -55,10 +55,14 @@ def unpacker_context(filename: str) -> Generator[str, None, None]:
         yield temp_dir
 
 
-def quick_deleter(paths: Sequence[str]) -> None:
-    with temp_dir_context() as temp_dir:
-        for path in paths:
-            shutil.move(path, os.path.join(temp_dir, os.path.basename(path)))
+def quick_deleter(path: str) -> None:
+    if os.path.exists(path):
+        return
+    with FHalo(f'Deleting {path}...') as halo:
+        with temp_dir_context() as temp_dir:
+            temp = os.path.join(temp_dir, 'temp')
+            shutil.move(path, temp)
+        halo.succeed()
 
 
 @contextmanager
@@ -98,16 +102,17 @@ def download_context(
     *,
     url: str,
     session: requests.Session | None = None,
+    filename: str | None = None,
     **kwargs: Any,
 ) -> Generator[str, None, None]:
-    filename = url.split('/')[-1]
+    filename = filename or url.split('/')[-1]
     session = session or requests.Session()
 
     with temp_dir_context() as temp_dir:
         with session.get(url, stream=True, **kwargs) as response:
             response.raise_for_status()
-            with suppress(KeyError):
-                filename, *_ = re.findall('filename=(.+)', response.headers['Content-Disposition']) + [filename]
+            # with suppress(KeyError):
+            #     filename, *_ = re.findall('filename=(.+)', response.headers['Content-Disposition']) + [filename]
             total_size = int(response.headers.get('content-length', 0))
             with progress_bar(total_size=total_size, filename=filename) as progress_callback:
                 full_path = os.path.join(temp_dir, filename)
