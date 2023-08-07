@@ -8,7 +8,6 @@ from comma.utils.machine.local_machine import LocalMachine
 app_sh: typer.Typer = typer.Typer(
     name='sh',
     help='Shell utilities.',
-
 )
 
 

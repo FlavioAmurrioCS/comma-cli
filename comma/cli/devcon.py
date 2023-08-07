@@ -26,8 +26,7 @@ app_devcon: typer.Typer = typer.Typer(
             \b
 
 
-            To customize container, modify the following file:
-            {_DOCKERFILE}'''),
+            To customize container, modify the following file: {_DOCKERFILE}'''),
 )
 
 

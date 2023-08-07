@@ -20,7 +20,7 @@ app_main.add_typer(app_docker)
 app_main.add_typer(app_logtool)
 app_main.add_typer(app_devcon)
 
-if os.environ.get('USER') == 'flavio1' or 'COMMA_EXTRA' in os.environ:
+if 'COMMA_EXTRA' in os.environ:
     from comma.cli.shell_utils import app_sh
     app_main.add_typer(app_sh)
 

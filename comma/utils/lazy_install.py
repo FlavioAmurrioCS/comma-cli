@@ -7,5 +7,4 @@ from comma.utils.command import Command
 
 def lazy_install(packages: list[str]) -> None:
     if packages:
-        # Command(cmd=(sys.executable, '-m', 'pip', 'list'), capture_output=False, check=True).run()
         Command(cmd=(sys.executable, '-m', 'pip', 'install', *packages)).run_with_spinner()
