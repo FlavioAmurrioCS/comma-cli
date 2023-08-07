@@ -5,7 +5,11 @@ import typer
 from comma.utils.fzf import fzf
 from comma.utils.machine.local_machine import LocalMachine
 
-app_sh: typer.Typer = typer.Typer(name='sh')
+app_sh: typer.Typer = typer.Typer(
+    name='sh',
+    help='Shell utilities.',
+
+)
 
 
 @app_sh.command()

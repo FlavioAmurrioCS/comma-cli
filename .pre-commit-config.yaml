@@ -19,11 +19,11 @@ repos:
         -   id: reorder-python-imports
             args: [--py37-plus, --add-import, 'from __future__ import annotations']
     -   repo: https://github.com/asottile/add-trailing-comma
-        rev: v3.0.0
+        rev: v3.0.1
         hooks:
         -   id: add-trailing-comma
     -   repo: https://github.com/asottile/pyupgrade
-        rev: v3.9.0
+        rev: v3.10.1
         hooks:
         -   id: pyupgrade
             args: [--py37-plus, --keep-runtime-typing]
@@ -32,14 +32,14 @@ repos:
         hooks:
         -   id: autopep8
     -   repo: https://github.com/PyCQA/flake8
-        rev: 6.0.0
+        rev: 6.1.0
         hooks:
         -   id: flake8
             args:
             - --ignore=E501
 
     - repo: https://github.com/hadialqattan/pycln
-      rev: v2.1.6 # Possible releases: https://github.com/hadialqattan/pycln/releases
+      rev: v2.2.1 # Possible releases: https://github.com/hadialqattan/pycln/releases
       hooks:
         - id: pycln
           args: [--all]
@@ -52,12 +52,12 @@ repos:
         -   id: mypy
             additional_dependencies: [types-all]
 
-    -   repo: local
-        hooks:
-        -   id: pyright
-            name: pyright
-            entry: pyright
-            language: node
-            pass_filenames: false
-            types: [python]
-            additional_dependencies: ['pyright@1.1.317']
+    # -   repo: local
+    #     hooks:
+    #     -   id: pyright
+    #         name: pyright
+    #         entry: pyright
+    #         language: node
+    #         pass_filenames: false
+    #         types: [python]
+    #         additional_dependencies: ['pyright@1.1.317']

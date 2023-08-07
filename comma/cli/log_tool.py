@@ -27,7 +27,10 @@ if TYPE_CHECKING:
 
 LOG_TOOL_CONSOLE = Console(highlight=False, soft_wrap=True)
 
-app_logtool = typer.Typer(name='lt')
+app_logtool = typer.Typer(
+    name='lt',
+    help='Log Tool.',
+)
 
 _T = TypeVar('_T')
 

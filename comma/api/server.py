@@ -5,8 +5,11 @@ from typing import Union
 
 
 def server() -> None:
-
+    """
+    Run a FastAPI server
+    """
     from fastapi import FastAPI
+    import uvicorn
 
     app = FastAPI()
 
@@ -18,7 +21,6 @@ def server() -> None:
     def read_item(item_id: int, q: Union[str, None] = None) -> dict[str, Any]:
         return {'item_id': item_id, 'q': q}
 
-    import uvicorn
     config = uvicorn.Config(
         app,
         port=5000,

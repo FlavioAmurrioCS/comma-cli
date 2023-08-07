@@ -692,7 +692,7 @@ class RunToolConfig:
     _tools: dict[str, ExecutableProvider]
 
     def __init__(self) -> None:
-        self._tools = PRE_CONFIGURED_TOOLS | self.__load_config__()
+        self._tools = {**PRE_CONFIGURED_TOOLS, ** self.__load_config__()}
 
     @classmethod
     def __config_file_path__(cls) -> str:
