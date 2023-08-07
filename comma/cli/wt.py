@@ -7,7 +7,10 @@ import typer
 from comma.cli.m_git import GitWorktree
 from comma.utils.fzf import fzf
 
-app_wt: typer.Typer = typer.Typer(name='wt')
+app_wt: typer.Typer = typer.Typer(
+    name='wt',
+    help='Git worktree utilities.',
+)
 
 
 @app_wt.command()

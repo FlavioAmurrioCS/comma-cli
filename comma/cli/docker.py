@@ -44,12 +44,10 @@ def list_containers() -> List[DockerLS]:
 
 
 @app_docker.command()
-def _() -> None:
-    ...
-
-
-@app_docker.command()
 def enter() -> None:
+    """
+    Enter container.
+    """
     selection = fzf(
         list_containers(),
         key=lambda x: str((x['ID'], x['Names'], x['Image'])),
@@ -61,6 +59,20 @@ def enter() -> None:
                 selection['ID'], 'bash',
             ),
         ).execvp()
+
+
+@app_docker.command()
+def stop() -> None:
+    """
+    Stop container.
+    """
+    selection = fzf(
+        list_containers(),
+        key=lambda x: str((x['ID'], x['Names'], x['Image'])),
+        select_one=False,
+    )
+    if selection:
+        Command(cmd=('docker', 'stop', selection['ID'])).execvp()
 
 
 if __name__ == '__main__':
