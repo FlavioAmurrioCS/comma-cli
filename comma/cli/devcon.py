@@ -42,22 +42,30 @@ def user_info() -> dict[Literal['group_id', 'user_id', 'username'], str]:
 @dataclass
 class DevContainer:
     base_image: str = 'ubuntu:jammy'
-    group_id: str = '20'
-    user_id: str = '501'
-    username: str = 'flavio'
+    _group_id: str | None = None
+    _user_id: str | None = None
+    _username: str | None = None
     image_name: str = 'devcon'
     ssh_port: int = 2222
     volumes: List[tuple[str, str]] = field(default_factory=list)
     ports: List[tuple[int, int]] = field(default_factory=list)
+    envs: List[tuple[str, str]] = field(default_factory=list)
+    additional_args: List[str] = field(default_factory=list)
 
-    def __post_init__(self) -> None:
-        try:
-            user_info_dict = user_info()
-            self.group_id = user_info_dict['group_id']
-            self.user_id = user_info_dict['user_id']
-            self.username = user_info_dict['username']
-        except Exception as e:
-            logging.error(e)
+    @property
+    def group_id(self) -> str:
+        self._group_id = self._group_id or user_info()['group_id']
+        return self._group_id
+
+    @property
+    def user_id(self) -> str:
+        self._user_id = self._user_id or user_info()['user_id']
+        return self._user_id
+
+    @property
+    def username(self) -> str:
+        self._username = self._username or user_info()['username']
+        return self._username
 
     def template(self) -> str:
         return dedent(rf'''
@@ -167,6 +175,8 @@ class DevContainer:
                 # '--restart=unless-stopped',
                 *(f'-v={volume_pair[0]}:{volume_pair[1]}' for volume_pair in self.volumes),
                 *(f'-p={port_pair[0]}:{port_pair[1]}' for port_pair in self.ports),
+                *(f'-e={env_pair[0]}={env_pair[1]}' for env_pair in self.envs),
+                *self.additional_args,
                 '--name', self.image_name,
                 self.image_name,
             ),
