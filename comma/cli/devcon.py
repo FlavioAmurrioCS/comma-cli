@@ -236,12 +236,12 @@ class DockerVolumes(NamedTuple):
 
 @app_devcon.command()
 def start(
-    ports: list[DockerPorts] = typer.Option(
+    ports: List[DockerPorts] = typer.Option(
         [], '-p', '--expose',
         help="Publish a container's port(s) to the host. ie -p=8080:9090",
         parser=DockerPorts.parse,
     ),
-    volumes: list[DockerVolumes] = typer.Option(
+    volumes: List[DockerVolumes] = typer.Option(
         [], '-v', '--volume',
         help='Bind mount a volume. ie -v=/host:/container',
         parser=DockerVolumes.parse,

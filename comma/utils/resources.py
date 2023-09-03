@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 from contextlib import AbstractContextManager
-from importlib.resources import files
+from dataclasses import dataclass
 from importlib.resources import Package
 from importlib.resources import path
 from pathlib import Path
 from typing import Any
 from typing import Generic
-from typing import NamedTuple
 from typing import TypeVar
 
 
@@ -34,7 +33,8 @@ def load_yaml(filename: str) -> Any:
         )
 
 
-class TypedResourceHelper(NamedTuple, Generic[JSONT, YAMLT, OTHERT]):
+@dataclass
+class TypedResourceHelper(Generic[JSONT, YAMLT, OTHERT]):
     package: Package
 
     def get_resource(self, resource: JSONT | YAMLT | OTHERT) -> AbstractContextManager[Path]:
@@ -49,9 +49,6 @@ class TypedResourceHelper(NamedTuple, Generic[JSONT, YAMLT, OTHERT]):
     def get_resource_yaml(self, resource: YAMLT) -> Any:
         with path(self.package, resource) as file:
             return load_yaml(file.as_posix())
-
-    def package_dir(self) -> Path:
-        return Path(str(files(self.package)))
 
 
 class GenericResourceHelper(TypedResourceHelper[str, str, str]):
