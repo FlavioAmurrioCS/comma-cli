@@ -10,7 +10,7 @@ from typing import NamedTuple
 from typing import Sequence
 
 import typer
-from typing_extensions import Annotated
+from typer.models import ArgumentInfo
 
 from comma.utils.command import Command
 from comma.utils.fzf import fzf
@@ -82,8 +82,8 @@ class TyperNode(NamedTuple):
     def execute(self, *args: str, _print_cmd: bool = False) -> None:
         # Check if root command is in the path
         root_executable: tuple[str, ...] = (
-            shutil.which(self.path[0]),
-        )  # type:ignore
+            shutil.which(self.path[0]),  # type:ignore
+        )
         if root_executable[0] is None:
             root_executable = (sys.argv[0],)
             with suppress(Exception):
@@ -123,7 +123,7 @@ typer_settigs = {
 }
 
 
-@app_reflection.command(**typer_settigs, name='show')
+@app_reflection.command(**typer_settigs, name='show')  # type:ignore
 def show_func() -> None:
     """
     Show function source code.
@@ -135,7 +135,7 @@ def show_func() -> None:
             node.execute('--help', _print_cmd=True)
 
 
-@app_reflection.command(**typer_settigs, name='tree')
+@app_reflection.command(**typer_settigs, name='tree')  # type:ignore
 def tree() -> None:
     """
     Show all functions.
@@ -148,15 +148,17 @@ def tree() -> None:
         )
 
 
-@app_reflection.command(**typer_settigs, name='run')
-def run_func(ctx: Annotated[typer.Context, typer.Argument()] = None) -> None:  # type: ignore
+@app_reflection.command(**typer_settigs, name='run')  # type:ignore
+def run_func(
+    ctx: typer.Context = typer.Argument(None),
+) -> None:
     """
     Select function interactively and run it.
     """
     node = __pick_node__()
     if not node:
         return
-    args: Sequence[str] = ctx.args if ctx else sys.argv[1:]
+    args: Sequence[str] = ctx.args if ctx and not isinstance(ctx, ArgumentInfo) else sys.argv[1:]
     node.execute(*args, _print_cmd=True)
 
 

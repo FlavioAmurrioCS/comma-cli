@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 from typing import TypeVar
 from typing import Union
 if TYPE_CHECKING:
-    from typing import TypeAlias
+    from typing_extensions import TypeAlias
 
 from typing_extensions import ParamSpec
 
