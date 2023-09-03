@@ -9,13 +9,13 @@ from typing import Optional
 from typing import Type
 from typing import TypeVar
 
-from rich.console import Console
-from rich.console import RenderableType
 from rich.status import Status
-from rich.style import StyleType
 from typing_extensions import TypedDict
 
 if typing.TYPE_CHECKING:
+    from rich.console import Console
+    from rich.console import RenderableType
+    from rich.style import StyleType
     from typing_extensions import Literal
     from typing_extensions import ParamSpec
     from typing_extensions import Self

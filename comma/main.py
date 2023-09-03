@@ -9,6 +9,7 @@ from comma.cli.code import c
 from comma.cli.devcon import app_devcon
 from comma.cli.docker import app_docker
 from comma.cli.log_tool import app_logtool as app_logtool
+from comma.cli.reflection import app_reflection
 from comma.cli.runtool_cli import run
 from comma.cli.tmux import mux
 
@@ -19,6 +20,7 @@ app_main.command()(mux)
 app_main.add_typer(app_docker)
 app_main.add_typer(app_logtool)
 app_main.add_typer(app_devcon)
+app_main.add_typer(app_reflection)
 
 if 'COMMA_EXTRA' in os.environ:
     from comma.cli.shell_utils import app_sh
