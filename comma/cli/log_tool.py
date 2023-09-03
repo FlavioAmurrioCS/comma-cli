@@ -13,7 +13,6 @@ from typing import TYPE_CHECKING
 from typing import TypeVar
 
 import typer
-from functional import seq
 from rich import print as rprint
 from rich.console import Console
 from ruamel import yaml
@@ -60,11 +59,15 @@ class LogTool():
 
     def __init__(self, log_tool_config_file: str, logs: Sequence[str]) -> None:
         self.config_file = log_tool_config_file
-        self.log_files = [('/dev/stdin' if file == '-' else file) for file in logs]
+        self.log_files = [
+            ('/dev/stdin' if file == '-' else file)
+            for file in logs
+        ]
         self.log_pattern = ''
         self.reload_config()
 
     def reload_config(self) -> None:
+        from functional import seq
         with open(self.config_file, 'rb') as f:
             self.log_tool_config = yaml.load(f)
             # typing.cast(LogToolConfig, tomli.load(f))
@@ -124,26 +127,41 @@ class LogTool():
 @app_logtool.command()
 def pretty_search(
     config_yaml: str,
-    files: List[str] = typer.Option([], '--file', '-f', help='Files to search.'),
+    files: List[str] = typer.Option(
+        [], '--file', '-f', help='Files to search.',
+    ),
     # interactive: bool = typer.Option(False, '--interactive', help='Prompt for file edit'),
 ) -> None:
     """
     Use config file to search thru files.
     """
-    log_tool = LogTool(log_tool_config_file=config_yaml, logs=(files or ['/dev/stdin']))
+    log_tool = LogTool(
+        log_tool_config_file=config_yaml,
+        logs=(files or ['/dev/stdin']),
+    )
     log_tool.print()
 
 
 @app_logtool.command()
 def search(
     search_patterns: List[str],
-    ignore_case: bool = typer.Option(False, '--ignore-case', '-i', help='Perform case insensitive matching.'),
-    enable_regex: bool = typer.Option(False, '--regex', '-E', help='Enable Regex.'),
-    files: List[str] = typer.Option(['/dev/stdin'], '--file', '-f', help='Files to search.'),
-    ignore_patterns: List[str] = typer.Option([], '-v', help='Specify ignore pattern'),
+    ignore_case: bool = typer.Option(
+        False, '--ignore-case', '-i', help='Perform case insensitive matching.',
+    ),
+    enable_regex: bool = typer.Option(
+        False, '--regex', '-E', help='Enable Regex.',
+    ),
+    files: List[str] = typer.Option(
+        ['/dev/stdin'], '--file', '-f', help='Files to search.',
+    ),
+    ignore_patterns: List[str] = typer.Option(
+        [], '-v', help='Specify ignore pattern',
+    ),
 ) -> None:
     """Search and color text files"""
     files = [('/dev/stdin' if file == '-' else file) for file in files]
+    from functional import seq
+
     stream: FunctionalStream[str] = (
         seq(files)
         .flat_map(
@@ -184,7 +202,10 @@ def search(
     )
 
     patterns_and_colors: list[tuple[re.Pattern[str], str]] = [
-        (re.compile(f'({pattern})', flag), rf'[bold underline {color}]\1[/bold underline {color}]')
+        (
+            re.compile(f'({pattern})', flag),
+            rf'[bold underline {color}]\1[/bold underline {color}]',
+        )
         for pattern, color in zip(search_patterns, itertools.cycle(colors))
     ]
 

@@ -12,8 +12,6 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
-from comma.utils.halo import FHalo
-
 
 class Command(NamedTuple):
     cmd: Union[List[str], Tuple[str, ...]]
@@ -25,6 +23,7 @@ class Command(NamedTuple):
     input: Optional[str] = None
     timeout: Optional[float] = None
     env: Optional[Mapping[str, str]] = None
+    additional_env: Optional[Mapping[str, str]] = None
 
     def run(self) -> subprocess.CompletedProcess[str]:
         self._exec_check()
@@ -40,11 +39,19 @@ class Command(NamedTuple):
                 capture_output=self.capture_output,
                 input=self.input,
                 timeout=self.timeout,
-                env=self.env,
+                env=self.resolved_env,
             )
         except subprocess.CalledProcessError as e:
             logging.error(e.stderr)
             raise
+
+    @property
+    def resolved_env(self) -> Mapping[str, str] | None:
+        return (
+            self.env
+            if not self.additional_env
+            else {**(self.env or os.environ), **self.additional_env}
+        )
 
     def quick_run(self) -> str:
         return self.run().stdout.strip()
@@ -54,8 +61,8 @@ class Command(NamedTuple):
         if 'pytest' in sys.modules:
             self.run()
             return
-        if self.env:
-            for key, value in self.env.items():
+        if self.resolved_env:
+            for key, value in self.resolved_env.items():
                 os.environ[key] = value
         if self.cwd:
             os.chdir(self.cwd)
@@ -77,6 +84,7 @@ class Command(NamedTuple):
         return ' '.join(map(shlex.quote, self.cmd))
 
     def run_with_spinner(self) -> subprocess.CompletedProcess[str]:
+        from comma.utils.halo import FHalo
         with FHalo(status=self.label or repr(self)) as halo:
             try:
                 result = self.run()

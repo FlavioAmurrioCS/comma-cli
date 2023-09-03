@@ -12,7 +12,7 @@ from comma.utils.persistent_cache import sqlite_cache
 app_run = typer.Typer(name='run', help='Run Tool.')
 
 
-@sqlite_cache(hours=1)
+@sqlite_cache(minutes=1)
 def _tools() -> list[str]:
     return RunToolConfig.tool_names()
 
@@ -35,6 +35,7 @@ def run(
     """
     try:
         tool_path = RunToolConfig.get_executable(tool)
+        # RunToolConfig.get_instance().save()
     except KeyError:
         if tool == '--help':
             print(ctx.get_help())

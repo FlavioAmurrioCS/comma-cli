@@ -1,21 +1,18 @@
 from __future__ import annotations
 
 import os
-import re
 import shutil
 import tarfile
 import zipfile
 from contextlib import contextmanager
-from contextlib import suppress
 from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import Generator
-from typing import Sequence
+from typing import TYPE_CHECKING
 
-import requests
-
-from comma.utils.halo import FHalo
+if TYPE_CHECKING:
+    import requests
 
 
 class CommaUtils:
@@ -43,6 +40,7 @@ def temp_dir_context() -> Generator[str, None, None]:
 
 @contextmanager
 def unpacker_context(filename: str) -> Generator[str, None, None]:
+    from comma.utils.halo import FHalo
     with temp_dir_context() as temp_dir:
         with (
                 zipfile.ZipFile(filename)  # type:ignore
@@ -58,6 +56,7 @@ def unpacker_context(filename: str) -> Generator[str, None, None]:
 def quick_deleter(path: str) -> None:
     if os.path.exists(path):
         return
+    from comma.utils.halo import FHalo
     with FHalo(f'Deleting {path}...') as halo:
         with temp_dir_context() as temp_dir:
             temp = os.path.join(temp_dir, 'temp')
@@ -93,7 +92,9 @@ def progress_bar(*, total_size: int, filename: str) -> Generator[Callable[[int],
         transient=True,
     )
     with progress as progress_bar:
-        task_id = progress_bar.add_task('Downloading', filename=filename, total=total_size)
+        task_id = progress_bar.add_task(
+            'Downloading', filename=filename, total=total_size,
+        )
         yield lambda chunk_size: progress_bar.update(task_id=task_id, advance=chunk_size)
 
 
@@ -105,6 +106,8 @@ def download_context(
     filename: str | None = None,
     **kwargs: Any,
 ) -> Generator[str, None, None]:
+    import requests
+
     filename = filename or url.split('/')[-1]
     session = session or requests.Session()
 

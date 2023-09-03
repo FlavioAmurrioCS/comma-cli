@@ -5,6 +5,7 @@ exec "${LATEST_PYTHON:-$(which python3.12 || which python3.11 || which python3.1
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import glob
 import itertools
 import json
@@ -18,11 +19,12 @@ import subprocess
 import sys
 import tarfile
 import tempfile
-import urllib.request
 import zipfile
 from abc import ABC
 from abc import abstractmethod
+from collections import ChainMap
 from contextlib import contextmanager
+from contextlib import suppress
 from dataclasses import asdict
 from dataclasses import dataclass
 from functools import lru_cache
@@ -30,8 +32,11 @@ from typing import Any
 from typing import Generator
 from typing import List
 from typing import Literal
+from typing import Mapping
 from typing import Sequence
 from typing import TYPE_CHECKING
+
+from comma.resources import COMMA_RESOURCE_LOADER
 
 
 if TYPE_CHECKING:
@@ -66,7 +71,10 @@ def list_executables_in_path() -> List[str]:
 @lru_cache(maxsize=1)
 def latest_python() -> str:
     executables = list_executables_in_path()
-    pythons = [x for x in executables if os.path.basename(x).startswith('python') and not x.endswith('config')]
+    pythons = [
+        x for x in executables
+        if os.path.basename(x).startswith('python') and not x.endswith('config')
+    ]
     return max(pythons, key=lambda x: tuple(int(y) for y in os.path.basename(x).split('python')[1].split('.') if y.isdigit()))
 
 
@@ -83,8 +91,23 @@ def newest_python() -> str:
     )
 
 
+class ExecutableProvider(Protocol):
+    def get_executable(self) -> str:
+        ...
+
+    def run(self, *args: str) -> subprocess.CompletedProcess[str]:
+        ...
+
+    def _mdict(self) -> dict[str, Any]:
+        ...
+
+
 class _ToolInstallerBase(ABC):
-    BIN_INSTALL_DIR: str = os.environ.get('TOOL_INSTALLER_BIN_DIR', os.path.join(os.path.expanduser('~'), '.local', 'bin'))
+    BIN_INSTALL_DIR: str = os.environ.get(
+        'TOOL_INSTALLER_BIN_DIR', os.path.join(
+            os.path.expanduser('~'), '.local', 'bin',
+        ),
+    )
 
     @staticmethod
     def make_executable(filename: str) -> str:
@@ -104,6 +127,28 @@ class _ToolInstallerBase(ABC):
             capture_output=True,
         )
 
+    def _mdict(self) -> dict[str, Any]:
+        m_asdict: dict[str, str] = (
+            self._asdict()  # type:ignore
+            if hasattr(self, '_asdict')
+            else asdict(self)  # type:ignore
+        )
+
+        with suppress(Exception):
+            anno: dict[str, dataclasses.Field] = self.__class__.__dataclass_fields__  # type:ignore
+            for k, v in anno.items():
+                if m_asdict[k] == v.default:
+                    del m_asdict[k]
+
+        return {
+            'class': self.__class__.__name__,
+            **{
+                key: value
+                for key, value in m_asdict.items()
+                if value is not None and not key.isupper()
+            },
+        }
+
 
 @dataclass
 class GitProjectInstallSource(_ToolInstallerBase):
@@ -111,13 +156,24 @@ class GitProjectInstallSource(_ToolInstallerBase):
     path: str
     tag: str = 'master'
     pull: bool = False
-    GIT_PROJECT_DIR: str = os.environ.get('TOOL_INSTALLER_GIT_PROJECT_DIR', os.path.join(os.path.expanduser('~'), 'opt', 'git_projects'))
+    GIT_PROJECT_DIR: str = os.environ.get(
+        'TOOL_INSTALLER_GIT_PROJECT_DIR', os.path.join(
+            os.path.expanduser('~'), 'opt', 'git_projects',
+        ),
+    )
 
     def get_executable(self) -> str:
-        git_project_location = os.path.join(self.GIT_PROJECT_DIR, '_'.join(self.git_url.split('/')[-1:]))
+        git_project_location = os.path.join(
+            self.GIT_PROJECT_DIR, '_'.join(self.git_url.split('/')[-1:]),
+        )
         git_bin = os.path.join(git_project_location, self.path)
         if not os.path.exists(git_bin):
-            subprocess.run(('git', 'clone', '-b', self.tag, self.git_url, git_project_location), check=True)
+            subprocess.run(
+                (
+                    'git', 'clone', '-b', self.tag,
+                    self.git_url, git_project_location,
+                ), check=True,
+            )
         elif self.pull:
             subprocess.run(('git', '-C', git_project_location, 'pull'))
         return self.make_executable(git_bin)
@@ -132,7 +188,9 @@ class ShivInstallSource(_ToolInstallerBase):
         command = self.command or self.package
         bin_path = os.path.join(self.BIN_INSTALL_DIR, command)
         if not os.path.exists(bin_path):
-            shiv_executable = UrlInstallSource(url='https://github.com/linkedin/shiv/releases/download/1.0.3/shiv', rename='shiv').get_executable()
+            shiv_executable = UrlInstallSource(
+                url='https://github.com/linkedin/shiv/releases/download/1.0.3/shiv', rename='shiv',
+            ).get_executable()
             subprocess.run(
                 (
                     newest_python(),
@@ -162,12 +220,19 @@ class PipxInstallSource(_ToolInstallerBase):
                 'PIPX_BIN_DIR': self.BIN_INSTALL_DIR,
                 # 'PIPX_HOME': self.bin_dir,
             }
-            subprocess.run((pipx_cmd, 'install', '--force', self.package), check=True, env=env)
+            subprocess.run(
+                (
+                    pipx_cmd, 'install', '--force',
+                    self.package,
+                ), check=True, env=env,
+            )
         return bin_path
 
 
 class InternetInstaller(_ToolInstallerBase, ABC):
-    PACKAGE_INSTALL_DIR: str = os.environ.get('TOOL_INSTALLER_PACKAGE_DIR', os.path.join(os.path.expanduser('~'), 'opt', 'packages'))
+    PACKAGE_INSTALL_DIR: str = os.environ.get(
+        'TOOL_INSTALLER_PACKAGE_DIR', os.path.join(os.path.expanduser('~'), 'opt', 'packages'),
+    )
 
     @staticmethod
     def uncompress(filename: str) -> zipfile.ZipFile | tarfile.TarFile:
@@ -175,18 +240,28 @@ class InternetInstaller(_ToolInstallerBase, ABC):
 
     @staticmethod
     def find_executable(directory: str, executable_name: str) -> str | None:
-        glob1 = glob.iglob(os.path.join(directory, '**', executable_name), recursive=True)
-        glob2 = glob.iglob(os.path.join(directory, '**', f'{executable_name}*'), recursive=True)
+        glob1 = glob.iglob(
+            os.path.join(
+                directory, '**', executable_name,
+            ), recursive=True,
+        )
+        glob2 = glob.iglob(
+            os.path.join(
+                directory, '**', f'{executable_name}*',
+            ), recursive=True,
+        )
         return next((x for x in itertools.chain(glob1, glob2) if (os.path.isfile(x)) and not os.path.islink(x)), None)
 
     @staticmethod
     def get_request(url: str) -> str:
+        import urllib.request
         with urllib.request.urlopen(url) as f:
             return f.read().decode('utf-8')
 
     @staticmethod
     @contextmanager
     def download_context(url: str) -> Generator[str, None, None]:
+        import urllib.request
         logging.info(f'Downloading: {url}')
         derive_name = os.path.basename(url)
         with tempfile.TemporaryDirectory() as tempdir:
@@ -246,7 +321,9 @@ class InternetInstaller(_ToolInstallerBase, ABC):
         symlink_path = os.path.join(cls.BIN_INSTALL_DIR, rename)
         if os.path.isfile(symlink_path):
             if not os.path.islink(symlink_path):
-                logging.info(f'File is already in {cls.BIN_INSTALL_DIR} with name {os.path.basename(executable)}')
+                logging.info(
+                    f'File is already in {cls.BIN_INSTALL_DIR} with name {os.path.basename(executable)}',
+                )
                 return executable
             elif os.path.realpath(symlink_path) == os.path.realpath(executable):
                 return symlink_path
@@ -326,7 +403,9 @@ class LinkInstaller(InternetInstaller, ABC):
         ...
 
     def get_executable(self) -> str:
-        executable_path = os.path.join(self.BIN_INSTALL_DIR, self.rename or self.binary)
+        executable_path = os.path.join(
+            self.BIN_INSTALL_DIR, self.rename or self.binary,
+        )
         if os.path.exists(executable_path):
             return executable_path
 
@@ -341,7 +420,9 @@ class LinkInstaller(InternetInstaller, ABC):
         rename = rename or binary
         download_url = self.__best_url__(links)
         if not download_url:
-            logging.error(f'Could not choose appropiate download from {rename}')
+            logging.error(
+                f'Could not choose appropiate download from {rename}',
+            )
             raise SystemExit(1)
         basename = os.path.basename(download_url)
         if basename.endswith('.zip') or '.tar' in basename or basename.endswith('.tgz') or basename.endswith('.tbz'):
@@ -392,7 +473,11 @@ class LinkInstaller(InternetInstaller, ABC):
             return links
 
         pat = re.compile(system_patterns[system])
-        filtered_links = [x for x in links if pat.search(os.path.basename(x).lower())]
+        filtered_links = [
+            x for x in links if pat.search(
+                os.path.basename(x).lower(),
+            )
+        ]
         return filtered_links or links
 
     def filter_machine(self, links: list[str], machine: str) -> list[str]:
@@ -407,7 +492,11 @@ class LinkInstaller(InternetInstaller, ABC):
 
         machine = machine.lower()
         pat = re.compile(machine_patterns.get(machine, machine))
-        filtered_links = [x for x in links if pat.search(os.path.basename(x).lower())]
+        filtered_links = [
+            x for x in links if pat.search(
+                os.path.basename(x).lower(),
+            )
+        ]
 
         return filtered_links or links
 
@@ -416,7 +505,7 @@ class LinkInstaller(InternetInstaller, ABC):
             x
             for x in links
             if not re.search(
-                '\\.txt|license|\\.md|\\.sha256|\\.sha256sum|checksums|\\.asc|\\.sig|src',
+                '\\.txt|license|\\.md|\\.sha256|\\.sha256sum|checksums|\\.asc|\\.sig|src|\\.sbom',
                 os.path.basename(x).lower(),
             )
         ]
@@ -577,122 +666,18 @@ class GroupUrlInstallSource(LinkInstaller):
         return self._links
 
 
-class ExecutableProvider(Protocol):
-    def get_executable(self) -> str:
-        ...
-
-    def run(self, *args: str) -> subprocess.CompletedProcess[str]:
-        ...
-
-
-PRE_CONFIGURED_TOOLS: dict[str, ExecutableProvider] = {
-    # GithubScriptInstallSource
-    'theme.sh': GithubScriptInstallSource(user='lemnos', project='theme.sh', path='bin/theme.sh'),
-    'neofetch': GithubScriptInstallSource(user='dylanaraps', project='neofetch'),
-    'adb-sync': GithubScriptInstallSource(user='google', project='adb-sync'),
-    'bb': GithubScriptInstallSource(user='FlavioAmurrioCS', project='dot', path='.dot/bin/scripts/bb'),
-
-    # GithubReleaseInstallSource
-    'shiv': GithubReleaseLinks(user='linkedin', project='shiv'),
-    'fzf': GithubReleaseLinks(user='junegunn', project='fzf'),
-    'rg': GithubReleaseLinks(user='microsoft', project='ripgrep-prebuilt', _binary='rg'),
-    'docker-compose': GithubReleaseLinks(user='docker', project='compose', _binary='docker-compose'),
-    'gdu': GithubReleaseLinks(user='dundee', project='gdu'),
-    'tldr': GithubReleaseLinks(user='isacikgoz', project='tldr'),
-    'lazydocker': GithubReleaseLinks(user='jesseduffield', project='lazydocker'),
-    'lazygit': GithubReleaseLinks(user='jesseduffield', project='lazygit'),
-    'lazynpm': GithubReleaseLinks(user='jesseduffield', project='lazynpm'),
-    'shellcheck': GithubReleaseLinks(user='koalaman', project='shellcheck'),
-    'shfmt': GithubReleaseLinks(user='mvdan', project='sh', rename='shfmt'),
-    'bat': GithubReleaseLinks(user='sharkdp', project='bat'),
-    'fd': GithubReleaseLinks(user='sharkdp', project='fd'),
-    'delta': GithubReleaseLinks(user='dandavison', project='delta'),
-    'btop': GithubReleaseLinks(user='aristocratos', project='btop'),
-    'deno': GithubReleaseLinks(user='denoland', project='deno'),
-    'hadolint': GithubReleaseLinks(user='hadolint', project='hadolint'),
-    'code-server': GithubReleaseLinks(user='coder', project='code-server', _binary='code-server'),
-    'geckodriver': GithubReleaseLinks(user='mozilla', project='geckodriver'),
-    'termscp': GithubReleaseLinks(user='veeso', project='termscp'),
-    'gh': GithubReleaseLinks(user='cli', project='cli', _binary='gh'),
-    'docker-machine': GithubReleaseLinks(user='docker', project='machine', _binary='docker-machine'),
-    'wasmer': GithubReleaseLinks(user='wasmerio', project='wasmer'),
-    'jq': GithubReleaseLinks(user='jqlang', project='jq'),
-    'yq': GithubReleaseLinks(user='mikefarah', project='yq'),
-    'hx': GithubReleaseLinks(user='helix-editor', project='helix', _binary='hx'),
-    'nvim': GithubReleaseLinks(user='neovim', project='neovim', _binary='nvim'),
-
-
-    # GitProjectInstallSource
-    'pyenv': GitProjectInstallSource(git_url='https://github.com/pyenv/pyenv', path='libexec/pyenv'),
-    'nodenv': GitProjectInstallSource(git_url='https://github.com/nodenv/nodenv', path='libexec/nodenv'),
-
-    # UrlInstallSource
-    'repo': UrlInstallSource(url='https://storage.googleapis.com/git-repo-downloads/repo'),
-    'cht.sh': UrlInstallSource(url='https://cht.sh/:cht.sh', rename='cht.sh'),
-
-    # ZipTarInstallSource
-    'adb': ZipTarInstallSource(package_url=f'https://dl.google.com/android/repository/platform-tools-latest-{platform.system().lower()}.zip', executable_name='adb', package_name='platform-tools'),
-    'fastboot': ZipTarInstallSource(package_url=f'https://dl.google.com/android/repository/platform-tools-latest-{platform.system().lower()}.zip', executable_name='fastboot', package_name='platform-tools'),
-
-    # ShivInstallSource
-    'pipx': ShivInstallSource(package='pipx'),
-
-    # PipxInstallSource
-    'autopep8': PipxInstallSource(package='autopep8'),
-    'babi': PipxInstallSource(package='babi'),
-    'bpython': PipxInstallSource(package='bpython'),
-    'clang-format': PipxInstallSource(package='clang-format'),
-    'clang-tidy': PipxInstallSource(package='clang-tidy'),
-    'gcovr': PipxInstallSource(package='gcovr'),
-    'jupyter-lab': PipxInstallSource(package='jupyterlab', command='jupyter-lab'),
-    'jupyter-notebook': PipxInstallSource(package='notebook', command='jupyter-notebook'),
-    'mypy': PipxInstallSource(package='mypy'),
-    'pre-commit': PipxInstallSource(package='pre-commit'),
-    'ptpython': PipxInstallSource(package='ptpython'),
-    'run': PipxInstallSource(package='runtool', command='run'),
-    'run-which': PipxInstallSource(package='runtool', command='run-which'),
-    'tox': PipxInstallSource(package='tox'),
-    'tuna': PipxInstallSource(package='tuna'),
-    'virtualenv': PipxInstallSource(package='virtualenv'),
-    'ranger': PipxInstallSource(package='ranger-fm', command='ranger'),
-    'rifle': PipxInstallSource(package='ranger-fm', command='rifle'),
-    'http': PipxInstallSource(package='httpie', command='http'),
-    'https': PipxInstallSource(package='httpie', command='https'),
-    'youtube-dl': PipxInstallSource(package='youtube-dl', command='youtube-dl'),
-    'virtualenvwrapper': PipxInstallSource(package='virtualenvwrapper', command='virtualenvwrapper'),
-    'typer': PipxInstallSource(package='typer-cli', command='typer'),
-    'vd': PipxInstallSource(package='visidata', command='vd'),
-    'log-tool': PipxInstallSource(package='git+https://github.com/FlavioAmurrioCS/log-tool.git', command='log-tool'),
-    'twine': PipxInstallSource(package='twine', command='twine'),
-    'rustenv': PipxInstallSource(package='rustenv', command='rustenv'),
-    'frogmouth': PipxInstallSource(package='frogmouth', command='frogmouth'),
-    'rich': PipxInstallSource(package='rich-cli', command='rich'),
-    'textual': PipxInstallSource(package='textual[dev]', command='textual'),
-    'litecli': PipxInstallSource(package='litecli'),
-    'pyphoon': PipxInstallSource(package='git+https://github.com/chubin/pyphoon.git', command='pyphoon'),
-    'aws': PipxInstallSource(package='git+https://github.com/aws/aws-cli.git@v2', command='aws'),
-
-    # GroupUrlInstallSource
-    'heroku': HerokuLinks(),
-    'rclone': RCloneLinks(),
-    'zig': ZigLinks(),
-    'node': NodeLinks(binary='node'),
-    'npm': NodeLinks(binary='npm'),
-    'npx': NodeLinks(binary='npx'),
-    'native-image': GraalVMLinks(),
-    'java': GraalVMLinks(binary='java'),
-    'javac': GraalVMLinks(binary='javac'),
-
-    # 'rustup': ScriptInstaller(scritp_url='https://sh.rustup.rs', command='rustup'),
-    # 'sdk': ScriptInstaller(scritp_url='https://get.sdkman.io', source_script='$HOME/.sdkman/bin/sdkman-init.sh', command='sdk'),
-}
+# 'rustup': ScriptInstaller(scritp_url='https://sh.rustup.rs', command='rustup'),
+# 'sdk': ScriptInstaller(scritp_url='https://get.sdkman.io', source_script='$HOME/.sdkman/bin/sdkman-init.sh', command='sdk'),
 
 
 class RunToolConfig:
-    _tools: dict[str, ExecutableProvider]
+    _tools: Mapping[str, ExecutableProvider]
 
     def __init__(self) -> None:
-        self._tools = {**PRE_CONFIGURED_TOOLS, ** self.__load_config__()}
+        self._tools = ChainMap(
+            self.__load_config__(),
+            self.parse_json_obj(COMMA_RESOURCE_LOADER.get_resource_yaml('config.yaml')),
+        )
 
     @classmethod
     def __config_file_path__(cls) -> str:
@@ -708,11 +693,17 @@ class RunToolConfig:
             with open(filename) as f:
                 json_str = f.read()
         elif filename.endswith('.yaml'):
-            json_str = GithubReleaseLinks(user='mikefarah', project='yq').run(filename, '--tojson').stdout
+            json_str = GithubReleaseLinks(user='mikefarah', project='yq').run(
+                filename, '--tojson',
+            ).stdout
         else:
             raise ValueError(f'Unsupported file type: {filename}')
 
         raw_obj = json.loads(json_str)
+        return cls.parse_json_obj(raw_obj)
+
+    @classmethod
+    def parse_json_obj(cls, raw_obj: Any) -> dict[str, ExecutableProvider]:
         return {k: cls.__from_obj__(v) for k, v in raw_obj.items()}
 
     @staticmethod
@@ -721,12 +712,12 @@ class RunToolConfig:
         return getattr(sys.modules[__name__], class_name)(**obj)
 
     def save(self) -> None:
-        final_obj = {}
-        for k, v in sorted(self._tools.items(), key=lambda x: (str(type(x[1])), x[0])):
-            m_asdict: dict[str, str] = v._asdict() if hasattr(v, '_asdict') else asdict(v)  # type:ignore
-            final_obj[k] = {'class': type(v).__name__, **{a: b for a, b in m_asdict.items() if b is not None}}
+        final_obj = {
+            k: v._mdict()
+            for k, v in sorted(self._tools.items())
+        }
 
-        with open(self.__config_file_path__(), 'w') as f:
+        with open('/tmp/RUNCONFIG.json', 'w') as f:
             json.dump(final_obj, f, indent=4)
 
     def run(self, command: str, *args: str) -> subprocess.CompletedProcess[str]:
