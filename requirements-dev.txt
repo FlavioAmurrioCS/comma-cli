@@ -1,5 +1,6 @@
 autopep8
 mypy
 pre-commit
-pyfunctional@git+https://github.com/weditor/PyFunctional@typing
+ptpython
 pytest
+types-requests

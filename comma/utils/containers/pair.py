@@ -18,19 +18,11 @@ from typing import TypeVar
 
 from typing_extensions import TypedDict
 
+from comma.no_deps.pair import Pair
 from comma.utils.command import Command
-
 L = TypeVar('L')
 R = TypeVar('R')
 T = TypeVar('T')
-
-
-class Pair(NamedTuple, Generic[L, R]):
-    left: L
-    right: R
-
-    def flip(self) -> Pair[R, L]:
-        return Pair(self.right, self.left)
 
 
 H = TypeVar('H', bound=Hashable)
