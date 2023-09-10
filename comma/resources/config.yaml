@@ -33,6 +33,13 @@ btop:
   class: GithubReleaseLinks
   user: aristocratos
   project: btop
+pyproject-build:
+  class: PipxInstallSource
+  package: build
+  command: pyproject-build
+bumpver:
+  class: PipxInstallSource
+  package: bumpver
 cht.sh:
   class: UrlInstallSource
   url: https://cht.sh/:cht.sh

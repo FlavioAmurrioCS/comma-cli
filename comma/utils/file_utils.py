@@ -6,6 +6,9 @@ from typing import Generator
 
 
 def ancestors(path: str) -> Generator[str, None, None]:
+    """
+    Generate all ancestors of a path.
+    """
     path = os.path.abspath(path)
     yield path
     while path != '/':
