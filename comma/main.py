@@ -5,8 +5,8 @@ import sys
 
 import typer
 
-from comma.devcon.devcon import app_devcon
-from comma.docker.docker import app_docker
+from comma.devcon import app_devcon
+from comma.docker import app_docker
 from comma.logtool import app_logtool
 from comma.misc.code import c
 from comma.misc.tmux import mux

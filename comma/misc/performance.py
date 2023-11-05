@@ -17,7 +17,11 @@ if TYPE_CHECKING:
 
 
 @contextmanager
-def time_it_ctx(*, label: str) -> Generator[None, None, None]:
+def time_it_ctx(
+    *,
+    label: str,
+    printer: Callable[[str], None] = logging.debug,
+) -> Generator[None, None, None]:
     """
     A context manager that measures the time taken by a block of code.
 
@@ -35,10 +39,14 @@ def time_it_ctx(*, label: str) -> Generator[None, None, None]:
     start = time.monotonic_ns()
     yield
     delta_ms = (time.monotonic_ns() - start) / 1_000_000
-    logging.debug(f'Time taken by {label}: {delta_ms} ms')
+    printer(f'Time taken by {label}: {delta_ms} ms')
 
 
-def time_it(*, label: str | None = None) -> Callable[[Callable[P, R]], Callable[P, R]]:
+def time_it(
+    *,
+    label: str | None = None,
+    printer: Callable[[str], None] = logging.debug,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """
     A decorator that measures the time taken by a function.
 
@@ -56,7 +64,7 @@ def time_it(*, label: str | None = None) -> Callable[[Callable[P, R]], Callable[
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-            with time_it_ctx(label=(label or func.__name__)):
+            with time_it_ctx(label=(label or func.__name__), printer=printer):
                 return func(*args, **kwargs)
         return wrapper
     return decorator

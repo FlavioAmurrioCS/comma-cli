@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import typer
 
-from comma.machine.local_machine import LocalMachine
+from comma.machine import LocalMachine
 from fzf import fzf
 
 app_sh: typer.Typer = typer.Typer(

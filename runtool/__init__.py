@@ -747,7 +747,6 @@ def get_builtin_config() -> str:
 
 
 def parse_ini(filename: str) -> dict[str, SectionProxy]:
-    print(f'{filename=}')
     config = configparser.ConfigParser()
     config.read(filename)
     return {k: config[k] for k in config.sections()}

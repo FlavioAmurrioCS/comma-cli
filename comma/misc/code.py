@@ -4,8 +4,8 @@ from typing import Optional
 
 import typer
 
-from comma.machine.local_machine import LocalMachine
-from comma.machine.ssh_machine import SshMachine
+from comma.machine import LocalMachine
+from comma.machine import SshMachine
 from fzf import fzf
 
 app_c: typer.Typer = typer.Typer(name='c')

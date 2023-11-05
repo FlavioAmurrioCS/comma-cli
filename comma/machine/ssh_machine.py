@@ -5,7 +5,7 @@ from typing import Optional
 from typing import Sequence
 
 from comma.command import Command
-from comma.machine.machine import Machine
+from comma.machine import Machine
 
 
 _ssh_options = (

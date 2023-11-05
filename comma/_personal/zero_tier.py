@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 import typer
 
-from comma.machine.ssh_machine import SshMachine
+from comma.machine import SshMachine
 from fzf import fzf
 from persistent_cache import sqlite_cache
 if TYPE_CHECKING:

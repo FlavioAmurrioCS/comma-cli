@@ -4,8 +4,8 @@ import itertools
 import os
 import shutil
 
+from .machine import Machine
 from comma.command import Command
-from comma.machine.machine import Machine
 from comma.types import CMD_ARGS
 from persistent_cache import sqlite_cache
 

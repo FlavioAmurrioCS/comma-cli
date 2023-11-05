@@ -30,7 +30,7 @@ class Machine(ABC):
         return self.quick_run(('hostname',))
 
     def is_local(self) -> bool:
-        from comma.machine.local_machine import LocalMachine
+        from comma.machine import LocalMachine
         return self.__class__ == LocalMachine
 
     def get_file_list(self, find_cmd: FindCommand) -> str:
