@@ -28,7 +28,7 @@ def get_tool(tool: str) -> str:
 #         if os.path.isfile(x) and os.access(x, os.X_OK) and not x.endswith('.py')
 #     ]
 
-__TOOLS__ = ('dev.sh')  # Tool list should be generated from the files in the package
+__TOOLS__ = ('dev.sh',)  # Tool list should be generated from the files in the package
 
 
 @app_shell_scripts.command(
