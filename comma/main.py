@@ -10,6 +10,7 @@ from comma.docker import app_docker
 from comma.logtool import app_logtool
 from comma.misc.code import c
 from comma.misc.tmux import mux
+from comma.shell_scripts.shell_utils import app_sh
 from comma.typer.reflection import app_reflection
 from runtool.runtool_cli import run
 
@@ -22,24 +23,23 @@ app_main.add_typer(app_logtool)
 app_main.add_typer(app_devcon)
 app_main.add_typer(app_reflection)
 
-if 'COMMA_EXTRA' in os.environ:
-    from shell_scripts.shell_utils import app_sh
-    app_main.add_typer(app_sh)
+app_main.add_typer(app_sh)
 
-    from _personal.zero_tier import app_zerotier
+if os.environ.get('USER', '').upper() in ('FLAVIO', 'FMM597', 'TASHA'):
+    from comma._personal.zero_tier import app_zerotier
     app_main.add_typer(app_zerotier)
 
-    from comma.cli.wt import app_wt
+    from comma.misc.wt import app_wt
     app_main.add_typer(app_wt)
 
-    from comma.cli.code import rc
+    from comma.misc.code import rc
     app_main.command()(rc)
 
-    from comma.cli.tmux import rmux
+    from comma.misc.tmux import rmux
     app_main.command()(rmux)
 
     if {'fastapi', 'uvicorn'}.issubset(sys.modules.keys()):
-        from _personal.server import server
+        from comma._personal.server import server
         app_main.command()(server)
 
 ############

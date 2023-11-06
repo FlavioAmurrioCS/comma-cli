@@ -1,29 +1,34 @@
 from __future__ import annotations
 
+import importlib.resources
 import logging
 import os
-from typing import List
 
 import typer
-
-from comma.misc.performance import time_it
-from persistent_cache import sqlite_cache
 
 app_shell_scripts = typer.Typer()
 
 
-@sqlite_cache(minutes=5)
-def script_dir() -> str:
-    from src.resources import GenericResourceHelper
-    loader = GenericResourceHelper('comma.resources.shell_scripts')
-    with loader.get_resource('.') as bb:
-        return bb.as_posix()
+# @sqlite_cache(minutes=5)
+# def script_dir() -> str:
+#     return str(importlib.resources.files(__package__))
 
 
-@time_it()
-@sqlite_cache(minutes=1)
-def _tools() -> List[str]:
-    return [x for x in os.listdir(script_dir()) if os.path.isfile(x) and x != '__init__.py']
+def get_tool(tool: str) -> str:
+    with importlib.resources.as_file(importlib.resources.files(__package__).joinpath(tool)) as tool_path:
+        return tool_path.as_posix()
+
+
+# @sqlite_cache(minutes=1)
+# def _tools() -> List[str]:
+#     # (resource.name for resource in importlib.resources.files(__package__).iterdir() if resource.is_file())
+#     return [
+#         x
+#         for x in os.listdir(script_dir())
+#         if os.path.isfile(x) and os.access(x, os.X_OK) and not x.endswith('.py')
+#     ]
+
+__TOOLS__ = ('dev.sh')  # Tool list should be generated from the files in the package
 
 
 @app_shell_scripts.command(
@@ -36,20 +41,25 @@ def _tools() -> List[str]:
 )
 def sh(
     ctx: typer.Context,
-    tool: str = typer.Argument('bb', autocompletion=_tools, help=f'{" ".join(_tools())}'),
+    tool: str = typer.Argument('dev.sh', autocompletion=lambda: __TOOLS__, help=f'{" ".join(__TOOLS__)}'),
     which: bool = typer.Option(False, '--which', help='Print the command instead of running it.'),
 ) -> int:
     """
     Installs (if needed) and runs a tool.
     """
 
-    if tool not in _tools():
+    tool_path = get_tool(tool)
+
+    if not os.path.exists(tool_path):
         if tool == '--help':
             print(ctx.get_help())
         else:
             logging.error(f'No tool named: {tool}')
         return 1
-    cmd = (os.path.join(script_dir(), tool), *ctx.args)
+    if which:
+        print(tool_path)
+        return 0
+    cmd = (tool_path, *ctx.args)
     os.execvp(cmd[0], cmd)
 
 
