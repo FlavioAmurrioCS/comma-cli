@@ -387,3 +387,9 @@ def fzf(
 
     converted: list[T] = [dct[x] for x in lines] if dct else lines  # type:ignore
     return converted if multi else converted[0]
+
+
+if __name__ == '__main__':
+    s1: list[int] = fzf([1], multi=True)
+    s2: int | None = fzf([2], multi=False)
+    s3: int | None = fzf([3])

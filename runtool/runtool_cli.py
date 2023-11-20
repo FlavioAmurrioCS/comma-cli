@@ -6,14 +6,13 @@ from typing import List
 
 import typer
 
-from persistent_cache import sqlite_cache
 from runtool import RunToolConfig
 
 
 app_run = typer.Typer(name='run', help='Run Tool.')
 
 
-@sqlite_cache(minutes=1)
+# @sqlite_cache(minutes=1)
 def _tools() -> List[str]:
     return RunToolConfig.tool_names()
 
