@@ -9,7 +9,6 @@ from typing import TypeVar
 
 from typing_extensions import Literal
 from typing_extensions import TypedDict
-from typing_extensions import Unpack
 
 from tool_wrapper import select_helper
 
@@ -364,7 +363,7 @@ def fzf(  # type:ignore
     multi: Literal[False] = False,
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
-    **kwargs: Unpack[_FzfOptions],
+    _options: _FzfOptions | None = None,
 ) -> T | None:
     ...
 
@@ -376,7 +375,7 @@ def fzf(
     multi: Literal[True] = True,
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
-    **kwargs: Unpack[_FzfOptions],
+    _options: _FzfOptions | None = None,
 ) -> list[T]:
     ...
 
@@ -387,11 +386,13 @@ def fzf(
     multi: bool = False,
     select_one: bool = True,
     key: Callable[[T], str] | None = None,
-    **kwargs: Unpack[_FzfOptions],
+    _options: _FzfOptions | None = None,
 ) -> T | None | list[T]:
 
-    kwargs['select_1'] = select_one
-    cmd = ['fzf', *(_fzf_options(kwargs))]
+    _options = _options or {}
+
+    _options['select_1'] = select_one
+    cmd = ['fzf', *(_fzf_options(_options))]
     if multi:
         cmd.append('--multi')
 

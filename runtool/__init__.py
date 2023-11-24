@@ -681,7 +681,7 @@ class RunToolConfig:
 
     @classmethod
     def __config_file_path__(cls) -> str:
-        return os.path.expanduser(os.getenv('RUNTOOL_CONFIG', '~/.config/runtool/config.yaml'))
+        return os.path.expanduser(os.getenv('RUNTOOL_CONFIG', '~/.config/runtool/config.ini'))
 
     @classmethod
     def __load_config__(cls) -> dict[str, ExecutableProvider]:

@@ -11,7 +11,6 @@ from typing import TypeAlias
 from typing import TypeVar
 
 from typing_extensions import TypedDict
-from typing_extensions import Unpack
 
 from tool_wrapper import select_helper
 
@@ -115,7 +114,7 @@ def gum_choose(  # type:ignore
     multi: Literal[False] = False,
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
-    **kwargs: Unpack[_GumChooseOptions],
+    options: _GumChooseOptions | None,
 ) -> T | None:
     ...
 
@@ -127,7 +126,7 @@ def gum_choose(
     multi: Literal[True] = True,
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
-    **kwargs: Unpack[_GumChooseOptions],
+    options: _GumChooseOptions | None,
 ) -> list[T]:
     ...
 
@@ -138,17 +137,18 @@ def gum_choose(
     multi: bool = False,
     select_one: bool = True,
     key: Callable[[T], str] | None = None,
-    **kwargs: Unpack[_GumChooseOptions],
+    options: _GumChooseOptions | None = None,
 ) -> T | None | list[T]:
+    options = options or {}
     if multi:
-        kwargs['no_limit'] = True
-        kwargs.pop('limit', None)
+        options['no_limit'] = True
+        options.pop('limit', None)
     else:
-        kwargs['limit'] = 1
-        kwargs.pop('no_limit', None)
+        options['limit'] = 1
+        options.pop('no_limit', None)
 
     return select_helper(
-        cmd=['gum', 'choose', *_gum_choose_options(kwargs)],
+        cmd=['gum', 'choose', *_gum_choose_options(options)],
         items=items,
         multi=multi,  # type:ignore
         select_one=select_one,
@@ -193,10 +193,10 @@ def _gum_confirm_options(kwargs: _GumConfirmOptions) -> list[str]:
 
 def gum_confirm(
     prompt: str,
-    **kwargs: Unpack[_GumConfirmOptions],
+    options: _GumConfirmOptions | None = None,
 ) -> bool:
-    return subprocess.run(['gum', 'confirm', *_gum_confirm_options(kwargs), prompt]).returncode == 0
-
+    options = options or {}
+    return subprocess.run(['gum', 'confirm', *_gum_confirm_options(options), prompt]).returncode == 0
 
 ####################################################################################################
 # Usage: gum file [<path>]
@@ -213,6 +213,7 @@ def gum_confirm(
 #       --height=0      Maximum number of files to display ($GUM_FILE_HEIGHT)
 #       --timeout=0     Timeout until command aborts without a selection
 #                       ($GUM_FILE_TIMEOUT)
+
 
 class _GumFileOptions(TypedDict, total=False):
     cursor: str
@@ -242,9 +243,10 @@ def _gum_file_options(kwargs: _GumFileOptions) -> list[str]:
 
 def gum_file(
         path: str | None = None,
-        **kwargs: Unpack[_GumFileOptions],
+        options: _GumFileOptions | None = None,
 ) -> str | None:
-    cmd = ['gum', 'file', *_gum_file_options(kwargs)]
+    options = options or {}
+    cmd = ['gum', 'file', *_gum_file_options(options)]
     if path is not None:
         cmd.append(path)
     result = subprocess.run(cmd, encoding='utf-8', errors='ignore', capture_output=True).stdout.strip()
@@ -346,7 +348,7 @@ def gum_filter(  # type:ignore
     multi: Literal[False] = False,
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
-    **kwargs: Unpack[_GumFilterOptions],
+    options: _GumFilterOptions | None = None,
 ) -> T | None:
     ...
 
@@ -358,7 +360,7 @@ def gum_filter(
     multi: Literal[True] = True,
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
-    **kwargs: Unpack[_GumFilterOptions],
+    options: _GumFilterOptions | None = None,
 ) -> list[T]:
     ...
 
@@ -369,7 +371,7 @@ def gum_filter(
     multi: bool = False,
     select_one: bool = True,
     key: Callable[[T], str] | None = None,
-    **kwargs: Unpack[_GumFilterOptions],
+    options: _GumFilterOptions | None = None,
 ) -> T | None | list[T]:
     """
     Selects one or more items from the given iterable using GumFilter.
@@ -384,14 +386,15 @@ def gum_filter(
     Returns:
         Union[list[T], T, None]: The selected item(s), or None if no items were selected.
     """
+    options = options or {}
     if multi:
-        kwargs['no_limit'] = True
-        kwargs.pop('limit', None)
+        options['no_limit'] = True
+        options.pop('limit', None)
     else:
-        kwargs['limit'] = 1
-        kwargs.pop('no_limit', None)
+        options['limit'] = 1
+        options.pop('no_limit', None)
     return select_helper(
-        cmd=['gum', 'filter', *_gum_filter_options(kwargs)],
+        cmd=['gum', 'filter', *_gum_filter_options(options)],
         items=items,
         multi=multi,  # type:ignore
         select_one=select_one,
@@ -430,9 +433,10 @@ def _gum_format_options(kwargs: _GumFormatOptions) -> list[str]:
     return cmd
 
 
-def gum_format(template: str, **kwargs: Unpack[_GumFormatOptions]) -> str:
+def gum_format(template: str, options: _GumFormatOptions | None = None) -> str:
+    options = options or {}
     return subprocess.run(
-        ['gum', 'format', *_gum_format_options(kwargs), template],
+        ['gum', 'format', *_gum_format_options(options), template],
         encoding='utf-8',
         errors='ignore',
         stdout=subprocess.PIPE,
@@ -494,10 +498,11 @@ def _gum_input_options(kwargs: _GumInputOptions) -> list[str]:
 
 
 def gum_input(
-    **kwargs: Unpack[_GumInputOptions],
+    options: _GumInputOptions | None = None,
 ) -> str:
+    options = options or {}
     return subprocess.run(
-        ['gum', 'input', *_gum_input_options(kwargs)],
+        ['gum', 'input', *_gum_input_options(options)],
         encoding='utf-8',
         errors='ignore',
         stdout=subprocess.PIPE,
@@ -534,9 +539,10 @@ def _gum_join_options(kwargs: _GumJoinOptions) -> list[str]:
     return cmd
 
 
-def gum_join(text: str, **kwargs: Unpack[_GumJoinOptions]) -> str:
+def gum_join(text: str, options: _GumJoinOptions | None = None) -> str:
+    options = options or {}
     return subprocess.run(
-        ['gum', 'join', *_gum_join_options(kwargs), text],
+        ['gum', 'join', *_gum_join_options(options), text],
         encoding='utf-8',
         errors='ignore',
         stdout=subprocess.PIPE,
@@ -573,8 +579,9 @@ def _gum_pager_options(kwargs: _GumPagerOptions) -> list[str]:
     return cmd
 
 
-def gum_pager(content: str, **kwargs: Unpack[_GumPagerOptions]) -> None:
-    subprocess.run(['gum', 'pager', *_gum_pager_options(kwargs), content], encoding='utf-8', errors='ignore')
+def gum_pager(content: str, options: _GumPagerOptions | None = None) -> None:
+    options = options or {}
+    subprocess.run(['gum', 'pager', *_gum_pager_options(options), content], encoding='utf-8', errors='ignore')
 
 ####################################################################################################
 # Usage: gum spin <command> ...
@@ -620,10 +627,11 @@ def _gum_spin_options(kwargs: _GumSpinOptions) -> list[str]:
 
 def gum_spin(
     command: Sequence[str],
-    **kwargs: Unpack[_GumSpinOptions],
+    options: _GumSpinOptions | None = None,
 ) -> str:
+    options = options or {}
     return subprocess.run(
-        ['gum', 'spin', *_gum_spin_options(kwargs), '--', *command],
+        ['gum', 'spin', *_gum_spin_options(options), '--', *command],
         encoding='utf-8',
         errors='ignore',
         stdout=subprocess.PIPE,
@@ -711,10 +719,11 @@ def _gum_style_options(kwargs: _GumStyleOptions) -> list[str]:
 
 def gum_style(
     text: str,
-    **kwargs: Unpack[_GumStyleOptions],
+    options: _GumStyleOptions | None = None,
 ) -> str:
+    options = options or {}
     return subprocess.run(
-        ['gum', 'style', *_gum_style_options(kwargs), text],
+        ['gum', 'style', *_gum_style_options(options), text],
         encoding='utf-8',
         errors='ignore',
         stdout=subprocess.PIPE,
@@ -767,11 +776,12 @@ _CSV_DATA: TypeAlias = Sequence[dict[str, _CSV_CELL]] | str
 
 def gum_table(
     data_or_file: _CSV_DATA,
-    **kwargs: Unpack[_GumTableOptions],
+    options: _GumTableOptions | None = None,
 ) -> str | None:
     if not data_or_file:
         return None
-    cmd = ['gum', 'table', *_gum_table_options(kwargs)]
+    options = options or {}
+    cmd = ['gum', 'table', *_gum_table_options(options)]
 
     with tempfile.NamedTemporaryFile(mode='w') as f:
         filename = data_or_file if isinstance(data_or_file, str) else f.name
@@ -841,12 +851,15 @@ def _gum_write_options(kwargs: _GumWriteOptions) -> list[str]:
     return cmd
 
 
-def gum_write(**kwargs: Unpack[_GumWriteOptions]) -> str:
+def gum_write(options: _GumWriteOptions | None = None) -> str:
+    options = options or {}
     return subprocess.run(
-        ['gum', 'write', *_gum_write_options(kwargs)],
+        ['gum', 'write', *_gum_write_options(options)],
         stdout=subprocess.PIPE,
         encoding='utf-8',
     ).stdout
 
 
 ####################################################################################################
+if __name__ == '__main__':
+    gum_spin(['sleep', '5'], {'title': 'Sleeping for 5 seconds...', 'show_output': True})
