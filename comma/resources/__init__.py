@@ -1,15 +1,32 @@
 from __future__ import annotations
 
-from typing import Literal
-from typing import Union
+from contextlib import AbstractContextManager
+from dataclasses import dataclass
+from importlib.resources import Package
+from importlib.resources import path
+from pathlib import Path
+from typing import Any
+from typing import Generic
+from typing import TypeVar
 
-from typing_extensions import TypeAlias
 
-from comma.utils.resources import TypedResourceHelper
+JSONT = TypeVar('JSONT', bound=str)
+OTHERT = TypeVar('OTHERT', bound=str)
 
-_CommaRourcesJson: TypeAlias = Literal['main.json']
-_CommaRourcesYaml: TypeAlias = Literal['config.yaml']
-_CommaRourcesOther: TypeAlias = Union[_CommaRourcesJson, _CommaRourcesYaml, Literal['']]
-COMMA_RESOURCE_LOADER = TypedResourceHelper[_CommaRourcesJson, _CommaRourcesYaml, _CommaRourcesOther]('comma.resources')
 
-COMMA_RESOURCE_LOADER.get_resource('main.json')
+@dataclass
+class TypedResourceHelper(Generic[JSONT, OTHERT]):
+    package: Package
+
+    def get_resource(self, resource: JSONT | OTHERT) -> AbstractContextManager[Path]:
+        return path(self.package, resource)
+
+    def get_resource_json(self, resource: JSONT) -> Any:
+        with path(self.package, resource) as file:
+            with file.open() as f:
+                import json
+                return json.load(f)
+
+
+class GenericResourceHelper(TypedResourceHelper[str, str]):
+    ...
