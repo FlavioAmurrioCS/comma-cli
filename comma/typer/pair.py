@@ -10,11 +10,11 @@ from typing import TypeVar
 from typing import Union
 
 
-L = TypeVar('L')
-R = TypeVar('R')
+_L = TypeVar('_L')
+_R = TypeVar('_R')
 
 try:
-    class Pair(NamedTuple, Generic[L, R]):  # type: ignore
+    class Pair(NamedTuple, Generic[_L, _R]):  # type: ignore
         """
         A generic Pair class that represents a pair of values.
 
@@ -25,10 +25,10 @@ try:
         right : R
             The right value of the pair.
         """
-        left: L
-        right: R
+        left: _L
+        right: _R
 
-        def flip(self) -> Pair[R, L]:
+        def flip(self) -> Pair[_R, _L]:
             """
             Returns a new Pair with the left and right values swapped.
 
@@ -41,7 +41,7 @@ try:
 
 except TypeError:
     @dataclass(frozen=True, unsafe_hash=True)
-    class Pair(Generic[L, R]):  # type: ignore[no-redef]
+    class Pair(Generic[_L, _R]):  # type: ignore[no-redef]
         """
         A generic Pair class that represents a pair of values.
 
@@ -52,10 +52,10 @@ except TypeError:
         right : R
             The right value of the pair.
         """
-        left: L
-        right: R
+        left: _L
+        right: _R
 
-        def flip(self) -> Pair[R, L]:
+        def flip(self) -> Pair[_R, _L]:
             """
             Returns a new Pair with the left and right values swapped.
 
@@ -66,7 +66,7 @@ except TypeError:
             """
             return Pair(self.right, self.left)
 
-        def __iter__(self) -> Iterator[Union[L, R]]:
+        def __iter__(self) -> Iterator[Union[_L, _R]]:
             """
             Returns an iterator over the left and right values of the Pair.
 
@@ -78,7 +78,7 @@ except TypeError:
             yield from astuple(self)
 
 
-def pair_parse(left_func: Callable[[str], L], right_func: Callable[[str], R], delim: str = ',') -> Callable[[str], Pair[L, R]]:
+def pair_parse(left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ',') -> Callable[[str], Pair[_L, _R]]:
     """
     Returns a function that parses a string into a Pair.
 
@@ -96,7 +96,7 @@ def pair_parse(left_func: Callable[[str], L], right_func: Callable[[str], R], de
     Callable[[str], Pair[L, R]]
         A function that parses a string into a Pair.
     """
-    def parse_pair(value: str) -> Pair[L, R]:
+    def parse_pair(value: str) -> Pair[_L, _R]:
         left, right = value.split(delim, maxsplit=1)
         return Pair(left_func(left), right_func(right))
     return parse_pair

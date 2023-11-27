@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import shutil
 import tarfile
 import zipfile
@@ -9,10 +10,76 @@ from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
 from typing import Generator
+from typing import NamedTuple
 from typing import TYPE_CHECKING
+
+from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
     import requests
+
+
+class OSRelease(TypedDict):
+    ID: str
+    NAME: str
+    PRETTY_NAME: str
+    VERSION_ID: str
+
+# ID="amzn"
+# NAME="Amazon Linux"
+# PRETTY_NAME="Amazon Linux 2023"
+# VERSION_ID="2023"
+
+# ID="ubuntu"
+# NAME="Ubuntu"
+# PRETTY_NAME="Ubuntu 22.04.2 LTS"
+# VERSION_ID="22.04"
+
+# ID="alpine"
+# NAME="Alpine Linux"
+# PRETTY_NAME="Alpine Linux v3.18"
+# VERSION_ID="3.18.3"
+
+
+def env_file_to_dict(filename: str) -> OSRelease:
+    ret = {}
+    with open(filename) as f:
+        for line in f:
+            if '=' in line:
+                k, v = line.strip().split('=')
+                ret[k] = v.strip('"')
+    return ret  # type:ignore
+
+
+class SystemInfo(NamedTuple):
+    uname: platform.uname_result
+    is_docker: bool
+    os_release: OSRelease | None
+
+    @classmethod
+    def from_current_machine(cls) -> SystemInfo:
+        uname = platform.uname()
+        is_docker = os.path.exists('/.dockerenv')
+        os_info: OSRelease | None = None
+        if os.path.exists('/etc/os-release'):
+            os_info = env_file_to_dict('/etc/os-release')
+        return cls(
+            uname=uname,
+            is_docker=is_docker,
+            os_release=os_info,
+        )
+
+    def opt_dir(self) -> str:
+        """
+        example: Linux-aarch64-ubuntu-22.04-docker
+        example: Darwin-arm64
+        """
+        identifier = f'{self.uname.system}-{self.uname.machine}'
+        if self.os_release:
+            identifier = f"{identifier}-{self.os_release['ID']}-{self.os_release['VERSION_ID']}"
+        if self.is_docker:
+            identifier = f'{identifier}-docker'
+        return identifier
 
 
 class CommaUtils:
@@ -127,3 +194,7 @@ def download_context(
                     except KeyboardInterrupt:
                         raise SystemExit(1)
         yield full_path
+
+
+if __name__ == '__main__':
+    print(SystemInfo.from_current_machine().opt_dir())
