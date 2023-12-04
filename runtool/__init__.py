@@ -707,26 +707,15 @@ class RunToolConfig:
 
     @classmethod
     def __config_file_path__(cls) -> str:
-        return os.path.expanduser(os.getenv('RUNTOOL_CONFIG', '~/.config/runtool/config.ini'))
+        return os.path.expanduser(os.getenv('RUNTOOL_CONFIG', '~/.config/runtool/runtool.ini'))
 
     @classmethod
     def __load_config__(cls) -> dict[str, ExecutableProvider]:
         filename = cls.__config_file_path__()
         if not os.path.exists(filename):
             return {}
-        json_str = ''
-        if filename.endswith('.json'):
-            with open(filename) as f:
-                json_str = f.read()
-        elif filename.endswith('.yaml'):
-            json_str = GithubReleaseLinks(user='mikefarah', project='yq').run(
-                filename, '--tojson',
-            ).stdout
-        else:
-            raise ValueError(f'Unsupported file type: {filename}')
 
-        raw_obj = json.loads(json_str)
-        return cls.parse_json_obj(raw_obj)
+        return cls.parse_json_obj(parse_ini(filename))
 
     @classmethod
     def parse_json_obj(cls, raw_obj: Mapping[str, Mapping[str, str]]) -> dict[str, ExecutableProvider]:
@@ -992,6 +981,7 @@ class CLILinkInstaller(CLIApp):
 
         return 0
 
+
 if 'fzf' in (os.path.basename(x) for x in list_executables_in_path()):
     class CLIMultiInstaller(CLIApp):
         COMMAND_NAME = 'multi-installer'
@@ -1000,10 +990,11 @@ if 'fzf' in (os.path.basename(x) for x in list_executables_in_path()):
         @classmethod
         def run(cls, argv: Sequence[str] | None = None) -> int:
             dct = parse_ini(get_builtin_config())
-            result = subprocess.run(('fzf', '--multi'), input='\n'.join(f'{k}: {v.get("description")}' for k,v in dct.items()), text=True, stdout=subprocess.PIPE)
+            result = subprocess.run(('fzf', '--multi'), input='\n'.join(f'{k}: {v.get("description")}' for k, v in dct.items()), text=True, stdout=subprocess.PIPE)
             for line in result.stdout.splitlines():
                 print(RunToolConfig.get_executable(line.split(':')[0]))
             return 0
+
 
 class CLIFormatIni(CLIApp):
     COMMAND_NAME = 'format-ini'
