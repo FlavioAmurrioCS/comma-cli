@@ -24,6 +24,7 @@ import zipfile
 from abc import ABC
 from abc import abstractmethod
 from collections import ChainMap
+from collections import Counter
 from configparser import SectionProxy
 from contextlib import contextmanager
 from contextlib import suppress
@@ -36,21 +37,31 @@ from typing import Generator
 from typing import List
 from typing import Literal
 from typing import Mapping
+from typing import NamedTuple
+from typing import overload
 from typing import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Protocol  # python3.8+
+    from typing import Self
 else:
     Protocol = object
+
+
+def input_tty(prompt: str | None = None) -> str:
+    with open('/dev/tty') as tty:
+        if prompt:
+            print(prompt, end='', file=sys.stderr)
+        return tty.readline().strip()
 
 
 def selection(options: list[str]) -> str | None:
     if len(options) == 1:
         return options[0]
-    print('Please select one of the following options:')
+    print('Please select one of the following options:', file=sys.stderr)
     try:
-        return options[int(input('\n'.join(f'{i}: {x}' for i, x in enumerate(options)) + '\nEnter Choice: ') or 0)]
+        return options[int(input_tty('\n'.join(f'{i}: {x}' for i, x in enumerate(options)) + '\nEnter Choice: ') or 0)]
     except IndexError:
         return None
 
@@ -213,7 +224,7 @@ class PipxInstallSource(_ToolInstallerBase):
         command = self.command or self.package
         bin_path = os.path.join(self.BIN_INSTALL_DIR, command)
         if not os.path.exists(bin_path):
-            pipx_cmd = ShivInstallSource('pipx').get_executable()
+            pipx_cmd = GithubReleaseLinks(project='pypa', user='pipx', rename='pipx').get_executable()
             env = {
                 **os.environ,
                 'PIPX_DEFAULT_PYTHON': newest_python(),
@@ -255,7 +266,11 @@ class InternetInstaller(_ToolInstallerBase, ABC):
     @staticmethod
     def get_request(url: str) -> str:
         import urllib.request
-        with urllib.request.urlopen(url) as f:
+        headers = {}
+        if 'github' in url and 'GITHUB_TOKEN' in os.environ:
+            headers['Authorization'] = f'token {os.environ["GITHUB_TOKEN"]}'
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req) as f:
             return f.read().decode('utf-8')
 
     @staticmethod
@@ -266,8 +281,12 @@ class InternetInstaller(_ToolInstallerBase, ABC):
         derive_name = os.path.basename(url)
         with tempfile.TemporaryDirectory() as tempdir:
             download_path = os.path.join(tempdir, derive_name)
+            headers = {}
+            if 'github' in url and 'GITHUB_TOKEN' in os.environ:
+                headers['Authorization'] = f'token {os.environ["GITHUB_TOKEN"]}'
+            req = urllib.request.Request(url, headers=headers)
             with open(download_path, 'wb') as file:
-                with urllib.request.urlopen(url) as f:
+                with urllib.request.urlopen(req) as f:
                     file.write(f.read())
             yield download_path
 
@@ -418,7 +437,7 @@ class LinkInstaller(InternetInstaller, ABC):
 
     def install_best(self, links: Sequence[str], binary: str, rename: str | None = None, package_name: str | None = None) -> str:
         rename = rename or binary
-        download_url = self.__best_url__(links)
+        download_url = BestLinkService().pick(links)
         if not download_url:
             logging.error(
                 f'Could not choose appropiate download from {rename}',
@@ -434,28 +453,34 @@ class LinkInstaller(InternetInstaller, ABC):
             )
         return self.executable_from_url(download_url, rename=rename)
 
-    def __best_url__(self, links: Sequence[str], uname_result: platform.uname_result = platform.uname()) -> str | None:
+
+class BestLinkService(NamedTuple):
+    uname: platform.uname_result = platform.uname()
+
+    def pick(self, links: Sequence[str]) -> str | None:
+        links = self.filter(links)
+        return selection(links) or sorted(links, key=len)[-1]
+
+    def filter(self, links: Sequence[str]) -> list[str]:
         """
         Will look at the urls and based on the information it has will try to pick the best one.
 
         links   links to consider.
         """
         if not links:
-            return None
+            return []
         if len(links) == 1:
-            return links[0]
+            return [links[0]]
 
         links = self.filter_out_invalid(links)
-        links = self.filter_system(links, uname_result.system)
+        links = self.filter_system(links, self.uname.system)
         links = [x for x in links if not x.endswith('.rpm')] or links
         links = [x for x in links if not x.endswith('.deb')] or links
-        links = self.filter_machine(links, uname_result.machine)
+        links = self.filter_machine(links, self.uname.machine)
         links = [x for x in links if 'musl' in x.lower()] or links
         links = [x for x in links if 'armv7' not in x.lower()] or links
 
-        return selection(links) or sorted(links, key=len)[-1]
-
-        # return sorted(links, key=len)[-1]
+        return sorted(links, key=len)
 
     def filter_system(self, links: list[str], system: str) -> list[str]:
         """
@@ -533,34 +558,34 @@ class ZigLinks(LinkInstaller):
         return list(self.links_scraper(json.loads(self.get_request(url))['master']))
 
 
-@dataclass
-class RCloneLinks(LinkInstaller):
-    binary: str = 'rclone'
-    rename: str | None = None
-    package_name: str = 'rclone'
+# @dataclass
+# class RCloneLinks(LinkInstaller):
+#     binary: str = 'rclone'
+#     rename: str | None = None
+#     package_name: str = 'rclone'
 
-    def links(self) -> List[str]:
-        url = 'https://downloads.rclone.org/'
-        return [
-            url + line.split('"', maxsplit=2)[1][2:]
-            for line in self.get_request(url).splitlines()
-            if '<a href="./rclone-current-' in line
-        ]
+#     def links(self) -> List[str]:
+#         url = 'https://downloads.rclone.org/'
+#         return [
+#             url + line.split('"', maxsplit=2)[1][2:]
+#             for line in self.get_request(url).splitlines()
+#             if '<a href="./rclone-current-' in line
+#         ]
 
 
-@dataclass
-class GraalVMLinks(LinkInstaller):
-    binary: str = 'native-image'
-    rename: str | None = None
-    package_name: str = 'native-image'
+# @dataclass
+# class GraalVMLinks(LinkInstaller):
+#     binary: str = 'native-image'
+#     rename: str | None = None
+#     package_name: str = 'native-image'
 
-    def links(self) -> List[str]:
-        url = 'https://www.oracle.com/java/technologies/downloads/'
-        return [
-            line.split('"', maxsplit=2)[1]
-            for line in self.get_request(url).splitlines()
-            if '<a href="https://download.oracle.com/graalvm' in line
-        ]
+#     def links(self) -> List[str]:
+#         url = 'https://www.oracle.com/java/technologies/downloads/'
+#         return [
+#             line.split('"', maxsplit=2)[1]
+#             for line in self.get_request(url).splitlines()
+#             if '<a href="https://download.oracle.com/graalvm' in line
+#         ]
 
 
 @dataclass
@@ -600,6 +625,7 @@ class GithubReleaseLinks(LinkInstaller):
     tag: str = 'latest'
     _binary: str | None = None
     rename: str | None = None
+    base_url: str = 'https://github.com'
 
     @property
     def binary(self) -> str:
@@ -610,23 +636,23 @@ class GithubReleaseLinks(LinkInstaller):
         return f'{self.user}_{self.project}'
 
     def links(self) -> list[str]:
-        url = f'https://github.com/{self.user}/{self.project}/releases/{"latest" if self.tag == "latest" else f"tag/{self.tag}"}'
+        url = f'{self.base_url}/{self.user}/{self.project}/releases/{"latest" if self.tag == "latest" else f"tag/{self.tag}"}'
         html = self.get_request(url)
         # download_links = [
-        #     'https://github.com' + link
+        #     self.base_url + link
         #     for link in re.findall(f'/{self.user}/{self.project}/releases/download/[^"]+', html)
         # ]
         download_links: list[str] = []
         if not download_links:
-            logging.error('Github is now using lazy loading fragments :(')
+            # logging.error('Github is now using lazy loading fragments :(')
             assets_urls = [
-                'https://github.com' + link
+                self.base_url + link
                 for link in re.findall(f'/{self.user}/{self.project}/releases/expanded_assets/[^"]+', html)
             ]
             if assets_urls:
                 html = self.get_request(assets_urls[0])
                 download_links = [
-                    'https://github.com' + link
+                    self.base_url + link
                     for link in re.findall(f'/{self.user}/{self.project}/releases/download/[^"]+', html)
                 ]
             else:
@@ -709,6 +735,7 @@ class RunToolConfig:
     @staticmethod
     def __from_obj__(obj: dict[str, str]) -> ExecutableProvider:
         class_name = obj.pop('class')
+        obj.pop('description', None)  # TODO: add description to dataclass
         return getattr(sys.modules[__name__], class_name)(**obj)
 
     def save(self) -> None:
@@ -752,42 +779,324 @@ def parse_ini(filename: str) -> dict[str, SectionProxy]:
     return {k: config[k] for k in config.sections()}
 
 
-class __ToolInstallerArgs__(Protocol):
-    @property
-    def tool(self) -> str:
+class CLIApp(Protocol):
+    COMMAND_NAME: str
+    DESCRIPTION: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        return parser
+
+    @overload
+    @classmethod
+    def parse_args(cls, argv: Sequence[str] | None) -> Self:
+        ...
+
+    @overload
+    @classmethod
+    def parse_args(cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[False]) -> Self:
+        ...
+
+    @overload
+    @classmethod
+    def parse_args(cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[True]) -> tuple[Self, list[str]]:
         ...
 
     @classmethod
-    def __parser__(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(add_help=False)
+    def parse_args(cls, argv: Sequence[str] | None = None, *, allow_unknown_args: bool = False) -> tuple[Self, list[str]] | Self:
+        return cls.parser().parse_known_args(argv) if allow_unknown_args else cls.parser().parse_args(argv)  # type:ignore
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        ...
+
+
+class CLIWhich(CLIApp):
+    COMMAND_NAME = 'which'
+    DESCRIPTION = 'Show executable file path.'
+    tool: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION, add_help=False)
         parser.add_argument('tool', choices=sorted(RunToolConfig.tool_names()))
         return parser
 
     @classmethod
-    def parse_args(cls, argv: Sequence[str] | None = None) -> tuple[__ToolInstallerArgs__, list[str]]:
-        return cls.__parser__().parse_known_args(argv)  # type:ignore
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+        print(RunToolConfig.get_executable(args.tool))
+        return 0
 
 
-def __run_which__(argv: Sequence[str] | None = None, print_tool: bool = True) -> tuple[__ToolInstallerArgs__, list[str], str]:
+class CLIRun(CLIApp):
+    COMMAND_NAME = 'run'
+    DESCRIPTION = 'Run tool.'
+    tool: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION, add_help=False)
+        parser.add_argument('tool', choices=sorted(RunToolConfig.tool_names()))
+        return parser
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args, rest = cls.parse_args(argv, allow_unknown_args=True)
+        tool = RunToolConfig.get_executable(args.tool)
+        cmd = (tool, *rest)
+        os.execvp(cmd[0], cmd)
+
+
+class CLIFilterLinks(CLIApp):
+    COMMAND_NAME = 'filter-links'
+    DESCRIPTION = 'Filter links by system.'
+    selector: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        parser.add_argument('--selector', choices=('filter', 'pick'), default='pick')
+        return parser
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        stdin_lines = []
+        if not sys.stdin.isatty():
+            stdin_lines = [x.strip() for x in sys.stdin]
+
+        args, rest = cls.parse_args(argv, allow_unknown_args=True)
+        options = [*stdin_lines, *rest]
+        if not options:
+            return 1
+        if len(options) == 1:
+            print(options[0])
+            return 0
+        service = BestLinkService()
+        if args.selector == 'pick':
+            result = service.pick(options)
+            if not result:
+                return 1
+            print(result)
+        elif args.selector == 'filter':
+            results = service.filter(options)
+            if not results:
+                return 1
+            for line in results:
+                print(line)
+        return 0
+
+
+class GhInstall(CLIApp):
+    COMMAND_NAME = 'gh-install'
+    DESCRIPTION = 'Install from github release.'
+    user: str
+    project: str
+    binary: str | None
+    rename: str | None
+    github: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        parser.add_argument('user')
+        parser.add_argument('project')
+        parser.add_argument('--binary', default=None)
+        parser.add_argument('--rename', default=None)
+        parser.add_argument('--github', default='https://github.com')
+        return parser
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+        gh = GithubReleaseLinks(
+            user=args.user,
+            project=args.project,
+            _binary=args.binary,
+            rename=args.rename,
+            base_url=args.github,
+        )
+
+        print(gh.get_executable())
+        return 0
+
+
+class GhLinks(CLIApp):
+    COMMAND_NAME = 'gh-links'
+    DESCRIPTION = 'Show github release links.'
+    user: str
+    project: str
+    github: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        parser.add_argument('user')
+        parser.add_argument('project')
+        parser.add_argument('--github', default='https://github.com')
+        return parser
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+        gh = GithubReleaseLinks(
+            user=args.user,
+            project=args.project,
+            base_url=args.github,
+        )
+        for link in gh.links():
+            print(link)
+
+        return 0
+
+
+class CLILinkInstaller(CLIApp):
+    COMMAND_NAME = 'link-installer'
+    DESCRIPTION = 'Install from links.'
+    links: list[str]
+    binary: str | None
+    rename: str | None
+    package_name: str | None
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        parser.add_argument('links', nargs='+')
+        parser.add_argument('--binary', default=None, help='Name of the binary in the package.')
+        parser.add_argument('--rename', default=None, help='Rename the binary.')
+        parser.add_argument('--package-name', default=None, help='Rename the package.')
+        return parser
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+
+        binary = args.binary
+        if not binary:
+            counter: Counter[str] = Counter()
+            for link in args.links:
+                for token in os.path.basename(link).split('-'):
+                    counter[token] += 1
+            binary = counter.most_common(1)[0][0]
+
+        path = LinkInstaller.install_best(
+            InternetInstaller,  # type:ignore
+            links=args.links,
+            binary=binary,
+            rename=args.rename,
+            package_name=args.package_name,
+        )
+
+        print(path)
+
+        return 0
+
+if 'fzf' in (os.path.basename(x) for x in list_executables_in_path()):
+    class CLIMultiInstaller(CLIApp):
+        COMMAND_NAME = 'multi-installer'
+        DESCRIPTION = 'Multi installer.'
+
+        @classmethod
+        def run(cls, argv: Sequence[str] | None = None) -> int:
+            dct = parse_ini(get_builtin_config())
+            result = subprocess.run(('fzf', '--multi'), input='\n'.join(f'{k}: {v.get("description")}' for k,v in dct.items()), text=True, stdout=subprocess.PIPE)
+            for line in result.stdout.splitlines():
+                print(RunToolConfig.get_executable(line.split(':')[0]))
+            return 0
+
+class CLIFormatIni(CLIApp):
+    COMMAND_NAME = 'format-ini'
+    DESCRIPTION = 'Format ini file.'
+    file: list[str]
+    output: str
+
+    @classmethod
+    def parser(cls) -> argparse.ArgumentParser:
+        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        parser.add_argument('file', nargs='+')
+        parser.add_argument('--output', default='/dev/stdout')
+        return parser
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+
+        config = configparser.ConfigParser()
+        config.read(args.file)
+
+        order_config = configparser.ConfigParser()
+        dct = {
+            k: config[k]
+            for k in sorted(config.sections(), key=lambda x: (config[x].get('class'), config[x].get('user'), config[x].get('project'), config[x].get('package')))
+        }
+        for _, v in dct.items():
+            if v.get('description', '').strip():
+                continue
+            clz = v['class']
+            github = ''
+            if clz == 'PipxInstallSource':
+                package = v['package'].split('[')[0]
+                if 'github' in package:
+                    clz = 'GithubReleaseLinks'
+                    github = package
+                else:
+                    try:
+                        pypi_info = json.loads(InternetInstaller.get_request(f'https://www.pypi.org/pypi/{package}/json'))
+                        description = pypi_info['info']['summary']
+                        if description:
+                            v['description'] = description
+                            continue
+                        else:
+                            github = github or next((x for x in pypi_info['info']['project_urls'].values() if 'github' in x), '')
+                    except Exception:
+                        print(f'Could not get description for {package}', file=sys.stderr)
+            if not github and clz in ('GithubScriptInstallSource', 'GithubReleaseLinks'):
+                github = v.get('base_url', 'https://github.com') + '/' + v['user'] + '/' + v['project']
+            github = github or next((x for x in v.values() if 'github' in x), '')
+            if github:
+                user, project, *_ = github.split('.com/')[1].split('.git')[0].split('/')
+                payload = json.loads(InternetInstaller.get_request(f'https://api.github.com/repos/{user}/{project}'))
+                d = payload.get('description')
+                if d:
+                    v['description'] = d
+                    continue
+            else:
+                print(f'Could not get description for {v["class"]}', file=sys.stderr)
+
+        order_config.read_dict(dct)
+        with open(args.output, 'w') as f:
+            order_config.write(f)
+
+        return 0
+
+
+def comma_fixer(argv: Sequence[str] | None = None) -> int:
     """
-    Show executable file path.
+    Fix comma in json file.
     """
-    args, rest = __ToolInstallerArgs__.parse_args(argv)
-    tool = RunToolConfig.get_executable(args.tool)
-    if print_tool:
-        print(tool)
-        raise SystemExit(0)
-    return args, rest, tool
+    path_dir = os.path.dirname(sys.argv[0])
+    for file_name in os.listdir(path_dir):
+        file_path = os.path.join(path_dir, file_name)
+        if file_name.startswith('-') and os.access(file_path, os.X_OK) and not os.path.isdir(file_path):
+            shutil.move(file_path, os.path.join(path_dir, ',' + file_name[1:]))
+    print('Fixed!', file=sys.stderr)
+    return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    """
-    Run executable.
-    """
-    args, rest, tool = __run_which__(argv, print_tool=False)
-    cmd = (tool, *rest)
-    os.execvp(cmd[0], cmd)
+    cli_app = CLIApp.__subclasses__()
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument('command', choices=[x.COMMAND_NAME for x in cli_app])
+    args, rest = parser.parse_known_args(argv)
+    command: str = args.command
+    for x in cli_app:
+        if x.COMMAND_NAME == command:
+            raise SystemExit(x.run(rest))
+    return 0
 
 
+# CLIFormatIni.run(['/Users/flavio/projects/,/runtool/runtool.ini'])
 if __name__ == '__main__':
     raise SystemExit(main())

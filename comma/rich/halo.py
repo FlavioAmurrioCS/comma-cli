@@ -108,3 +108,41 @@ class FHalo(Status):
 
     def warn(self, text: Optional[str] = None) -> None:
         self._success = f'[yellow bold]{symbols["warning"]}[/yellow bold] {text or self.status}'
+
+
+def spinner(
+    *title: str | None,
+) -> Callable[[Callable[P, R]], Callable[P, R]]:
+    """
+    Decorator that adds a spinner animation to a function.
+
+    Args:
+        *title: The title of the spinner animation. If not provided, the function name will be used.
+
+    Returns:
+        A decorated function that displays a spinner animation while the function is executing.
+
+    Raises:
+        Any exception raised by the decorated function will be propagated.
+
+    Example:
+        @spinner("Processing")
+        def process_data(data: List[int]) -> List[int]:
+            # Function implementation
+            pass
+    """
+    def __inner__(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
+            with FHalo(
+                status=f'{title or func.__name__}',
+            ) as halo:
+                try:
+                    result = func(*args, **kwargs)
+                    halo.succeed()
+                    return result
+                except Exception:
+                    halo.fail()
+                    raise
+        return wrapped
+    return __inner__

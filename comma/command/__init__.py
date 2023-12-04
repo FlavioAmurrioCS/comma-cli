@@ -12,6 +12,8 @@ from typing import Optional
 from typing import Tuple
 from typing import Union
 
+from comma.rich.halo import FHalo
+
 
 class Command(NamedTuple):
     cmd: Union[List[str], Tuple[str, ...]]
@@ -84,7 +86,6 @@ class Command(NamedTuple):
         return ' '.join(map(shlex.quote, self.cmd))
 
     def run_with_spinner(self) -> subprocess.CompletedProcess[str]:
-        from rich.halo import FHalo
         with FHalo(status=self.label or repr(self)) as halo:
             try:
                 result = self.run()
