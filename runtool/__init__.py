@@ -23,7 +23,6 @@ import tempfile
 import zipfile
 from abc import ABC
 from abc import abstractmethod
-from collections import ChainMap
 from collections import Counter
 from configparser import SectionProxy
 from contextlib import contextmanager
@@ -36,11 +35,11 @@ from typing import Any
 from typing import Generator
 from typing import List
 from typing import Literal
-from typing import Mapping
 from typing import NamedTuple
 from typing import overload
 from typing import Sequence
 from typing import TYPE_CHECKING
+from urllib.parse import urlparse
 
 if TYPE_CHECKING:
     from typing import Protocol  # python3.8+
@@ -635,31 +634,48 @@ class GithubReleaseLinks(LinkInstaller):
     def package_name(self) -> str:
         return f'{self.user}_{self.project}'
 
+    @property
+    def is_public_github(self) -> bool:
+        return urlparse(self.base_url).netloc in ('github.com', 'www.github.com')
+
+    @property
+    def api_url(self) -> str:
+        if self.is_public_github:
+            return 'https://api.github.com'
+
+        return self.base_url + '/api/v3'
+
     def links(self) -> list[str]:
-        url = f'{self.base_url}/{self.user}/{self.project}/releases/{"latest" if self.tag == "latest" else f"tag/{self.tag}"}'
-        html = self.get_request(url)
-        # download_links = [
-        #     self.base_url + link
-        #     for link in re.findall(f'/{self.user}/{self.project}/releases/download/[^"]+', html)
-        # ]
-        download_links: list[str] = []
-        if not download_links:
-            # logging.error('Github is now using lazy loading fragments :(')
-            assets_urls = [
-                self.base_url + link
-                for link in re.findall(f'/{self.user}/{self.project}/releases/expanded_assets/[^"]+', html)
-            ]
-            if assets_urls:
-                html = self.get_request(assets_urls[0])
-                download_links = [
+        if self.is_public_github:
+            url = f'{self.base_url}/{self.user}/{self.project}/releases/{"latest" if self.tag == "latest" else f"tag/{self.tag}"}'
+            html = self.get_request(url)
+            download_links: list[str] = []
+            if not download_links:
+                # logging.error('Github is now using lazy loading fragments :(')
+                assets_urls = [
                     self.base_url + link
-                    for link in re.findall(f'/{self.user}/{self.project}/releases/download/[^"]+', html)
+                    for link in re.findall(f'/{self.user}/{self.project}/releases/expanded_assets/[^"]+', html)
                 ]
-            else:
-                logging.error('Not assets urls')
+                if assets_urls:
+                    html = self.get_request(assets_urls[0])
+                    download_links = [
+                        self.base_url + link
+                        for link in re.findall(f'/{self.user}/{self.project}/releases/download/[^"]+', html)
+                    ]
+                else:
+                    logging.error('Not assets urls')
 
-        return download_links
+            return download_links
+        else:
+            try:
+                data = json.loads(self.get_request(f'{self.api_url}/repos/{self.user}/{self.project}/releases'))
+                return [x['browser_download_url'] for x in data[0]['assets']]
+            except Exception:
+                logging.error('Not able to get releases from github api')
+                return []
 
+
+PIPX_EXECUTABLE_PROVIDER = GithubReleaseLinks(project='pypa', user='pipx', rename='pipx')
 
 # @dataclass
 # class ScriptInstaller(InternetInstaller):
@@ -697,29 +713,36 @@ class GroupUrlInstallSource(LinkInstaller):
 
 
 class RunToolConfig:
-    _tools: Mapping[str, ExecutableProvider]
+    _config: configparser.ConfigParser | None = None
 
-    def __init__(self) -> None:
-        self._tools = ChainMap(
-            self.__load_config__(),
-            self.parse_json_obj(parse_ini(get_builtin_config())),
-        )
-
-    @classmethod
-    def __config_file_path__(cls) -> str:
-        return os.path.expanduser(os.getenv('RUNTOOL_CONFIG', '~/.config/runtool/runtool.ini'))
+    @property
+    def config(self) -> configparser.ConfigParser:
+        if self._config is None:
+            self._config = self.parsed_configs()
+        return self._config
 
     @classmethod
-    def __load_config__(cls) -> dict[str, ExecutableProvider]:
-        filename = cls.__config_file_path__()
-        if not os.path.exists(filename):
-            return {}
-
-        return cls.parse_json_obj(parse_ini(filename))
+    def config_files(cls) -> list[str]:
+        CONFIG_FILENAME = 'runtool.ini'
+        foo = [
+            os.path.realpath(CONFIG_FILENAME),
+            os.path.expanduser(f'~/.config/runtool/{CONFIG_FILENAME}'),
+            os.path.dirname(__file__) + f'/{CONFIG_FILENAME}',
+        ]
+        if 'RUNTOOL_CONFIG' in os.environ:
+            path = os.path.expanduser(os.environ['RUNTOOL_CONFIG'])
+            if os.path.exists(path):
+                foo.insert(0, path)
+        return list({x: None for x in foo if os.path.exists(x)}.keys())
 
     @classmethod
-    def parse_json_obj(cls, raw_obj: Mapping[str, Mapping[str, str]]) -> dict[str, ExecutableProvider]:
-        return {k: cls.__from_obj__(dict(v)) for k, v in raw_obj.items()}
+    def parsed_configs(cls) -> configparser.ConfigParser:
+        config = configparser.ConfigParser()
+        config.read(cls.config_files())
+        return config
+
+    def tools(self) -> list[str]:
+        return sorted(self.config.sections())
 
     @staticmethod
     def __from_obj__(obj: dict[str, str]) -> ExecutableProvider:
@@ -727,17 +750,16 @@ class RunToolConfig:
         obj.pop('description', None)  # TODO: add description to dataclass
         return getattr(sys.modules[__name__], class_name)(**obj)
 
-    def save(self) -> None:
-        final_obj = {
-            k: v._mdict()
-            for k, v in sorted(self._tools.items())
-        }
+    @lru_cache()
+    def get_executable_provider(self, command: str) -> ExecutableProvider:
+        return self.__from_obj__(dict(self.config[command]))
 
-        with open('/tmp/RUNCONFIG.json', 'w') as f:
-            json.dump(final_obj, f, indent=4)
+    def save(self) -> None:
+        with open('/tmp/runtool.ini', 'w') as f:
+            self.config.write(f)
 
     def run(self, command: str, *args: str) -> subprocess.CompletedProcess[str]:
-        return self._tools[command].run(*args)
+        return self.get_executable_provider(command).run(*args)
 
     @classmethod
     @lru_cache(maxsize=1)
@@ -746,11 +768,11 @@ class RunToolConfig:
 
     @classmethod
     def tool_names(cls) -> list[str]:
-        return sorted(cls.get_instance()._tools.keys())
+        return cls.get_instance().tools()
 
     @classmethod
     def get_tool(cls, command: str) -> ExecutableProvider:
-        return cls.get_instance()._tools[command]
+        return cls.get_instance().get_executable_provider(command)
 
     @classmethod
     def get_executable(cls, command: str) -> str:
@@ -989,10 +1011,16 @@ if 'fzf' in (os.path.basename(x) for x in list_executables_in_path()):
 
         @classmethod
         def run(cls, argv: Sequence[str] | None = None) -> int:
-            dct = parse_ini(get_builtin_config())
-            result = subprocess.run(('fzf', '--multi'), input='\n'.join(f'{k}: {v.get("description")}' for k, v in dct.items()), text=True, stdout=subprocess.PIPE)
+            rt = RunToolConfig.get_instance()
+            dct = rt.config
+            result = subprocess.run(
+                ('fzf', '--multi'),
+                input='\n'.join(f'{k}: {v.get("description")}' for k, v in dct.items()),
+                text=True,
+                stdout=subprocess.PIPE,
+            )
             for line in result.stdout.splitlines():
-                print(RunToolConfig.get_executable(line.split(':')[0]))
+                print(rt.get_executable(line.split(':')[0]))
             return 0
 
 
@@ -1088,6 +1116,5 @@ def main(argv: Sequence[str] | None = None) -> int:
     return 0
 
 
-# CLIFormatIni.run(['/Users/flavio/projects/,/runtool/runtool.ini'])
 if __name__ == '__main__':
     raise SystemExit(main())
