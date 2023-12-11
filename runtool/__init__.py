@@ -21,8 +21,6 @@ import sys
 import tarfile
 import tempfile
 import zipfile
-from abc import ABC
-from abc import abstractmethod
 from collections import Counter
 from contextlib import contextmanager
 from contextlib import suppress
@@ -49,6 +47,18 @@ else:
     Protocol = object
 
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+    RESET = '\033[0m'
+
+
 def input_tty(prompt: str | None = None) -> str:
     with open('/dev/tty') as tty:
         if prompt:
@@ -59,7 +69,7 @@ def input_tty(prompt: str | None = None) -> str:
 def selection(options: list[str]) -> str | None:
     if len(options) == 1:
         return options[0]
-    print('Please select one of the following options:', file=sys.stderr)
+    print(f'{bcolors.OKCYAN}{"#"*100}\nPlease select one of the following options:\n{"#"*100}{bcolors.RESET}', file=sys.stderr)
     try:
         return options[int(input_tty('\n'.join(f'{i}: {x}' for i, x in enumerate(options)) + '\nEnter Choice: ') or 0)]
     except IndexError:
@@ -151,13 +161,12 @@ class ExecutableProvider(Protocol):
         ...
 
 
-class _ToolInstallerBase(ABC):
+class _ToolInstallerBase(Protocol):
     @staticmethod
     def make_executable(filename: str) -> str:
         os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC)
         return filename
 
-    @abstractmethod
     def get_executable(self) -> str:
         ...
 
@@ -193,7 +202,7 @@ class _ToolInstallerBase(ABC):
         }
 
 
-class InternetInstaller(_ToolInstallerBase, ABC):
+class InternetInstaller(_ToolInstallerBase, Protocol):
     @staticmethod
     def uncompress(filename: str) -> zipfile.ZipFile | tarfile.TarFile:
         return zipfile.ZipFile(filename) if filename.endswith('.zip') else tarfile.open(filename)
@@ -309,6 +318,15 @@ class BestLinkService(NamedTuple):
         links = self.filter_machine(links, self.uname.machine)
         links = [x for x in links if 'musl' in x.lower()] or links
         links = [x for x in links if 'armv7' not in x.lower()] or links
+        links = [x for x in links if '32-bit' not in x.lower()] or links
+
+        if len(links) == 2:
+            a, b = sorted(links, key=len)
+            suffix = b.lower().removeprefix(a.lower())
+            if (a + suffix).lower() == b.lower():
+                return [a]
+            if len(a) == len(b) and a.replace('.tar.gz', '.tar.xz') == b.replace('.tar.gz', '.tar.xz'):
+                return [a]
 
         return sorted(links, key=len)
 
@@ -366,24 +384,12 @@ class BestLinkService(NamedTuple):
         ]
 
 
-class LinkInstaller(InternetInstaller, ABC):
-    @property
-    @abstractmethod
-    def binary(self) -> str:
-        ...
+class LinkInstaller(InternetInstaller, Protocol):
+    binary: str
+    rename: str | None = None
+    package_name: str | None = None
 
-    @property
-    @abstractmethod
-    def rename(self) -> str | None:
-        ...
-
-    @property
-    @abstractmethod
-    def package_name(self) -> str | None:
-        ...
-
-    @abstractmethod
-    def links(self) -> List[str]:
+    def links(self) -> list[str]:
         ...
 
     def get_executable(self) -> str:
@@ -502,7 +508,7 @@ class _GitHubSource:
 @dataclass
 class GithubReleaseLinks(LinkInstaller):
     github_source: _GitHubSource
-    _binary: str
+    binary: str
     rename: str | None = None
 
     def __init__(
@@ -512,16 +518,9 @@ class GithubReleaseLinks(LinkInstaller):
         rename: str | None = None,
     ) -> None:
         self.github_source = _GitHubSource(url=url)
-        self._binary = binary or self.github_source.repo
+        self.binary = binary or self.github_source.repo
         self.rename = rename
-
-    @property
-    def binary(self) -> str:
-        return self._binary
-
-    @property
-    def package_name(self) -> str:
-        return f'{self.github_source.owner}_{self.github_source.repo}'
+        self.package_name = f'{self.github_source.owner}_{self.github_source.repo}'
 
     def links(self) -> list[str]:
         return self.github_source.links()
@@ -1186,6 +1185,19 @@ class CommaFixer(CLIApp):
             if file_name.startswith('-') and os.access(file_path, os.X_OK) and not os.path.isdir(file_path):
                 shutil.move(file_path, os.path.join(path_dir, ',' + file_name[1:]))
         print('Fixed!', file=sys.stderr)
+        return 0
+
+
+class ValidateConfig(CLIApp):
+    'Validate config.'
+    COMMAND_NAME = '__validate-config'
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        _ = cls.parse_args(argv)
+        for tool in RUNTOOL_CONFIG.tools():
+            executable_provider = RUNTOOL_CONFIG[tool]
+            print(f'{executable_provider=}')
         return 0
 
 
