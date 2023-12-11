@@ -29,6 +29,7 @@ from contextlib import suppress
 from dataclasses import asdict
 from dataclasses import dataclass
 from functools import lru_cache
+from textwrap import dedent
 from typing import Any
 from typing import Generator
 from typing import List
@@ -826,7 +827,7 @@ class _RunToolConfig:
     def get_executable_provider(self, command: str) -> ExecutableProvider:
         obj = dict(self.config[command])
         class_name = obj.pop('class')
-        obj.pop('description', None)  # TODO: add description to dataclass
+        obj.pop('description', None)
         return getattr(sys.modules[__name__], class_name)(**obj)
 
     def run(self, command: str, *args: str) -> subprocess.CompletedProcess[str]:
@@ -856,11 +857,35 @@ RUNTOOL_CONFIG = _RunToolConfig.get_instance()
 
 class CLIApp(Protocol):
     COMMAND_NAME: str
-    DESCRIPTION: str
+    ADD_HELP: bool = True
+
+    @classmethod
+    def _short_description(cls) -> str:
+        return (cls.__doc__ or cls.__name__).splitlines()[0]
 
     @classmethod
     def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
+        parser = argparse.ArgumentParser(description=cls._short_description(), add_help=cls.ADD_HELP)
+        with suppress(Exception):
+            if sys.argv[1] == cls.COMMAND_NAME:
+                parser.prog = f'{parser.prog} {cls.COMMAND_NAME}'
+        for field, ztype in cls.__annotations__.items():
+            if field in ('COMMAND_NAME',):
+                continue
+            ztype = str(ztype)
+            kwargs = {}
+
+            field_arg = field.replace('_', '-')
+            if ztype.startswith('list['):
+                kwargs['nargs'] = '+'
+            if hasattr(cls, field):
+                kwargs['default'] = getattr(cls, field)
+                field_arg = f'--{field.replace("_", "-")}'
+            if 'None' in ztype:
+                field_arg = f'--{field.replace("_", "-")}'
+            if 'Literal' in ztype:
+                kwargs['choices'] = eval(ztype.split('Literal')[1].split('[')[1].split(']')[0])
+            parser.add_argument(field_arg, **kwargs)  # type:ignore
         return parser
 
     @overload
@@ -887,53 +912,87 @@ class CLIApp(Protocol):
         ...
 
 
-class CLIWhich(CLIApp):
-    COMMAND_NAME = 'which'
-    DESCRIPTION = 'Show executable file path.'
-    tool: str
-
-    @classmethod
-    def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION, add_help=False)
-        parser.add_argument('tool', choices=sorted(RUNTOOL_CONFIG.tools()))
-        return parser
-
-    @classmethod
-    def run(cls, argv: Sequence[str] | None = None) -> int:
-        args = cls.parse_args(argv)
-        print(RUNTOOL_CONFIG[args.tool].get_executable())
-        return 0
-
-
 class CLIRun(CLIApp):
+    """Run tool."""
     COMMAND_NAME = 'run'
-    DESCRIPTION = 'Run tool.'
+    ADD_HELP = False
     tool: str
 
     @classmethod
     def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION, add_help=False)
-        parser.add_argument('tool', choices=sorted(RUNTOOL_CONFIG.tools()))
+        parser = argparse.ArgumentParser(description=cls._short_description(), add_help=cls.ADD_HELP)
+        with suppress(Exception):
+            if sys.argv[1] == cls.COMMAND_NAME:
+                parser.prog = f'{parser.prog} {cls.COMMAND_NAME}'
+        parser.add_argument('tool', choices=RUNTOOL_CONFIG.tools())
         return parser
 
     @classmethod
+    def check_help(cls, argv: Sequence[str] | None = None) -> None:
+        help_call = False
+        if argv is None and sys.argv[1] in ('--help', '-h'):
+            help_call = True
+        elif argv is not None and argv[0] in ('--help', '-h'):
+            help_call = True
+
+        if help_call:
+            help_text = dedent(f"""\
+                {cls.parser().prog} <tool> [args...]
+
+                {cls._short_description()}
+
+                Available tools:
+                """) + '\n'.join(f'  {tool:30} {description[:100]}' for tool, description in RUNTOOL_CONFIG.tools_descriptions().items())
+
+            print(help_text)
+            raise SystemExit(0)
+
+    @classmethod
     def run(cls, argv: Sequence[str] | None = None) -> int:
+        cls.check_help(argv)
         args, rest = cls.parse_args(argv, allow_unknown_args=True)
         tool = RUNTOOL_CONFIG[args.tool].get_executable()
         cmd = (tool, *rest)
         os.execvp(cmd[0], cmd)
 
 
-class CLIFilterLinks(CLIApp):
-    COMMAND_NAME = 'filter-links'
-    DESCRIPTION = 'Filter links by system.'
-    selector: str
+class CLIWhich(CLIRun, CLIApp):
+    """Show executable file path."""
+    COMMAND_NAME = 'which'
+    tool: str
 
     @classmethod
-    def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
-        parser.add_argument('--selector', choices=('filter', 'pick'), default='pick')
-        return parser
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        cls.check_help(argv)
+        args = cls.parse_args(argv)
+        print(RUNTOOL_CONFIG[args.tool].get_executable())
+        return 0
+
+
+_FZF_EXECUTABLE = shutil.which('fzf') or shutil.which(',fzf') or ''
+if _FZF_EXECUTABLE:
+    class CLIMultiInstaller(CLIApp):
+        """Multi installer."""
+        COMMAND_NAME = 'multi-installer'
+
+        @classmethod
+        def run(cls, argv: Sequence[str] | None = None) -> int:
+            _ = cls.parse_args(argv)
+            result = subprocess.run(
+                (_FZF_EXECUTABLE, '--multi'),
+                input='\n'.join(f'{tool:30} {description}' for tool, description in RUNTOOL_CONFIG.tools_descriptions().items()),
+                text=True,
+                stdout=subprocess.PIPE,
+            )
+            for line in result.stdout.splitlines():
+                print(RUNTOOL_CONFIG[line.split(maxsplit=1)[0]].get_executable())
+            return 0
+
+
+class CLIFilterLinks(CLIApp):
+    'Filter links by system.'
+    COMMAND_NAME = 'filter-links'
+    selector: Literal['filter', 'pick'] = 'pick'
 
     @classmethod
     def run(cls, argv: Sequence[str] | None = None) -> int:
@@ -963,74 +1022,13 @@ class CLIFilterLinks(CLIApp):
         return 0
 
 
-class GhInstall(CLIApp):
-    COMMAND_NAME = 'gh-install'
-    DESCRIPTION = 'Install from github release.'
-    url: str
-    binary: str | None
-    rename: str | None
-    github: str
-
-    @classmethod
-    def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
-        parser.add_argument('url')
-        parser.add_argument('--binary', default=None)
-        parser.add_argument('--rename', default=None)
-        return parser
-
-    @classmethod
-    def run(cls, argv: Sequence[str] | None = None) -> int:
-        args = cls.parse_args(argv)
-        gh = GithubReleaseLinks(
-            url=args.url,
-            binary=args.binary,
-            rename=args.rename,
-        )
-
-        print(gh.get_executable())
-        return 0
-
-
-class GhLinks(CLIApp):
-    COMMAND_NAME = 'gh-links'
-    DESCRIPTION = 'Show github release links.'
-    url: str
-
-    @classmethod
-    def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
-        parser.add_argument('url')
-        return parser
-
-    @classmethod
-    def run(cls, argv: Sequence[str] | None = None) -> int:
-        args = cls.parse_args(argv)
-        gh = _GitHubSource(
-            url=args.url,
-        )
-        for link in gh.links():
-            print(link)
-
-        return 0
-
-
 class CLILinkInstaller(CLIApp):
+    'Install from links.'
     COMMAND_NAME = 'link-installer'
-    DESCRIPTION = 'Install from links.'
     links: list[str]
-    binary: str | None
-    rename: str | None
-    package_name: str | None
-
-    @classmethod
-    def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
-        parser.add_argument('links', nargs='+')
-        parser.add_argument('--binary', default=None, help='Name of the binary in the package.')
-        parser.add_argument('--rename', default=None, help='Rename the binary.')
-        parser.add_argument('--package-name', default=None, help='Rename the package.')
-        return parser
+    binary: str | None = None
+    rename: str | None = None
+    package_name: str | None = None
 
     @classmethod
     def run(cls, argv: Sequence[str] | None = None) -> int:
@@ -1057,37 +1055,48 @@ class CLILinkInstaller(CLIApp):
         return 0
 
 
-_FZF_EXECUTABLE = shutil.which('fzf') or shutil.which(',fzf') or ''
-if _FZF_EXECUTABLE:
-    class CLIMultiInstaller(CLIApp):
-        COMMAND_NAME = 'multi-installer'
-        DESCRIPTION = 'Multi installer.'
+class GhLinks(CLIApp):
+    'Show github release links.'
+    COMMAND_NAME = 'gh-links'
+    url: str
 
-        @classmethod
-        def run(cls, argv: Sequence[str] | None = None) -> int:
-            result = subprocess.run(
-                (_FZF_EXECUTABLE, '--multi'),
-                input='\n'.join(f'{tool}: {description}' for tool, description in RUNTOOL_CONFIG.tools_descriptions().items()),
-                text=True,
-                stdout=subprocess.PIPE,
-            )
-            for line in result.stdout.splitlines():
-                print(RUNTOOL_CONFIG[line.split(':')[0]].get_executable())
-            return 0
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+        gh = _GitHubSource(
+            url=args.url,
+        )
+        for link in gh.links():
+            print(link)
+
+        return 0
+
+
+class GhInstall(CLIApp):
+    'Install from github release.'
+    COMMAND_NAME = 'gh-install'
+    url: str
+    binary: str | None = None
+    rename: str | None = None
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        args = cls.parse_args(argv)
+        gh = GithubReleaseLinks(
+            url=args.url,
+            binary=args.binary,
+            rename=args.rename,
+        )
+
+        print(gh.get_executable())
+        return 0
 
 
 class CLIFormatIni(CLIApp):
+    'Format ini file.'
     COMMAND_NAME = 'format-ini'
-    DESCRIPTION = 'Format ini file.'
     file: list[str]
-    output: str
-
-    @classmethod
-    def parser(cls) -> argparse.ArgumentParser:
-        parser = argparse.ArgumentParser(description=cls.DESCRIPTION)
-        parser.add_argument('file', nargs='+')
-        parser.add_argument('--output', default='/dev/stdout')
-        return parser
+    output: str = '/dev/stdout'
 
     @classmethod
     def run(cls, argv: Sequence[str] | None = None) -> int:
@@ -1140,30 +1149,41 @@ class CLIFormatIni(CLIApp):
         return 0
 
 
-def comma_fixer(argv: Sequence[str] | None = None) -> int:
-    """
-    Fix comma in json file.
-    """
-    path_dir = os.path.dirname(sys.argv[0])
-    for file_name in os.listdir(path_dir):
-        file_path = os.path.join(path_dir, file_name)
-        if file_name.startswith('-') and os.access(file_path, os.X_OK) and not os.path.isdir(file_path):
-            shutil.move(file_path, os.path.join(path_dir, ',' + file_name[1:]))
-    print('Fixed!', file=sys.stderr)
-    return 0
+class CommaFixer(CLIApp):
+    'Fix commands in path.'
+    COMMAND_NAME = '__comma-fixer'
+
+    @classmethod
+    def run(cls, argv: Sequence[str] | None = None) -> int:
+        _ = cls.parse_args(argv)
+        path_dir = os.path.dirname(sys.argv[0])
+        for file_name in os.listdir(path_dir):
+            file_path = os.path.join(path_dir, file_name)
+            if file_name.startswith('-') and os.access(file_path, os.X_OK) and not os.path.isdir(file_path):
+                shutil.move(file_path, os.path.join(path_dir, ',' + file_name[1:]))
+        print('Fixed!', file=sys.stderr)
+        return 0
 
 
 def main(argv: Sequence[str] | None = None) -> int:
-    cli_app = CLIApp.__subclasses__()
+    dct = {
+        x.COMMAND_NAME: x
+        for x in CLIApp.__subclasses__()
+        # for x in sorted(CLIApp.__subclasses__(), key=lambda x: x.COMMAND_NAME)
+    }
 
     parser = argparse.ArgumentParser(add_help=False)
-    parser.add_argument('command', choices=[x.COMMAND_NAME for x in cli_app])
+    parser.add_argument('command', choices=dct.keys())
+    help_text = dedent(f"""\
+        {parser.prog} <command> [options] [args...]
+
+        Available commands:
+        """) + '\n'.join(f'  {k:20} {v._short_description()}' for k, v in dct.items())
+    if sys.argv[1] in ('--help', '-h'):
+        print(help_text)
+        return 0
     args, rest = parser.parse_known_args(argv)
-    command: str = args.command
-    for x in cli_app:
-        if x.COMMAND_NAME == command:
-            raise SystemExit(x.run(rest))
-    return 0
+    raise SystemExit(dct[args.command].run(rest))
 
 
 if __name__ == '__main__':
