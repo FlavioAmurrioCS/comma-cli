@@ -6,7 +6,7 @@ from typing import List
 
 import typer
 
-from runtool import RunToolConfig
+from runtool import RUNTOOL_CONFIG
 
 
 app_run = typer.Typer(name='run', help='Run Tool.')
@@ -14,7 +14,7 @@ app_run = typer.Typer(name='run', help='Run Tool.')
 
 # @sqlite_cache(minutes=1)
 def _tools() -> List[str]:
-    return RunToolConfig.tool_names()
+    return list(RUNTOOL_CONFIG.tools())
 
 
 @app_run.command(
@@ -34,7 +34,7 @@ def run(
     Installs (if needed) and runs a tool.
     """
     try:
-        tool_path = RunToolConfig.get_executable(tool)
+        tool_path = RUNTOOL_CONFIG[tool].get_executable()
         # RunToolConfig.get_instance().save()
     except KeyError:
         if tool == '--help':
