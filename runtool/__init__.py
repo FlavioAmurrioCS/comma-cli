@@ -121,6 +121,25 @@ def download_context(url: str) -> Generator[str, None, None]:
 # region core
 
 
+@dataclass
+class ToolInstallerConfig:
+    OPT_DIR: str
+    BIN_DIR: str
+    PACKAGE_DIR: str
+    GIT_PROJECT_DIR: str
+    PIPX_HOME: str
+
+    def __init__(self) -> None:
+        self.OPT_DIR = os.path.expanduser(os.environ.get('TOOL_INSTALLER_OPT_DIR', '~/opt/runtool'))
+        self.BIN_DIR = os.path.expanduser(os.environ.get('TOOL_INSTALLER_BIN_DIR', os.path.join(self.OPT_DIR, 'bin')))
+        self.PACKAGE_DIR = os.path.expanduser(os.environ.get('TOOL_INSTALLER_PACKAGE_DIR', os.path.join(self.OPT_DIR, 'packages')))
+        self.GIT_PROJECT_DIR = os.path.expanduser(os.environ.get('TOOL_INSTALLER_GIT_PROJECT_DIR', os.path.join(self.OPT_DIR, 'git_projects')))
+        self.PIPX_HOME = os.path.expanduser(os.environ.get('TOOL_INSTALLER_PIPX_HOME', os.path.join(self.OPT_DIR, 'pipx_home')))
+
+
+TOOL_INSTALLER_CONFIG = ToolInstallerConfig()
+
+
 class ExecutableProvider(Protocol):
     def get_executable(self) -> str:
         ...
@@ -133,12 +152,6 @@ class ExecutableProvider(Protocol):
 
 
 class _ToolInstallerBase(ABC):
-    BIN_INSTALL_DIR: str = os.environ.get(
-        'TOOL_INSTALLER_BIN_DIR', os.path.join(
-            os.path.expanduser('~'), '.local', 'bin',
-        ),
-    )
-
     @staticmethod
     def make_executable(filename: str) -> str:
         os.chmod(filename, os.stat(filename).st_mode | stat.S_IEXEC)
@@ -181,10 +194,6 @@ class _ToolInstallerBase(ABC):
 
 
 class InternetInstaller(_ToolInstallerBase, ABC):
-    PACKAGE_INSTALL_DIR: str = os.environ.get(
-        'TOOL_INSTALLER_PACKAGE_DIR', os.path.join(os.path.expanduser('~'), 'opt', 'packages'),
-    )
-
     @staticmethod
     def uncompress(filename: str) -> zipfile.ZipFile | tarfile.TarFile:
         return zipfile.ZipFile(filename) if filename.endswith('.zip') else tarfile.open(filename)
@@ -209,9 +218,9 @@ class InternetInstaller(_ToolInstallerBase, ABC):
         url must point to executable file.
         """
         rename = rename or os.path.basename(url)
-        executable_path = os.path.join(cls.BIN_INSTALL_DIR, rename)
+        executable_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, rename)
         if not os.path.exists(executable_path):
-            os.makedirs(cls.BIN_INSTALL_DIR, exist_ok=True)
+            os.makedirs(TOOL_INSTALLER_CONFIG.BIN_DIR, exist_ok=True)
             with download_context(url) as download_file:
                 shutil.move(download_file, executable_path)
         return cls.make_executable(executable_path)
@@ -232,14 +241,14 @@ class InternetInstaller(_ToolInstallerBase, ABC):
         rename              The name of the file place in bin directory
         """
         package_name = package_name or os.path.basename(package_url)
-        package_path = os.path.join(cls.PACKAGE_INSTALL_DIR, package_name)
+        package_path = os.path.join(TOOL_INSTALLER_CONFIG.PACKAGE_DIR, package_name)
         if not os.path.exists(package_path) or cls.find_executable(package_path, executable_name) is None:
             with download_context(package_url) as tar_zip_file:
                 with tempfile.TemporaryDirectory() as tempdir:
                     temp_extract_path = os.path.join(tempdir, 'temp_package')
                     with cls.uncompress(tar_zip_file) as untar_unzip_file:
                         untar_unzip_file.extractall(temp_extract_path)
-                    os.makedirs(cls.PACKAGE_INSTALL_DIR, exist_ok=True)
+                    os.makedirs(TOOL_INSTALLER_CONFIG.PACKAGE_DIR, exist_ok=True)
                     shutil.move(temp_extract_path, package_path)
 
         result = cls.find_executable(package_path, executable_name)
@@ -249,12 +258,12 @@ class InternetInstaller(_ToolInstallerBase, ABC):
 
         executable = cls.make_executable(result)
         rename = rename or executable_name
-        os.makedirs(cls.BIN_INSTALL_DIR, exist_ok=True)
-        symlink_path = os.path.join(cls.BIN_INSTALL_DIR, rename)
+        os.makedirs(TOOL_INSTALLER_CONFIG.BIN_DIR, exist_ok=True)
+        symlink_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, rename)
         if os.path.isfile(symlink_path):
             if not os.path.islink(symlink_path):
                 logging.info(
-                    f'File is already in {cls.BIN_INSTALL_DIR} with name {os.path.basename(executable)}',
+                    f'File is already in {TOOL_INSTALLER_CONFIG.BIN_DIR} with name {os.path.basename(executable)}',
                 )
                 return executable
             elif os.path.realpath(symlink_path) == os.path.realpath(executable):
@@ -379,7 +388,7 @@ class LinkInstaller(InternetInstaller, ABC):
 
     def get_executable(self) -> str:
         executable_path = os.path.join(
-            self.BIN_INSTALL_DIR, self.rename or self.binary,
+            TOOL_INSTALLER_CONFIG.BIN_DIR, self.rename or self.binary,
         )
         if os.path.exists(executable_path):
             return executable_path
@@ -443,13 +452,13 @@ class _GitHubSource:
         download_links: list[str] = []
         if not download_links:
             assets_urls = [
-                self.project_url + link.split('/', maxsplit=3)[3]
+                self.project_url + '/' + link.split('/', maxsplit=3)[3]
                 for link in re.findall(f'/{self.owner}/{self.repo}/releases/expanded_assets/[^"]+', html)
             ]
             if assets_urls:
                 html = get_request(assets_urls[0])
                 download_links = [
-                    self.project_url + link.split('/', maxsplit=3)[3]
+                    self.project_url + '/' + link.split('/', maxsplit=3)[3]
                     for link in re.findall(f'/{self.owner}/{self.repo}/releases/download/[^"]+', html)
                 ]
             else:
@@ -564,7 +573,7 @@ class ShivInstallSource(_ToolInstallerBase):
 
     def get_executable(self) -> str:
         command = self.command or self.package
-        bin_path = os.path.join(self.BIN_INSTALL_DIR, command)
+        bin_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, command)
         if not os.path.exists(bin_path):
             shiv_executable = SHIV_EXECUTABLE_PROVIDER.get_executable()
             subprocess.run(
@@ -708,14 +717,14 @@ class PipxInstallSource2(_ToolInstallerBase):
 
     def get_executable(self) -> str:
         command = self.command or self.package
-        bin_path = os.path.join(self.BIN_INSTALL_DIR, command)
+        bin_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, command)
         if not os.path.exists(bin_path):
             pipx_cmd = PIPX_EXECUTABLE_PROVIDER.get_executable()
             env = {
                 **os.environ,
                 'PIPX_DEFAULT_PYTHON': latest_python(),
-                'PIPX_BIN_DIR': self.BIN_INSTALL_DIR,
-                # 'PIPX_HOME': self.bin_dir,
+                'PIPX_BIN_DIR': TOOL_INSTALLER_CONFIG.BIN_DIR,
+                'PIPX_HOME': TOOL_INSTALLER_CONFIG.PIPX_HOME,
             }
             subprocess.run(
                 (
@@ -733,14 +742,14 @@ class PipxInstallSource(_ToolInstallerBase):
 
     def get_executable(self) -> str:
         command = self.command or self.package
-        bin_path = os.path.join(self.BIN_INSTALL_DIR, command)
+        bin_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, command)
         if not os.path.exists(bin_path):
             pipx_cmd = PIPX_EXECUTABLE_PROVIDER.get_executable()
             env = {
                 **os.environ,
                 'PIPX_DEFAULT_PYTHON': latest_python(),
-                'PIPX_BIN_DIR': self.BIN_INSTALL_DIR,
-                # 'PIPX_HOME': self.bin_dir,
+                'PIPX_BIN_DIR': TOOL_INSTALLER_CONFIG.BIN_DIR,
+                'PIPX_HOME': TOOL_INSTALLER_CONFIG.PIPX_HOME,
             }
             subprocess.run(
                 (
@@ -793,10 +802,11 @@ class _RunToolConfig:
     def config(self) -> configparser.ConfigParser:
         if self._config is None:
             self._config = configparser.ConfigParser()
-            self._config.read(self.config_files())
+            self._config.read(x for x in self.config_files() if os.path.exists(x))
         return self._config
 
     @classmethod
+    @lru_cache(maxsize=1)
     def config_files(cls) -> list[str]:
         CONFIG_FILENAME = 'runtool.ini'
         foo = [
@@ -813,7 +823,7 @@ class _RunToolConfig:
             from importlib.resources import path as importlib_path
             with importlib_path(__package__, CONFIG_FILENAME) as ipath:
                 foo.append(ipath.as_posix())
-        return list({x: None for x in foo if os.path.exists(x)}.keys())
+        return list({x: None for x in foo}.keys())
 
     @lru_cache(maxsize=1)
     def tools_descriptions(self) -> dict[str, str]:
@@ -943,6 +953,20 @@ class CLIRun(CLIApp):
 
                 Available tools:
                 """) + '\n'.join(f'  {tool:30} {description[:100]}' for tool, description in RUNTOOL_CONFIG.tools_descriptions().items())
+
+            help_text += dedent(f"""\
+
+
+                Environment variables:
+                    TOOL_INSTALLER_OPT_DIR:         {TOOL_INSTALLER_CONFIG.OPT_DIR}
+                    TOOL_INSTALLER_BIN_DIR:         {TOOL_INSTALLER_CONFIG.BIN_DIR}
+                    TOOL_INSTALLER_PIPX_HOME:       {TOOL_INSTALLER_CONFIG.PIPX_HOME}
+                    TOOL_INSTALLER_PACKAGE_DIR:     {TOOL_INSTALLER_CONFIG.PACKAGE_DIR}
+                    TOOL_INSTALLER_GIT_PROJECT_DIR: {TOOL_INSTALLER_CONFIG.GIT_PROJECT_DIR}
+                    RUNTOOL_CONFIG:                 {os.environ.get('RUNTOOL_CONFIG', '')}
+                    """)
+
+            help_text += '\n\nConfig files:\n' + '\n'.join(f'  {x}' for x in RUNTOOL_CONFIG.config_files()) + '\n'
 
             print(help_text)
             raise SystemExit(0)
