@@ -319,6 +319,8 @@ class BestLinkService(NamedTuple):
         links = [x for x in links if 'musl' in x.lower()] or links
         links = [x for x in links if 'armv7' not in x.lower()] or links
         links = [x for x in links if '32-bit' not in x.lower()] or links
+        links = [x for x in links if '.pkg' not in x.lower()] or links
+        links = [x for x in links if 'manifest' not in x.lower()] or links
 
         if len(links) == 2:
             a, b = sorted(links, key=len)
@@ -532,6 +534,8 @@ SHIV_EXECUTABLE_PROVIDER = UrlInstallSource(url='https://github.com/linkedin/shi
 PIP_EXECUTABLE_PROVIDER = UrlInstallSource(url='https://bootstrap.pypa.io/pip/pip.pyz', rename=',pip')
 FZF_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/junegunn/fzf', rename=',fzf')
 GUM_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/charmbracelet/gum', rename=',gum')
+YQ_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/mikefarah/yq', rename=',yq')
+HTMLQ_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/mgdm/htmlq', rename=',htmlq')
 
 # endregion core
 
@@ -542,15 +546,10 @@ class GitProjectInstallSource(_ToolInstallerBase):
     path: str
     tag: str = 'master'
     pull: bool = False
-    GIT_PROJECT_DIR: str = os.environ.get(
-        'TOOL_INSTALLER_GIT_PROJECT_DIR', os.path.join(
-            os.path.expanduser('~'), 'opt', 'git_projects',
-        ),
-    )
 
     def get_executable(self) -> str:
         git_project_location = os.path.join(
-            self.GIT_PROJECT_DIR, '_'.join(self.git_url.split('/')[-1:]),
+            TOOL_INSTALLER_CONFIG.GIT_PROJECT_DIR, '_'.join(self.git_url.split('/')[-1:]),
         )
         git_bin = os.path.join(git_project_location, self.path)
         if not os.path.exists(git_bin):
@@ -589,29 +588,6 @@ class ShivInstallSource(_ToolInstallerBase):
 
 
 @dataclass
-class GithubScriptInstallSource(InternetInstaller):
-    user: str
-    project: str
-    path: str | None = None
-    tag: str = 'master'
-    rename: str | None = None
-
-    def get_executable(self) -> str:
-        """
-        Download file from github repo.
-
-        user        github username.
-        project     github project name.
-        path        relative path of the file in github repo.
-        tag         branch/tag name.
-        rename      what should the file be rename as.
-        """
-        path = self.path or self.project
-        url = f'https://raw.githubusercontent.com/{self.user}/{self.project}/{self.tag}/{path}'
-        return self.executable_from_url(url=url, rename=self.rename)
-
-
-@dataclass
 class ZipTarInstallSource(InternetInstaller):
     package_url: str
     executable_name: str
@@ -627,86 +603,59 @@ class ZipTarInstallSource(InternetInstaller):
         )
 
 
-@dataclass
-class ZigLinks(LinkInstaller):
-    binary: str = 'zig'
-    rename: str | None = None
-    package_name: str = 'zig'
-
-    def links_scraper(self, obj: Any) -> Generator[str, None, None]:
-        if not isinstance(obj, dict):
-            return
-        for k, v in obj.items():
-            if isinstance(v, dict):
-                yield from self.links_scraper(v)
-            elif isinstance(v, list):
-                yield from (self.links_scraper(e) for e in v)  # type: ignore
-            elif k == 'tarball':
-                yield v
-
-    def links(self) -> List[str]:
-        url = 'https://ziglang.org/download/index.json'
-        return list(self.links_scraper(json.loads(get_request(url))['master']))
-
-
-# @dataclass
-# class RCloneLinks(LinkInstaller):
-#     binary: str = 'rclone'
-#     rename: str | None = None
-#     package_name: str = 'rclone'
-
-#     def links(self) -> List[str]:
-#         url = 'https://downloads.rclone.org/'
-#         return [
-#             url + line.split('"', maxsplit=2)[1][2:]
-#             for line in self.get_request(url).splitlines()
-#             if '<a href="./rclone-current-' in line
-#         ]
-
-
-# @dataclass
-# class GraalVMLinks(LinkInstaller):
-#     binary: str = 'native-image'
-#     rename: str | None = None
-#     package_name: str = 'native-image'
-
-#     def links(self) -> List[str]:
-#         url = 'https://www.oracle.com/java/technologies/downloads/'
-#         return [
-#             line.split('"', maxsplit=2)[1]
-#             for line in self.get_request(url).splitlines()
-#             if '<a href="https://download.oracle.com/graalvm' in line
-#         ]
+def pipecmd(cmd: Sequence[str], input: str) -> str:
+    return subprocess.run(
+        cmd,
+        input=input,
+        check=True,
+        stdout=subprocess.PIPE,
+        encoding='utf-8',
+    ).stdout.strip()
 
 
 @dataclass
-class NodeLinks(LinkInstaller):
-    binary: Literal['node', 'npm', 'npx'] = 'node'
+class YqInstaller(LinkInstaller):
+    url: str
+    yq_cmd: str
+    binary: str
+    package_name: str
     rename: str | None = None
-    package_name: str | None = 'nodejs'
 
     def links(self) -> List[str]:
-        url = 'https://nodejs.org/dist/latest/'
-        return [
-            url + line.split('"', maxsplit=2)[1]
-            for line in get_request(url).splitlines()
-            if '<a href="node-v' in line
-        ]
+        response = get_request(self.url)
+        cmd = (
+            YQ_EXECUTABLE_PROVIDER.get_executable(), self.yq_cmd, '-r',
+        )
+        return pipecmd(cmd, response).splitlines()
 
 
 @dataclass
-class HerokuLinks(LinkInstaller):
-    binary: str = 'heroku'
+class HtmlqInstaller(LinkInstaller):
+    url: str
+    binary: str
+    package_name: str
     rename: str | None = None
-    package_name: str = 'heroku'
+    base_url: str | None = None
+    link_contains: str | None = None
 
     def links(self) -> List[str]:
-        url = 'https://devcenter.heroku.com/articles/heroku-cli'
-        return [
-            line.split('"', maxsplit=2)[1]
-            for line in get_request(url).splitlines()
-            if '<a href="https://cli-assets.heroku.com/channels/stable/heroku-' in line and 'manifest' not in line
-        ]
+        response = get_request(self.url)
+        htmlq_cmd_prefix = (
+            HTMLQ_EXECUTABLE_PROVIDER.get_executable(), '-B',
+            '-b', self.base_url or self.url,
+        )
+        if self.link_contains:
+            response = pipecmd(
+                (*htmlq_cmd_prefix, '--', f'a[href*="{self.link_contains}"]'),
+                response,
+            )
+
+        response = pipecmd(
+            (*htmlq_cmd_prefix, '--attribute', 'href', 'a'),
+            response,
+        )
+
+        return response.splitlines()
 
 
 @dataclass
@@ -992,7 +941,7 @@ class CLIWhich(CLIRun, CLIApp):
         return 0
 
 
-_FZF_EXECUTABLE = shutil.which('fzf') or shutil.which(',fzf') or ''
+_FZF_EXECUTABLE = shutil.which('fzf') or shutil.which(',fzf') or FZF_EXECUTABLE_PROVIDER.get_executable()
 if _FZF_EXECUTABLE:
     class CLIMultiInstaller(CLIApp):
         """Multi installer."""
@@ -1131,7 +1080,7 @@ class CLIFormatIni(CLIApp):
         order_config = configparser.ConfigParser()
         dct = {
             k: config[k]
-            for k in sorted(config.sections(), key=lambda x: (config[x].get('class'), config[x].get('user'), config[x].get('project'), config[x].get('package')))
+            for k in sorted(config.sections(), key=lambda x: (config[x].get('class'), config[x].get('url', ''), config[x].get('package')))
         }
         for _, v in dct.items():
             if v.get('description', '').strip():
