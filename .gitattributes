@@ -1,1 +1,1 @@
-runtool/__init__.py python
+*.py linguist-detectable=false
