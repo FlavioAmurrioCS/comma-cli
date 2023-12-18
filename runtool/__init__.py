@@ -701,6 +701,7 @@ class PipxInstallSource(_ToolInstallerBase):
             }
             subprocess.run(
                 (
+                    latest_python(),
                     pipx_cmd, 'install', '--force',
                     self.package,
                 ), check=True, env=env,
