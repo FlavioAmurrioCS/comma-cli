@@ -675,29 +675,29 @@ class LinkScraperInstaller(LinkInstaller):
         return ret
 
 
-@dataclass
-class PipxInstallSource2(_ToolInstallerBase):
-    package: str
-    command: str | None = None
+# @dataclass
+# class PipxInstallSource2(_ToolInstallerBase):
+#     package: str
+#     command: str | None = None
 
-    def get_executable(self) -> str:
-        command = self.command or self.package
-        bin_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, command)
-        if not os.path.exists(bin_path):
-            pipx_cmd = PIPX_EXECUTABLE_PROVIDER.get_executable()
-            env = {
-                **os.environ,
-                'PIPX_DEFAULT_PYTHON': latest_python(),
-                'PIPX_BIN_DIR': TOOL_INSTALLER_CONFIG.BIN_DIR,
-                'PIPX_HOME': TOOL_INSTALLER_CONFIG.PIPX_HOME,
-            }
-            subprocess.run(
-                (
-                    pipx_cmd, 'install', '--force',
-                    self.package,
-                ), check=True, env=env,
-            )
-        return bin_path
+#     def get_executable(self) -> str:
+#         command = self.command or self.package
+#         bin_path = os.path.join(TOOL_INSTALLER_CONFIG.BIN_DIR, command)
+#         if not os.path.exists(bin_path):
+#             pipx_cmd = PIPX_EXECUTABLE_PROVIDER.get_executable()
+#             env = {
+#                 **os.environ,
+#                 'PIPX_DEFAULT_PYTHON': latest_python(),
+#                 'PIPX_BIN_DIR': TOOL_INSTALLER_CONFIG.BIN_DIR,
+#                 'PIPX_HOME': TOOL_INSTALLER_CONFIG.PIPX_HOME,
+#             }
+#             subprocess.run(
+#                 (
+#                     pipx_cmd, 'install', '--force',
+#                     self.package,
+#                 ), check=True, env=env,
+#             )
+#         return bin_path
 
 
 @dataclass
