@@ -36,6 +36,7 @@ from typing import NamedTuple
 from typing import overload
 from typing import Sequence
 from typing import TYPE_CHECKING
+from urllib.parse import urljoin
 from urllib.parse import urlparse
 
 
@@ -535,6 +536,7 @@ PIP_EXECUTABLE_PROVIDER = UrlInstallSource(url='https://bootstrap.pypa.io/pip/pi
 FZF_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/junegunn/fzf', rename=',fzf')
 GUM_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/charmbracelet/gum', rename=',gum')
 YQ_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/mikefarah/yq', rename=',yq')
+GRON_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/tomnomnom/gron', rename=',gron')
 HTMLQ_EXECUTABLE_PROVIDER = GithubReleaseLinks(url='https://github.com/mgdm/htmlq', rename=',htmlq')
 
 # endregion core
@@ -614,23 +616,39 @@ def pipecmd(cmd: Sequence[str], input: str) -> str:
 
 
 @dataclass
-class YqInstaller(LinkInstaller):
+class GronInstaller(LinkInstaller):
     url: str
-    yq_cmd: str
+    gron_pattern: str
     binary: str
     package_name: str
     rename: str | None = None
 
     def links(self) -> List[str]:
         response = get_request(self.url)
-        cmd = (
-            YQ_EXECUTABLE_PROVIDER.get_executable(), self.yq_cmd, '-r',
-        )
-        return pipecmd(cmd, response).splitlines()
+        pattern = re.compile(self.gron_pattern)
+        gron_lines: list[str] = []
+        try:
+            from gron import gron
+            gron_lines.extend(gron(json.loads(response)))
+        except ImportError:
+            gron_lines.extend(pipecmd((GRON_EXECUTABLE_PROVIDER.get_executable(),), response).splitlines())
+
+        ret = []
+
+        base_url_path = urlparse(self.url)._replace(params=None, query=None, fragment=None).geturl()  # type:ignore
+
+        for _, value in (line.rstrip(';').split(' = ', maxsplit=1) for line in gron_lines if pattern.search(line)):
+            value = value[1:-1]
+            if value.startswith('http'):
+                ret.append(value)
+            else:
+                ret.append(urljoin(base_url_path, value))
+
+        return ret
 
 
 @dataclass
-class HtmlqInstaller(LinkInstaller):
+class LinkScraperInstaller(LinkInstaller):
     url: str
     binary: str
     package_name: str
@@ -640,22 +658,21 @@ class HtmlqInstaller(LinkInstaller):
 
     def links(self) -> List[str]:
         response = get_request(self.url)
-        htmlq_cmd_prefix = (
-            HTMLQ_EXECUTABLE_PROVIDER.get_executable(), '-B',
-            '-b', self.base_url or self.url,
-        )
-        if self.link_contains:
-            response = pipecmd(
-                (*htmlq_cmd_prefix, '--', f'a[href*="{self.link_contains}"]'),
-                response,
-            )
+        href_pattern = re.compile(r'href="([^"]+)"')
+        base_url = self.base_url or self.url
 
-        response = pipecmd(
-            (*htmlq_cmd_prefix, '--attribute', 'href', 'a'),
-            response,
-        )
-
-        return response.splitlines()
+        ret = []
+        for tag in re.findall(r'<a [^>]*>', response.replace('\n', ' ')):
+            href_match = href_pattern.search(tag)
+            if href_match:
+                url = href_match.group(1)
+                if self.link_contains and self.link_contains not in url:
+                    continue
+                if url.startswith('http'):
+                    ret.append(url)
+                else:
+                    ret.append(urljoin(base_url, url))
+        return ret
 
 
 @dataclass
@@ -769,6 +786,8 @@ class _RunToolConfig:
                 foo.insert(0, path)
 
         with suppress(Exception):
+            import warnings
+            warnings.simplefilter('ignore')
             from importlib.resources import path as importlib_path
             with importlib_path(__package__, CONFIG_FILENAME) as ipath:
                 foo.append(ipath.as_posix())
