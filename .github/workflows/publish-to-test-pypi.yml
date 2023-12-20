@@ -18,6 +18,7 @@ jobs:
         python3 -m
         pip install
         build
+        shiv
         --user
     - name: Build a binary wheel and a source tarball
       run: python3 -m build
@@ -26,6 +27,13 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
+    - name: Build a zipapp
+      run: shiv -o dev.pyz -c dev .
+    - uses: actions/upload-artifact@v4
+      with:
+        name: dev.pyz
+        path: dev.pyz
+        retention-days: 3
 
   publish-to-pypi:
     name: >-
@@ -67,12 +75,16 @@ jobs:
       with:
         name: python-package-distributions
         path: dist/
+    - uses: actions/download-artifact@v4
+      with:
+        name: dev.pyz
     - name: Sign the dists with Sigstore
       uses: sigstore/gh-action-sigstore-python@v1.2.3
       with:
         inputs: >-
           ./dist/*.tar.gz
           ./dist/*.whl
+          ./dev.pyz
     - name: Create GitHub Release
       env:
         GITHUB_TOKEN: ${{ github.token }}
@@ -89,7 +101,7 @@ jobs:
       # sigstore-produced signatures and certificates.
       run: >-
         gh release upload
-        '${{ github.ref_name }}' dist/**
+        '${{ github.ref_name }}' dist/** ./*.pyz
         --repo '${{ github.repository }}'
 
   publish-to-testpypi:
