@@ -81,17 +81,19 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: pytest
-        name: pytest
-        entry: pytest tests -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
-        language: system
-        pass_filenames: false
-        always_run: true
-        types: [python]
+      # - id: pytest
+      #   name: pytest
+      #   entry: pytest tests -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
+      #   language: python
+      #   pass_filenames: false
+      #   additional_dependencies: ['pytest', '.']
+      #   always_run: true
+      #   types: [python]
       - id: tox
         name: tox
         entry: tox run-parallel
-        language: system
+        language: python
+        additional_dependencies: ['tox']
         pass_filenames: false
         always_run: true
         types: [python]

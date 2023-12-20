@@ -961,7 +961,7 @@ class CLIWhich(CLIRun, CLIApp):
         return 0
 
 
-_FZF_EXECUTABLE = shutil.which('fzf') or shutil.which(',fzf') or FZF_EXECUTABLE_PROVIDER.get_executable()
+_FZF_EXECUTABLE = shutil.which('fzf') or shutil.which(',fzf')
 if _FZF_EXECUTABLE:
     class CLIMultiInstaller(CLIApp):
         """Multi installer."""
@@ -971,7 +971,7 @@ if _FZF_EXECUTABLE:
         def run(cls, argv: Sequence[str] | None = None) -> int:
             _ = cls.parse_args(argv)
             result = subprocess.run(
-                (_FZF_EXECUTABLE, '--multi'),
+                (_FZF_EXECUTABLE or 'fzf', '--multi'),
                 input='\n'.join(f'{tool:30} {description}' for tool, description in RUNTOOL_CONFIG.tools_descriptions().items()),
                 text=True,
                 stdout=subprocess.PIPE,
