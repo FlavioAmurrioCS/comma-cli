@@ -33,7 +33,7 @@ class TyperNode(NamedTuple):
             filename = inspect.getfile(self.func)
             width = max(len(x) for x in code.splitlines())
             from rich import print as rprint
-            rprint(f'{filename}:{line_num+1}')
+            rprint(f'{filename}:{line_num + 1}')
             from rich.syntax import Syntax
             rprint(
                 Syntax(

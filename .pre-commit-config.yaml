@@ -91,7 +91,8 @@ repos:
       - id: tox
         name: tox
         entry: tox run-parallel
-        language: system
+        language: python
+        additional_dependencies: ['tox']
         pass_filenames: false
         always_run: true
         types: [python]
