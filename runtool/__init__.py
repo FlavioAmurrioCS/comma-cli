@@ -70,7 +70,7 @@ def input_tty(prompt: str | None = None) -> str:
 def selection(options: list[str]) -> str | None:
     if len(options) == 1:
         return options[0]
-    print(f'{bcolors.OKCYAN}{"#"*100}\nPlease select one of the following options:\n{"#"*100}{bcolors.RESET}', file=sys.stderr)
+    print(f'{bcolors.OKCYAN}{"#" * 100}\nPlease select one of the following options:\n{"#" * 100}{bcolors.RESET}', file=sys.stderr)
     try:
         return options[int(input_tty('\n'.join(f'{i}: {x}' for i, x in enumerate(options)) + '\nEnter Choice: ') or 0)]
     except IndexError:
