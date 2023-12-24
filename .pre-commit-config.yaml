@@ -1,10 +1,11 @@
+ci:
+  skip: [tox, pytest]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
-        exclude: runtool.ini
       - id: check-yaml
       - id: debug-statements
       - id: double-quote-string-fixer
@@ -50,7 +51,7 @@ repos:
         args: [--all]
         # args: [--config=pyproject.toml]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.7.1
+    rev: v1.8.0
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
@@ -75,12 +76,6 @@ repos:
   #         additional_dependencies: ['pyright@1.1.317']
   - repo: local
     hooks:
-      - id: format-runtool-ini
-        name: format-runtool-ini
-        entry: runtool/__init__.py format-ini runtool/runtool.ini --output runtool/runtool.ini
-        language: system
-        pass_filenames: false
-        always_run: true
       - id: pytest
         name: pytest
         entry: pytest tests -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning
@@ -92,7 +87,7 @@ repos:
         name: tox
         entry: tox run-parallel
         language: python
-        additional_dependencies: ['tox']
+        additional_dependencies: ["tox"]
         pass_filenames: false
         always_run: true
         types: [python]

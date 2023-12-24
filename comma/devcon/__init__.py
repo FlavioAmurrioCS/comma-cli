@@ -9,13 +9,13 @@ from typing import List
 from typing import NamedTuple
 
 import typer
+from persistent_cache_decorator import persistent_cache
 from typing_extensions import Literal
 
 from comma.command import Command
 from comma.config import comma_utils
 from comma.docker import list_containers
 from comma.machine import SshMachine
-from persistent_cache import sqlite_cache
 
 _DOCKERFILE = os.path.join(comma_utils.opt_dir, 'devcon', 'Dockerfile')
 
@@ -30,7 +30,7 @@ app_devcon: typer.Typer = typer.Typer(
 )
 
 
-@sqlite_cache(days=7)
+@persistent_cache(duration={'days': 7})
 def user_info() -> dict[Literal['group_id', 'user_id', 'username'], str]:
     return {
         'group_id': Command(('id', '-g')).quick_run(),

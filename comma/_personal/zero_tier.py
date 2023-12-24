@@ -9,10 +9,10 @@ from typing import NamedTuple
 from typing import TYPE_CHECKING
 
 import typer
+from persistent_cache_decorator import persistent_cache
+from typedfzf import fzf
 
 from comma.machine import SshMachine
-from fzf import fzf
-from persistent_cache import sqlite_cache
 if TYPE_CHECKING:
     from requests import Session
     from typing_extensions import Self
@@ -51,7 +51,7 @@ class ZeroTier:
         return cls.__INSTANCE__
 
     @classmethod
-    @sqlite_cache(minutes=5)
+    @persistent_cache(duration={'minutes': 5})
     def get(cls, url: str) -> Any:
         return cls.instance().session.get(url).json()
 
@@ -63,7 +63,7 @@ class ZeroTier:
         ]
 
     @classmethod
-    @sqlite_cache(minutes=10)
+    @persistent_cache(duration={'minutes': 10})
     def members(cls) -> List[ZeroTierMember]:
         networkID = cls.network_ids()[0]
         return [

@@ -10,10 +10,10 @@ from typing import NamedTuple
 from typing import Sequence
 
 import typer
+from typedfzf import fzf
 from typer.models import ArgumentInfo
 
 from comma.command import Command
-from fzf import fzf
 
 
 class TyperNode(NamedTuple):

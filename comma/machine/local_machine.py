@@ -4,13 +4,14 @@ import itertools
 import os
 import shutil
 
+from persistent_cache_decorator import persistent_cache
+
 from .machine import Machine
 from comma.command import Command
 from comma.types import CMD_ARGS
-from persistent_cache import sqlite_cache
 
 
-@sqlite_cache(minutes=20)
+@persistent_cache(duration={'minutes': 20})
 def all_git_projects() -> list[str]:
     return [
         os.path.dirname(x)

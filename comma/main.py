@@ -12,7 +12,7 @@ from comma.misc.code import c
 from comma.misc.tmux import mux
 from comma.shell_scripts.shell_utils import app_sh
 from comma.typer.reflection import app_reflection
-from runtool.runtool_cli import run
+# from runtool.runtool_cli import run
 
 
 app_main: typer.Typer = typer.Typer(help='Set of tools made with flavor.')
@@ -44,14 +44,14 @@ if os.environ.get('USER', '').upper() in ('FLAVIO', 'FMM597', 'TASHA'):
 
 ############
 
-app_main.command(
-    add_help_option=False,
-    no_args_is_help=True,
-    context_settings={
-        'allow_extra_args': True,
-        'ignore_unknown_options': True,
-    },
-)(run)
+# app_main.command(
+#     add_help_option=False,
+#     no_args_is_help=True,
+#     context_settings={
+#         'allow_extra_args': True,
+#         'ignore_unknown_options': True,
+#     },
+# )(run)
 
 
 if __name__ == '__main__':

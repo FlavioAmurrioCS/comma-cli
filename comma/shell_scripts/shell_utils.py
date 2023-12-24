@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import typer
+from typedfzf import fzf
 
 from comma.machine import LocalMachine
-from fzf import fzf
 
 app_sh: typer.Typer = typer.Typer(
     name='sh',

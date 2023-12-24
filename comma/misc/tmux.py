@@ -4,11 +4,11 @@ import logging
 from typing import NamedTuple
 
 import typer
+from typedfzf import fzf
 
 from comma.machine import LocalMachine
 from comma.machine import Machine
 from comma.machine import SshMachine
-from fzf import fzf
 
 
 class Tmux(NamedTuple):
