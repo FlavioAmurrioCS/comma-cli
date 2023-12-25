@@ -64,7 +64,7 @@ Issues = "https://github.com/FlavioAmurrioCS/comma-cli/issues"
 Source = "https://github.com/FlavioAmurrioCS/comma-cli"
 
 [tool.hatch.version]
-path = "src/comma_cli/__about__.py"
+path = "src/comma/__about__.py"
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -92,18 +92,22 @@ dependencies = [
   "mypy>=1.0.0",
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/comma_cli tests}"
+check = "mypy --install-types --non-interactive {args:src/comma src/gron src/gum tests}"
 
 [tool.coverage.run]
-source_pkgs = ["comma_cli", "tests"]
+source_pkgs = ["comma", "gron", "gum"]
 branch = true
 parallel = true
 omit = [
-  "src/comma_cli/__about__.py",
+  "src/comma/__about__.py",
 ]
 
 [tool.coverage.paths]
-comma_cli = ["src/comma_cli", "*/comma-cli/src/comma_cli"]
+comma = [
+  "src/comma", "*/comma-cli/src/comma",
+  "src/gron", "*/comma-cli/src/gron",
+  "src/gum", "*/comma-cli/src/gum"
+]
 tests = ["tests", "*/comma-cli/tests"]
 
 [tool.coverage.report]
@@ -115,13 +119,9 @@ exclude_lines = [
 
 [tool.hatch.build.targets.wheel]
 packages = [
-    "src/gum",
-    "src/tool_wrapper",
-    "src/zfiles",
-    "src/gron",
-    "src/simple_argparser",
-    "src/comma_cli",
     "src/comma",
+    "src/gron",
+    "src/gum",
 ]
 
 [tool.autopep8]

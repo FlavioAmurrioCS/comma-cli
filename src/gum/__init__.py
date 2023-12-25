@@ -11,7 +11,7 @@ from typing import Sequence
 from typing import TypeVar
 from typing import Union
 
-from tool_wrapper import select_helper
+from typedfzf import select_helper
 from typing_extensions import TypeAlias
 from typing_extensions import TypedDict
 

@@ -4,9 +4,9 @@ from __future__ import annotations
 import json
 from typing import Sequence
 
+from comma.simple_argparser import CLIApp
 from gron import gron
 from gron import ungron
-from simple_argparser import CLIApp
 
 
 class Gron(CLIApp):

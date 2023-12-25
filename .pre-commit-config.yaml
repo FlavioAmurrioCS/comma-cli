@@ -1,5 +1,5 @@
 ci:
-  skip: [tox, pytest]
+  skip: [tox, pytest, hatch-test]
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
@@ -88,6 +88,14 @@ repos:
         entry: tox run-parallel
         language: python
         additional_dependencies: ["tox"]
+        pass_filenames: false
+        always_run: true
+        types: [python]
+      - id: hatch-test
+        name: hatch-test
+        entry: hatch run --parallel all:test
+        language: python
+        additional_dependencies: ["hatch"]
         pass_filenames: false
         always_run: true
         types: [python]
