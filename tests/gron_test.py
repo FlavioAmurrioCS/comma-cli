@@ -4,7 +4,6 @@ import json
 import subprocess
 
 import pytest
-
 from gron import gron
 from gron import JSON_TYPE
 from gron import ungron

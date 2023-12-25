@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import pkgutil
 
-import pytest
-from typer.testing import CliRunner
-
 import comma as pkg
+import pytest
 from comma.main import app_main
 from comma.typer.reflection import __traverse_nodes__
 from comma.typer.reflection import TyperNode
+from typer.testing import CliRunner
 
 
 runner = CliRunner()

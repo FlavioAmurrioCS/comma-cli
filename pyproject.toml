@@ -7,17 +7,22 @@ name = "comma-cli"
 dynamic = ["version"]
 description = "Multi-Tool"
 readme = "README.md"
-license = "MIT"
 requires-python = ">=3.8"
+license = "MIT"
+keywords = []
 authors = [
-    { name = "Flavio Amurrio", email = "25621374+FlavioAmurrioCS@users.noreply.github.com" },
+  { name = "Flavio Amurrio", email = "25621374+FlavioAmurrioCS@users.noreply.github.com" },
 ]
 classifiers = [
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
     "persistent-cache-decorator",
@@ -54,12 +59,70 @@ personal = [
 dev = "comma.main:app_main"
 
 [project.urls]
-Homepage = "https://github.com/FlavioAmurrioCS/comma"
+Documentation = "https://github.com/FlavioAmurrioCS/comma-cli#readme"
+Issues = "https://github.com/FlavioAmurrioCS/comma-cli/issues"
+Source = "https://github.com/FlavioAmurrioCS/comma-cli"
 
 [tool.hatch.version]
-path = "comma_cli/__init__.py"
+path = "src/comma_cli/__about__.py"
 
-[tool.hatch.build.targets.sdist]
-include = [
-    "/comma_cli",
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
 ]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+  "coverage xml",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+[tool.hatch.envs.types]
+dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/comma_cli tests}"
+
+[tool.coverage.run]
+source_pkgs = ["comma_cli", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/comma_cli/__about__.py",
+]
+
+[tool.coverage.paths]
+comma_cli = ["src/comma_cli", "*/comma-cli/src/comma_cli"]
+tests = ["tests", "*/comma-cli/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/gum",
+    "src/tool_wrapper",
+    "src/zfiles",
+    "src/gron",
+    "src/simple_argparser",
+    "src/comma_cli",
+    "src/comma",
+]
+
+[tool.autopep8]
+max_line_length = 3000
