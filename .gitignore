@@ -165,3 +165,5 @@ v
 launch.json
 .vscode
 _geckobuild
+.ruff_cache
+.trunk

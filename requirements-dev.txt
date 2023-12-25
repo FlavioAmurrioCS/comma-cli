@@ -1,7 +1,0 @@
-.
-autopep8
-mypy
-pre-commit
-ptpython
-pytest
-types-requests

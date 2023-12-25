@@ -2,7 +2,8 @@
 
 [![PyPI - Version](https://img.shields.io/pypi/v/comma-cli.svg)](https://pypi.org/project/comma-cli)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/comma-cli.svg)](https://pypi.org/project/comma-cli)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/FlavioAmurrioCS/comma/main.svg)](https://results.pre-commit.ci/latest/github/FlavioAmurrioCS/comma/main)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/FlavioAmurrioCS/comma-cli/main.svg)](https://results.pre-commit.ci/latest/github/FlavioAmurrioCS/comma-cli/main)
+
 
 -----
 
