@@ -31,6 +31,8 @@ function _select_project() {
 function ,noerror() { "${@}" 2>/dev/null; }
 function ,nooutput() { "${@}" >/dev/null 2>&1; }
 function ,cache_clear() { ,nooutput rm -rf "${HOME}/.cache/dev.sh"; }
+function ,uniq() { awk '!x[$0]++' "${@}"; }
+function grep() { command grep --color=auto --line-buffered "${@}"; }
 
 function ,cache() {
     if [ -n "${NO_CACHE}" ]; then
@@ -90,7 +92,7 @@ function __get_repos__() {
     "${curl_cmd[@]}" "${complete_url_org}" || "${curl_cmd[@]}" "${complete_url_user}"
 }
 
-function ,git_clone() {
+function ,clone() {
     local project domain owner repo project_path projects
     projects=${1:-"$({
         for i in $(echo "${GITHUB_FOLLOW}" | tr ' ' '\n' | sort -u); do
@@ -99,7 +101,7 @@ function ,git_clone() {
     } | grep "ssh_url" | cut -d '"' -f4 | sort -u | fzf --multi --exit-0)"}
 
     if [ -z "${projects}" ] && [ -z "${GITHUB_FOLLOW}" ]; then
-        echo "Set GITHUB_FOLLOW to a list of github users/orgs to follow or pass in clone url directly" >&2
+        echo "Set GITHUB_FOLLOW to a list of github users/orgs to follow or pass in clone url directly. If github enterprise, set GITHUB_TOKEN as well." >&2
         return 1
     fi
 
@@ -164,7 +166,6 @@ if (return 0 2>/dev/null); then
     }
     export PATH="${PATH}:${HOME}/.local/bin"
     export HATCH_ENV_TYPE_VIRTUAL_PATH=venv
-    export GITHUB_FOLLOW='https://github.com/FlavioAmurrioCS https://github.com/tamitchell'
     complete -W "${__DEV_SH_FUNCTION_LIST__[*]}" dev.sh
     complete -W "${__DEV_SH_FUNCTION_LIST__[*]}" ./dev.sh
     echo "You can now do dev.sh [tab][tab] for autocomplete :)" >&2
