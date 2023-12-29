@@ -23,7 +23,7 @@ done < <(grep -E "^function " "${__DEV_SH_SCRIPT__}" | cut -d' ' -f2 | cut -d'('
 ###############################################################################
 function _select_project() {
     local selected
-    selected="$(find ~/{dev,worktrees,projects,dev/*git*/*} -maxdepth 3 \( -name .git -or -name packed-refs \) -prune -exec dirname {} \; 2>/dev/null | fzf)"
+    selected="$(find ~/{dev,worktrees,projects,dev/*git*/*} -maxdepth 3 \( -name .git -or -name packed-refs \) -prune -exec dirname {} \; 2>/dev/null | grep -v projects/trash | fzf)"
     [ -n "${selected}" ] && echo "${selected}" && return 0
     return 1
 }
@@ -118,6 +118,31 @@ function ,clone() {
     done
 }
 
+function ,mv-project() {
+    local domain owner repo new_project_path git_remote original_project_path
+    for original_project_path in "${@}"; do
+        echo "- ${original_project_path}"
+        original_project_path=$(realpath "${original_project_path}")
+        git_remote=$(git -C "${original_project_path}" remote get-url origin 2>/dev/null)
+        if [ -z "${git_remote}" ]; then
+            echo "${original_project_path} does not have a remote origin" >&2
+            continue
+        fi
+        case "${git_remote}" in
+        https*) read -r domain owner repo <<<"$(echo "${git_remote}" | sed -E 's|https://([^/]+)/(.+)\/(.+).*|\1 \2 \3|')" ;;
+        *) read -r domain owner repo <<<"$(echo "${git_remote}" | sed -E 's/.*@(.+):(.+)\/(.+)\.git/\1 \2 \3/')" ;;
+        esac
+        new_project_path="${HOME}/dev/${domain}/${owner}/$(basename "${original_project_path}")"
+        if [ ! -d "${new_project_path}" ]; then
+            mkdir -p "$(dirname "${new_project_path}")"
+            mv "${original_project_path}" "${new_project_path}"
+        else
+            echo "${new_project_path} already exists. Skipping..." >&2
+        fi
+    done
+
+}
+
 ###############################################################################
 # endregion: FUNCTIONS THAT ARE COMMON FOR BOTH SOURCED AND EXECUTED
 ###############################################################################
@@ -154,6 +179,18 @@ if (return 0 2>/dev/null); then
     }
 
     function ,env() { env | fzf --multi; }
+    # shellcheck disable=SC2139
+    alias ,source="source ${__DEV_SH_SCRIPT__}"
+    function ,runtool() { runtool "${@}"; }
+    function ,web() {
+        local git_url
+        git_url=$(git remote get-url origin) || return 1
+        case "${git_url}" in
+        https*) : ;;
+        *) git_url="$(echo "${git_url}" | sed -E 's|.*@(.+):(.+)\/(.+)\.git|https://\1/\2/\3|')" ;;
+        esac
+        ,runtool run rifle "${git_url}"
+    }
     ###############################################################################
     # endregion: FUNCTIONS THAT SHOULD ONLY BE AVAILABLE WHEN FILE IS BEING SOURCED
     ###############################################################################

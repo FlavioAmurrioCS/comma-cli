@@ -11,7 +11,7 @@ from typing import NamedTuple
 import typer
 from comma.command import Command
 from comma.config import comma_utils
-from comma.docker import list_containers
+from comma.docker import DOCKER_CLIENT
 from comma.machine import SshMachine
 from persistent_cache_decorator import persistent_cache
 from typing_extensions import Literal
@@ -195,7 +195,7 @@ class DevContainer:
         ).execvp()
 
     def is_running(self) -> bool:
-        for container in list_containers():
+        for container in DOCKER_CLIENT.list_containers():
             if container['Names'] == self.image_name:
                 return True
         return False
