@@ -50,7 +50,7 @@ class ZeroTier:
         return cls.__INSTANCE__
 
     @classmethod
-    @persistent_cache(duration={'minutes': 5})
+    @persistent_cache(minutes=5)
     def get(cls, url: str) -> Any:
         return cls.instance().session.get(url).json()
 
@@ -62,7 +62,7 @@ class ZeroTier:
         ]
 
     @classmethod
-    @persistent_cache(duration={'minutes': 10})
+    @persistent_cache(minutes=10)
     def members(cls) -> List[ZeroTierMember]:
         networkID = cls.network_ids()[0]
         return [

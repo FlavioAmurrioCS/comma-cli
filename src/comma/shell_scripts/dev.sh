@@ -187,7 +187,7 @@ if (return 0 2>/dev/null); then
     function ,code() {
         local selected
         selected="$(_select_project)"
-        [ -n "${selected}" ] && code "${selected}" && return 0
+        [ -n "${selected}" ] && code "${selected}" "${@}" && return 0
         return 1
     }
 

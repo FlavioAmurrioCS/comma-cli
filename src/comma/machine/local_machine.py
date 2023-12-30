@@ -11,7 +11,7 @@ from persistent_cache_decorator import persistent_cache
 from .machine import Machine
 
 
-@persistent_cache(duration={'minutes': 20})
+@persistent_cache(minutes=20)
 def all_git_projects() -> list[str]:
     return [
         os.path.dirname(x)

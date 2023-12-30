@@ -29,7 +29,7 @@ app_devcon: typer.Typer = typer.Typer(
 )
 
 
-@persistent_cache(duration={'days': 7})
+@persistent_cache(days=7)
 def user_info() -> dict[Literal['group_id', 'user_id', 'username'], str]:
     return {
         'group_id': Command(('id', '-g')).quick_run(),
