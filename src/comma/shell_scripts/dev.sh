@@ -140,7 +140,20 @@ function ,mv-project() {
             echo "${new_project_path} already exists. Skipping..." >&2
         fi
     done
+}
 
+function ,release_python_package() {
+    local latest_tag project_version &&
+        git checkout main &&
+        git pull &&
+        latest_tag=$(git describe --tags --abbrev=0) &&
+        project_version=$(hatch version) || return 1
+    if [[ "$latest_tag" == "$project_version" ]]; then
+        echo "No new version to release"
+        return 0
+    fi
+    git tag "${project_version}" &&
+        git push origin --tags
 }
 
 ###############################################################################
