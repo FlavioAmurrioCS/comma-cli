@@ -1,5 +1,5 @@
 ci:
-  skip: [pyright, hatch-test, taplo]
+  skip: [pyright, hatch-test, taplo, tox]
 repos:
   - repo: https://github.com/ComPWA/mirrors-taplo
     rev: "v0.8.1"
