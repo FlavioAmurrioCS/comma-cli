@@ -81,9 +81,9 @@ class Git:
     def branches(self) -> list[str]:
         branches = []
         for branch in self._git_cmd("branch", "--all").quick_run().splitlines():
-            branch = branch.split("origin/")[-1].strip()
-            if not branch.startswith("*"):
-                branches.append(branch)
+            parsed_branch = branch.split("origin/")[-1].strip()
+            if not parsed_branch.startswith("*"):
+                branches.append(parsed_branch)
         return branches
 
     def checkout(self, branch: str) -> None:

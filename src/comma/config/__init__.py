@@ -108,7 +108,7 @@ def temp_dir_context() -> Generator[str, None, None]:
 
 @contextmanager
 def unpacker_context(filename: str) -> Generator[str, None, None]:
-    from rich.halo import FHalo
+    from comma.rich.halo import FHalo
 
     with temp_dir_context() as temp_dir:
         with (  # noqa: SIM117
@@ -125,7 +125,7 @@ def unpacker_context(filename: str) -> Generator[str, None, None]:
 def quick_deleter(path: str) -> None:
     if os.path.exists(path):
         return
-    from rich.halo import FHalo
+    from comma.rich.halo import FHalo
 
     with FHalo(f"Deleting {path}...") as halo:
         with temp_dir_context() as temp_dir:
@@ -197,7 +197,7 @@ def download_context(
                             progress_callback(len(chunk))
                             file.write(chunk)
                     except KeyboardInterrupt:
-                        raise SystemExit(1)  # noqa: TRY200
+                        raise SystemExit(1)  # noqa: TRY200, B904
         yield full_path
 
 

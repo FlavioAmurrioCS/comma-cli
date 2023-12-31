@@ -6,6 +6,7 @@ import os
 from dataclasses import dataclass
 from dataclasses import field
 from textwrap import dedent
+from typing import List
 from typing import NamedTuple
 
 import typer
@@ -203,7 +204,7 @@ class DevContainer:
     def is_running(self) -> bool:
         return any(container["Names"] == self.image_name for container in DOCKER_CLIENT.list_containers())
 
-    def sshMachine(self) -> SshMachine:
+    def ssh_machine(self) -> SshMachine:
         return SshMachine(hostname="localhost", port=self.ssh_port, user=self.username)
 
 
@@ -238,14 +239,14 @@ class DockerVolumes(NamedTuple):
 
 @app_devcon.command()
 def start(
-    ports: list[DockerPorts] = typer.Option(
+    ports: List[DockerPorts] = typer.Option(  # noqa: UP006
         [],
         "-p",
         "--expose",
         help="Publish a container's port(s) to the host. ie -p=8080:9090",
         parser=DockerPorts.parse,
     ),
-    volumes: list[DockerVolumes] = typer.Option(
+    volumes: List[DockerVolumes] = typer.Option(  # noqa: UP006
         [],
         "-v",
         "--volume",
@@ -307,7 +308,7 @@ def ssh() -> None:
     if not _devcon.is_running():
         logging.info("devcon is not running")
         return
-    _devcon.sshMachine().create_cmd(()).execvp()
+    _devcon.ssh_machine().create_cmd(()).execvp()
 
 
 @app_devcon.command()

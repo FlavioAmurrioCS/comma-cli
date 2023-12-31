@@ -1,3 +1,4 @@
+# flake8: noqa: S603
 from __future__ import annotations
 
 import subprocess
@@ -51,9 +52,9 @@ def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
 class Proxy(IO[str]):
     def __getattribute__(self, __name: str) -> Any:
         attr = object.__getattribute__(self, __name)
-        if hasattr(attr, "__call__"):
+        if callable(attr):
 
-            def newfunc(*args, **kwargs) -> Any:  # type:ignore
+            def newfunc(*args, **kwargs) -> Any:  # noqa: ANN003, ANN002
                 print("before calling %s" % attr.__name__)
                 result = attr(*args, **kwargs)
                 print("done calling %s" % attr.__name__)

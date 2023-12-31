@@ -8,7 +8,7 @@ import gron as gron_pkg
 import gum as gum_pkg
 import pytest
 from comma.main import app_main
-from comma.typer.reflection import __traverse_nodes__
+from comma.typer.reflection import _traverse_nodes_
 from comma.typer.reflection import TyperNode
 from typer.testing import CliRunner
 
@@ -28,7 +28,7 @@ ignore_modules = {
 }
 
 
-@pytest.mark.parametrize("node", __traverse_nodes__())
+@pytest.mark.parametrize("node", _traverse_nodes_())
 def test_help(node: TyperNode) -> None:
     if node.path in ignore_commands:
         return

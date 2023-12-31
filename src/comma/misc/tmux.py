@@ -42,7 +42,7 @@ app_mux = typer.Typer(
 
 
 @app_mux.command()
-def mux(remote: bool = typer.Option(False, "--remote")) -> None:
+def mux(remote: bool = typer.Option(False, "--remote")) -> None:  # noqa: FBT001, FBT003
     """
     Connect to tmux.
     """

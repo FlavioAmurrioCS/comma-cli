@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# flake8: noqa: PLR0912
 from __future__ import annotations
 
 import re
@@ -20,8 +21,8 @@ def _gron_helper(obj: JSON_TYPE, path: str = "json") -> Generator[tuple[str, str
     if isinstance(obj, dict):
         yield path, "{}"
         for key, value in obj.items():
-            key = f".{key}" if key.isalnum() else f'["{key}"]'
-            yield from _gron_helper(value, f"{path}{key}")
+            _key = f".{key}" if key.isalnum() else f'["{key}"]'
+            yield from _gron_helper(value, f"{path}{_key}")
     elif isinstance(obj, list):
         yield path, "[]"
         for i, value in enumerate(obj):
@@ -40,7 +41,7 @@ def gron(obj: JSON_TYPE) -> list[str]:
     return sorted(f"{path} = {value};" for path, value in _gron_helper(obj))
 
 
-def _ungron_helper(data: Sequence[tuple[str, str]], _walker: int = 0) -> tuple[JSON_TYPE, int]:  # noqa: C901
+def _ungron_helper(data: Sequence[tuple[str, str]], _walker: int = 0) -> tuple[JSON_TYPE, int]:  # noqa: C901, PLR0911
     (head_path, head_value) = data[_walker]
     if head_value == "[]":
         ret: list[Any] = []

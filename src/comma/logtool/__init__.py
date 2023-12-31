@@ -12,7 +12,9 @@ from dataclasses import dataclass
 from importlib.resources import path as resource_path
 from typing import Callable
 from typing import Iterable
+from typing import List
 from typing import NamedTuple
+from typing import Optional
 from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import TypeVar
@@ -175,7 +177,7 @@ class LogTool:
 
         return self.stream.filter(lambda x: any(p(x) for p in predicates))  # type:ignore
 
-    def print_log(self, original_stream: bool = False) -> None:
+    def print_log(self, *, original_stream: bool = False) -> None:
         stream = self.stream if original_stream else self.processed_stream
         print_format: str = self.log_tool_config["print_format"]
         if not print_format:
@@ -192,8 +194,8 @@ class LogTool:
 
 @app_logtool.command()
 def pretty_search(
-    ini_config: str | None = None,
-    files: list[str] = typer.Option(
+    ini_config: Optional[str] = None,  # noqa: UP007
+    files: List[str] = typer.Option(  # noqa: UP006
         [],
         "--file",
         "-f",
@@ -214,16 +216,16 @@ def pretty_search(
 
 @app_logtool.command()
 def search(
-    search_patterns: list[str],
-    ignore_case: bool = typer.Option(
-        False,
+    search_patterns: List[str],  # noqa: UP006
+    ignore_case: bool = typer.Option(  # noqa: FBT001
+        False,  # noqa: FBT003
         "--ignore-case",
         "-i",
         help="Perform case insensitive matching.",
     ),
-    enable_regex: bool = typer.Option(False, "--regex", "-E", help="Enable Regex."),
-    files: list[str] = typer.Option(["/dev/stdin"], "--file", "-f", help="Files to search."),
-    ignore_patterns: list[str] = typer.Option([], "-v", help="Specify ignore pattern"),
+    enable_regex: bool = typer.Option(False, "--regex", "-E", help="Enable Regex."),  # noqa: FBT001, FBT003
+    files: List[str] = typer.Option(["/dev/stdin"], "--file", "-f", help="Files to search."),  # noqa: UP006
+    ignore_patterns: List[str] = typer.Option([], "-v", help="Specify ignore pattern"),  # noqa: UP006
 ) -> None:
     """Search and color text files"""
     from functional import seq
@@ -272,12 +274,12 @@ def search(
         for pattern, color in zip(search_patterns, itertools.cycle(colors))
     ]
 
-    def __inner__(line: str) -> str:
+    def _inner_(line: str) -> str:
         for pat, color in patterns_and_colors:
             line = pat.sub(color, line)
         return line
 
-    stream.map(__inner__).for_each(LOG_TOOL_CONSOLE.print)  # type:ignore
+    stream.map(_inner_).for_each(LOG_TOOL_CONSOLE.print)  # type:ignore
 
 
 if __name__ == "__main__":

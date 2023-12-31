@@ -35,10 +35,10 @@ class CLIApp(Protocol):
         with suppress(Exception):
             if sys.argv[1] == cls.COMMAND_NAME:
                 parser.prog = f"{parser.prog} {cls.COMMAND_NAME}"
-        for field, ztype in cls.__annotations__.items():
+        for field, ztype_ in cls.__annotations__.items():
             if field in ("COMMAND_NAME", "ADD_HELP", "ARG_HELP"):
                 continue
-            ztype = str(ztype)
+            ztype = str(ztype_)
             kwargs = {
                 "help": cls.ARG_HELP.get(field),
             }
@@ -54,7 +54,7 @@ class CLIApp(Protocol):
             if "None" in ztype:
                 field_arg = f'--{field.replace("_", "-")}'
             if "Literal" in ztype:
-                kwargs["choices"] = eval(ztype.split("Literal")[1].split("[")[1].split("]")[0])
+                kwargs["choices"] = eval(ztype.split("Literal")[1].split("[")[1].split("]")[0])  # noqa: S307
             parser.add_argument(field_arg, **kwargs)  # type:ignore
         return parser
 

@@ -28,7 +28,7 @@ class Command(NamedTuple):
         logging.debug(self)
         try:
             return subprocess.run(
-                self.cmd,
+                self.cmd,  # noqa: S603
                 errors="ignore",
                 encoding="utf-8",
                 text=self.text,
@@ -64,7 +64,7 @@ class Command(NamedTuple):
         if log_command:
             logging.info(self)
         self._exec_check()
-        os.execvp(self.cmd[0], self.cmd)
+        os.execvp(self.cmd[0], self.cmd)  # noqa: S606
 
     def _exec_check(self) -> None:
         executable = self.cmd[0]

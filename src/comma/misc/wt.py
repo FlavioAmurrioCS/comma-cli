@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 
 import typer
 from comma.misc.m_git import GitWorktree
@@ -41,7 +42,7 @@ def ls() -> None:
 
 
 @app_wt.command()
-def remove(worktree: str | None = None) -> None:
+def remove(worktree: Optional[str] = None) -> None:  # noqa: UP007
     """
     Remove worktree.
     """

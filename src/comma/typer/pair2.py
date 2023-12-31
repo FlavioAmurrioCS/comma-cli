@@ -169,6 +169,7 @@ class ContainerRunConfig:
         self,
         entrypoint: str | None = None,
         command: Sequence[str] = (),
+        *,
         detached: bool = False,
         privileged: bool = False,
     ) -> None:
@@ -201,7 +202,7 @@ class Docker:
     def binary(self) -> str:
         return "docker"
 
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)  # noqa: B019
     def docker_bin_check(self) -> None:
         if not shutil.which(self.binary):
             msg = f"{self.binary} not found in path"

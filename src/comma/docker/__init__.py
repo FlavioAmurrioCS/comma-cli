@@ -8,6 +8,7 @@ from enum import Enum
 from functools import lru_cache
 from typing import ChainMap
 from typing import NamedTuple
+from typing import Optional
 
 import typer
 from comma.command import Command
@@ -52,7 +53,7 @@ class _DockerImageInfo(TypedDict):
 
 
 class DockerClient(NamedTuple):
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)  # noqa: B019
     def list_containers(self) -> list[_DockerContainerInfo]:
         return [
             json.loads(x)
@@ -63,7 +64,7 @@ class DockerClient(NamedTuple):
             .splitlines()
         ]
 
-    @lru_cache(maxsize=1)
+    @lru_cache(maxsize=1)  # noqa: B019
     def list_images(self) -> list[_DockerImageInfo]:
         return [
             json.loads(x)
@@ -141,10 +142,10 @@ class _DockerPlatform(str, Enum):
 
 @app_docker.command()
 def explore(
-    image: str | None = typer.Argument(None),
+    image: Optional[str] = typer.Argument(None),  # noqa: UP007
     shell: str = "sh",
-    user: str | None = None,
-    platform: _DockerPlatform | None = None,
+    user: Optional[str] = None,  # noqa: UP007
+    platform: Optional[_DockerPlatform] = None,  # noqa: UP007
 ) -> None:
     """
     Run a container and enter it.
@@ -168,7 +169,7 @@ def explore(
                 *((f"--platform=linux/{platform.value}",) if platform else ()),
                 "--entrypoint",
                 shell,
-                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',
+                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',  # noqa: S311
                 image,
             ),
         ).execvp()

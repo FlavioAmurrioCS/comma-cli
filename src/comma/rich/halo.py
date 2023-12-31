@@ -129,7 +129,7 @@ symbols: _Symbols = (
 
 
 class FHalo(Status):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         status: RenderableType,
         *,
@@ -138,7 +138,7 @@ class FHalo(Status):
         spinner_style: StyleType = "status.spinner",
         speed: float = 1,
         refresh_per_second: float = 12.5,
-    ):
+    ) -> None:
         super().__init__(
             status,
             console=console,
@@ -196,7 +196,7 @@ def spinner(
             pass
     """
 
-    def __inner__(func: Callable[P, R]) -> Callable[P, R]:
+    def _inner_(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
             with FHalo(
@@ -213,4 +213,4 @@ def spinner(
 
         return wrapped
 
-    return __inner__
+    return _inner_

@@ -47,7 +47,7 @@ def sh(
         autocompletion=lambda: __TOOLS__,
         help=f'{" ".join(__TOOLS__)}',
     ),
-    which: bool = typer.Option(False, "--which", help="Print the command instead of running it."),
+    which: bool = typer.Option(False, "--which", help="Print the command instead of running it."),  # noqa: FBT001, FBT003
 ) -> int:
     """
     Installs (if needed) and runs a tool.
@@ -65,7 +65,7 @@ def sh(
         print(tool_path)
         return 0
     cmd = (tool_path, *ctx.args)
-    os.execvp(cmd[0], cmd)
+    os.execvp(cmd[0], cmd)  # noqa: S606
     return None
 
 

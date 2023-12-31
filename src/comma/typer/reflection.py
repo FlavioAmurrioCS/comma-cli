@@ -106,15 +106,15 @@ class TyperNode(NamedTuple):
 app_reflection = typer.Typer(name="reflection", help="Reflect on the CLI.")
 
 
-def __traverse_nodes__() -> Generator[TyperNode, None, None]:
+def _traverse_nodes_() -> Generator[TyperNode, None, None]:
     from comma.main import app_main
 
     yield from TyperNode.traverse_nodes(app_main, root_name="dev")
 
 
-def __pick_node__() -> TyperNode | None:
+def _pick_node_() -> TyperNode | None:
     return fzf(
-        __traverse_nodes__(),
+        _traverse_nodes_(),
         key=lambda x: f'{" ".join(x.path)} --> {x.doc.strip().splitlines()[0]}',
     )
 
@@ -134,7 +134,7 @@ def show_func() -> None:
     """
     Show function source code.
     """
-    node = __pick_node__()
+    node = _pick_node_()
     if node:
         node.print_source()
         if node.path[-1] not in ("run", "show"):
@@ -146,7 +146,7 @@ def tree() -> None:
     """
     Show all functions.
     """
-    nodes = list(__traverse_nodes__())
+    nodes = list(_traverse_nodes_())
     width = max(len(" ".join(x.path)) for x in nodes)
     for x in nodes:
         print(
@@ -161,7 +161,7 @@ def run_func(
     """
     Select function interactively and run it.
     """
-    node = __pick_node__()
+    node = _pick_node_()
     if not node:
         return
     args: Sequence[str] = ctx.args if ctx and not isinstance(ctx, ArgumentInfo) else sys.argv[1:]

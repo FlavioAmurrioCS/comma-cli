@@ -1,4 +1,4 @@
-# flake8: noqa: C901
+# flake8: noqa: C901, S603, S607, PLW1510,  PLR0912
 from __future__ import annotations
 
 import csv

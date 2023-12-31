@@ -1,3 +1,4 @@
+# flake8: noqa: PLW1510
 from __future__ import annotations
 
 import json

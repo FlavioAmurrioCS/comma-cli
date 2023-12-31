@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from typing_extensions import Annotated
     from typing_extensions import TypedDict
 
-    class _argument_options(TypedDict, total=False):
+    class _ArgumentOptions(TypedDict, total=False):
         action: str
         nargs: str
         default: Any
@@ -38,7 +38,7 @@ FUNC = TypeVar("FUNC", bound=Callable)  # type: ignore
 # - Boolean
 
 
-def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_options]:
+def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _ArgumentOptions]:
     annotation = param.annotation
     default = param.default
     if annotation is inspect.Parameter.empty and default is inspect.Parameter.empty:
@@ -50,7 +50,7 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_option
 
     annotation = str(annotation)  # Just in case future annotations is not enabled
 
-    kwargs: _argument_options = {}
+    kwargs: _ArgumentOptions = {}
 
     has_default = default is not inspect.Parameter.empty
     if has_default:
@@ -89,7 +89,7 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_option
         container_type = container_match.group(1).strip().lower()
         annotation = container_match.group(2).strip()
         if container_type == "literal":
-            choices = eval(annotation)
+            choices = eval(annotation)  # noqa: S307
             annotation = type(choices[0]).__name__
         else:
             # WHICH ONE SHOULD I BE USING?
@@ -99,14 +99,14 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_option
     if annotation == "bool":
         kwargs["action"] = "store_true" if default is True else "store_false"
     else:  # TODO: CHECK FOR ALLOWED TYPES
-        kwargs["type"] = eval(annotation)
+        kwargs["type"] = eval(annotation)  # noqa: S307
 
     # kwargs['help'] = help_text  # TODO: Double think this section
 
     return field_arg, kwargs
 
 
-class _cli_app(Generic[FUNC]):
+class _CliApp(Generic[FUNC]):
     def __init__(self, func: FUNC, command_name: str | None = None) -> None:
         self.__wrapped__ = func
         self.__argument_parser__ = argparse.ArgumentParser(
@@ -139,9 +139,9 @@ class _cli_app(Generic[FUNC]):
         raise SystemExit(result)
 
 
-def cli_app(command_name: str | None = None):  # type: ignore
-    def inner(func: FUNC) -> _cli_app[FUNC]:
-        return _cli_app(func=func, command_name=command_name)
+def cli_app(command_name: str | None = None):  # type: ignore  # noqa: ANN201
+    def inner(func: FUNC) -> _CliApp[FUNC]:
+        return _CliApp(func=func, command_name=command_name)
 
     return inner
 
@@ -152,7 +152,7 @@ def main(
     color: Literal["red", "green", "blue"],
     age: int,
     last: str | None,
-    has_kids: bool,
+    has_kids: bool,  # noqa: FBT001
     *args: str,
 ) -> int:
     """HEOMOE"""

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Optional
 
 import typer
 from comma.machine import LocalMachine
@@ -16,7 +17,7 @@ def code_open(machine: LocalMachine | SshMachine, path: str | None = None) -> No
 
 
 @app_c.command()
-def c(path: str | None = typer.Argument(None)) -> None:
+def c(path: Optional[str] = typer.Argument(None)) -> None:  # noqa: UP007
     """
     Open filepath in vscode.
     """
@@ -24,7 +25,7 @@ def c(path: str | None = typer.Argument(None)) -> None:
 
 
 @app_c.command()
-def rc(path: str | None = typer.Argument(None)) -> None:
+def rc(path: Optional[str] = typer.Argument(None)) -> None:  # noqa: UP007
     """
     Open vscode remotely.
     """

@@ -40,3 +40,7 @@ repos:
         language: python
         additional_dependencies: [hatch]
         pass_filenames: false
+  - repo: https://github.com/ComPWA/mirrors-taplo
+    rev: "v0.8.1"
+    hooks:
+      - id: taplo
