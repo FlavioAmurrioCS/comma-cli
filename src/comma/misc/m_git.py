@@ -22,10 +22,9 @@ def chunk_split(lines: Sequence[str], predicate: Callable[[str], bool] | None = 
     buffer: list[str] = []
     for line in lines:
         line.rstrip()
-        if predicate(line):
-            if buffer:
-                yield buffer
-                buffer = []
+        if predicate(line) and buffer:
+            yield buffer
+            buffer = []
         if line.strip():
             buffer.append(line)
     if buffer:
@@ -136,7 +135,7 @@ class GitWorktree(Git):
     def remove(self, branch_name: str) -> None:
         self._git_cmd('worktree', 'remove', branch_name).run()
 
-    def list(self) -> list[str]:
+    def list_wt(self) -> list[str]:
         ret: list[str] = []
         for chunk in itertools.islice(chunk_split(self._git_cmd('worktree', 'list', '--porcelain').quick_run().splitlines()), 1, None):
             a = dict(k.split() for k in chunk)

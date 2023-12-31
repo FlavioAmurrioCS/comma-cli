@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 from __future__ import annotations
 
 import json
@@ -12,7 +11,7 @@ from gron import ungron
 class Gron(CLIApp):
     """Gron is a command line tool that makes JSON greppable."""
     COMMAND_NAME = 'gron'
-    ARG_HELP = {
+    ARG_HELP = {  # noqa: RUF012
         'file': 'File to read from. Defaults to stdin.',
         'ungron': 'Ungron the input.',
     }
@@ -32,11 +31,10 @@ class Gron(CLIApp):
                     ),
                 )
             return 0
-        else:
-            with open(args.file) as f:
-                for line in gron(json.load(f)):
-                    print(line)
-            return 0
+        with open(args.file) as f:
+            for line in gron(json.load(f)):
+                print(line)
+        return 0
 
 
 if __name__ == '__main__':

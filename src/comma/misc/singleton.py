@@ -1,12 +1,11 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Type
 
 
-def singleton(cls: type) -> Type[Any]:
+def singleton(cls: type) -> type[Any]:
     class Singleton(type):
-        _instances: dict[type, Any] = {}
+        _instances: dict[type, Any] = {}  # noqa: RUF012
 
         def __call__(cls, *args: Any, **kwargs: Any) -> Any:
             if cls not in Singleton._instances:

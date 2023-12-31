@@ -5,10 +5,13 @@ import os
 import shutil
 
 from comma.command import Command
-from comma.types import CMD_ARGS
 from persistent_cache_decorator import persistent_cache
 
 from .machine import Machine
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from comma.types import CMD_ARGS
 
 
 @persistent_cache(minutes=20)

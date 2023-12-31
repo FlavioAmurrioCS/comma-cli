@@ -7,7 +7,6 @@ from typing import Generic
 from typing import Iterator
 from typing import NamedTuple
 from typing import TypeVar
-from typing import Union
 
 
 _L = TypeVar('_L')
@@ -66,7 +65,7 @@ except TypeError:
             """
             return Pair(self.right, self.left)
 
-        def __iter__(self) -> Iterator[Union[_L, _R]]:
+        def __iter__(self) -> Iterator[_L | _R]:
             """
             Returns an iterator over the left and right values of the Pair.
 

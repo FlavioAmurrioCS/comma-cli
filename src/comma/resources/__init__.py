@@ -1,13 +1,15 @@
 from __future__ import annotations
 
-from contextlib import AbstractContextManager
 from dataclasses import dataclass
 from importlib.resources import Package
 from importlib.resources import path
-from pathlib import Path
 from typing import Any
 from typing import Generic
-from typing import TypeVar
+from typing import TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from pathlib import Path
+    from contextlib import AbstractContextManager
 
 
 JSONT = TypeVar('JSONT', bound=str)
@@ -22,10 +24,9 @@ class TypedResourceHelper(Generic[JSONT, OTHERT]):
         return path(self.package, resource)
 
     def get_resource_json(self, resource: JSONT) -> Any:
-        with path(self.package, resource) as file:
-            with file.open() as f:
-                import json
-                return json.load(f)
+        with path(self.package, resource) as file, file.open() as f:
+            import json
+            return json.load(f)
 
 
 class GenericResourceHelper(TypedResourceHelper[str, str]):

@@ -3,16 +3,14 @@ from __future__ import annotations
 import functools
 import platform
 import typing
-from types import TracebackType
 from typing import Callable
-from typing import Optional
-from typing import Type
 from typing import TypeVar
 
 from rich.status import Status
 from typing_extensions import TypedDict
 
 if typing.TYPE_CHECKING:
+    from types import TracebackType
     from rich.console import Console
     from rich.console import RenderableType
     from rich.style import StyleType
@@ -53,7 +51,7 @@ class _Symbols(TypedDict):
 
 # pip install log_symbols
 symbols: _Symbols = {
-    'info': 'ℹ',
+    'info': 'ℹ',  # noqa: RUF001
     'success': '✔',
     'warning': '⚠',
     'error': '✖',
@@ -61,7 +59,7 @@ symbols: _Symbols = {
     'info': '¡',
     'success': 'v',
     'warning': '!!',
-    'error': '×',
+    'error': '×',  # noqa: RUF001
 }
 
 
@@ -70,7 +68,7 @@ class FHalo(Status):
         self,
         status: RenderableType,
         *,
-        console: Optional[Console] = None,
+        console: Console | None = None,
         spinner: SPINNER = 'dots',
         spinner_style: StyleType = 'status.spinner',
         speed: float = 1,
@@ -89,7 +87,7 @@ class FHalo(Status):
     def __enter__(self) -> Self:
         return typing.cast('Self', super().__enter__())
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
+    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None) -> None:
         self.console.print(self._success or self.status)
         return super().__exit__(exc_type, exc_val, exc_tb)
 
@@ -100,13 +98,13 @@ class FHalo(Status):
                 return func(*args, **kwargs)
         return wrapped
 
-    def succeed(self, text: Optional[str] = None) -> None:
+    def succeed(self, text: str | None = None) -> None:
         self._success = f'[green bold]{symbols["success"]}[/green bold] {text or self.status}'
 
-    def fail(self, text: Optional[str] = None) -> None:
+    def fail(self, text: str | None = None) -> None:
         self._success = f'[red bold]{symbols["error"]}[/red bold] {text or self.status}'
 
-    def warn(self, text: Optional[str] = None) -> None:
+    def warn(self, text: str | None = None) -> None:
         self._success = f'[yellow bold]{symbols["warning"]}[/yellow bold] {text or self.status}'
 
 
@@ -140,9 +138,10 @@ def spinner(
                 try:
                     result = func(*args, **kwargs)
                     halo.succeed()
-                    return result
                 except Exception:
                     halo.fail()
                     raise
+                else:
+                    return result
         return wrapped
     return __inner__

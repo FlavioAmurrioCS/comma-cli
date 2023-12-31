@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import os
-from typing import List
 from typing import NamedTuple
-from typing import Optional
 from typing import Sequence
 
 from typing_extensions import Literal
@@ -11,13 +9,13 @@ from typing_extensions import Literal
 
 class FindCommand(NamedTuple):
     paths: Sequence[str]
-    maxdepth: Optional[int] = None
-    mindepth: Optional[int] = None
+    maxdepth: int | None = None
+    mindepth: int | None = None
     expand_paths: bool = False
-    type: Optional[Literal['d', 'f']] = None
+    type: Literal['d', 'f'] | None = None  # noqa: A003
     follow: bool = False
 
-    def cmd(self) -> List[str]:
+    def cmd(self) -> list[str]:
         ret_cmd: list[str] = (
             ['find', *self.paths]
             if not self.expand_paths

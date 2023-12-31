@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import itertools
 import os
-from typing import List
-from typing import Tuple
 
 
 def get_required_env_vars(
     varname: str,
     *varnames: str,
     allow_empty: bool = False,
-) -> Tuple[str, ...]:
+) -> tuple[str, ...]:
     """
     Get the values of the specified environment variables, raising an error if any of them are not set or empty.
 
@@ -25,20 +23,21 @@ def get_required_env_vars(
     Raises:
         ValueError: If any of the specified environment variables are not set or empty.
     """
-    ret: List[str] = []
+    ret: list[str] = []
     for var_name in itertools.chain((varname,), varnames):
         val = os.getenv(var_name)
         if val is None or (not allow_empty and not val):
-            raise ValueError(f'Environment variable {var_name} must not be empty.')
+            msg = f'Environment variable {var_name} must not be empty.'
+            raise ValueError(msg)
         ret.append(val)
     return tuple(ret)
 
 
 def get_env_vars_or_default(
-    varname_default_pair: Tuple[str, str],
-    *varname_default_pairs: Tuple[str, str],
+    varname_default_pair: tuple[str, str],
+    *varname_default_pairs: tuple[str, str],
     allow_empty: bool = False,
-) -> Tuple[str, ...]:
+) -> tuple[str, ...]:
     """
     Get the values of the specified environment variables, using default values if any of them are not set or empty.
 
@@ -50,7 +49,7 @@ def get_env_vars_or_default(
     Returns:
         An iterable of the values of the specified environment variables, using the default values for any that are not set or empty.
     """
-    ret: List[str] = []
+    ret: list[str] = []
     for var_name, default in itertools.chain((varname_default_pair,), varname_default_pairs):
         val = os.getenv(var_name)
         if val is None or (not allow_empty and not val):

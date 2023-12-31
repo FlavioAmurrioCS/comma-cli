@@ -43,7 +43,7 @@ def gron(obj: JSON_TYPE) -> list[str]:
     )
 
 
-def _ungron_helper(data: Sequence[tuple[str, str]], _walker: int = 0) -> tuple[JSON_TYPE, int]:
+def _ungron_helper(data: Sequence[tuple[str, str]], _walker: int = 0) -> tuple[JSON_TYPE, int]:  # noqa: C901
     (head_path, head_value) = data[_walker]
     if head_value == '[]':
         ret: list[Any] = []
@@ -59,7 +59,7 @@ def _ungron_helper(data: Sequence[tuple[str, str]], _walker: int = 0) -> tuple[J
             else:
                 break
         return ret, _walker
-    elif head_value == '{}':
+    if head_value == '{}':
         ret_dict = {}
         pattern_base = re.escape(head_path)
         _walker += 1
@@ -76,18 +76,18 @@ def _ungron_helper(data: Sequence[tuple[str, str]], _walker: int = 0) -> tuple[J
             else:
                 break
         return ret_dict, _walker
-    elif head_value == 'true':
+    if head_value == 'true':
         return True, _walker + 1
-    elif head_value == 'false':
+    if head_value == 'false':
         return False, _walker + 1
-    elif head_value == 'null':
+    if head_value == 'null':
         return None, _walker + 1
-    elif head_value.startswith('"'):
+    if head_value.startswith('"'):
         return head_value[1:-1], _walker + 1
-    elif head_value.isnumeric():
+    if head_value.isnumeric():
         return int(head_value), _walker + 1
-    else:
-        return float(head_value), _walker + 1
+
+    return float(head_value), _walker + 1
 
 
 def ungron(lines: Iterable[str]) -> JSON_TYPE:

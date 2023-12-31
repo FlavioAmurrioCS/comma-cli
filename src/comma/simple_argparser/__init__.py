@@ -93,7 +93,7 @@ class CLIApp(Protocol):
             {parser.prog} <command> [options] [args...]
 
             Available commands:
-            """) + '\n'.join(f'  {k:20} {v._short_description()}' for k, v in dct.items())
+            """) + '\n'.join(f'  {k:20} {v._short_description()}' for k, v in dct.items())  # noqa: SLF001
         if sys.argv[1] in ('--help', '-h'):
             print(help_text)
             return 0

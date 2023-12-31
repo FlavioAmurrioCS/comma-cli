@@ -193,10 +193,12 @@ class Docker:
     @lru_cache(maxsize=1)
     def docker_bin_check(self) -> None:
         if not shutil.which(self.binary):
-            raise Exception(f'{self.binary} not found in path')
+            msg = f'{self.binary} not found in path'
+            raise Exception(msg)  # noqa: TRY002
 
         if Command(cmd=(self.binary, 'ps')).run().returncode != 0:
-            raise Exception(f'{self.binary} daemon not running')
+            msg = f'{self.binary} daemon not running'
+            raise Exception(msg)  # noqa: TRY002
 
     def list_containers(self) -> list[ContainerLS]:
         return [
@@ -218,13 +220,13 @@ class Docker:
             .splitlines()
         ]
 
-    def stop(self, id: ContainerRunConfig) -> None:
+    def stop(self, config: ContainerRunConfig) -> None:
         Command(
-            cmd=(self.binary, 'stop', id.name),
+            cmd=(self.binary, 'stop', config.name),
             label='Stopping docker container',
         ).run_with_spinner()
 
-    def start(self, id: ContainerRunConfig) -> None:
+    def start(self, config: ContainerRunConfig) -> None:
         ...
         # Command(
         #     cmd=(self.binary, 'start', id),

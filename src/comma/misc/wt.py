@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
 
 import typer
 from comma.misc.m_git import GitWorktree
@@ -37,18 +36,18 @@ def ls() -> None:
     List worktrees.
     """
     g = GitWorktree.from_dir()
-    for line in g.list():
+    for line in g.list_wt():
         print(line)
 
 
 @app_wt.command()
-def remove(worktree: Optional[str] = None) -> None:
+def remove(worktree: str | None = None) -> None:
     """
     Remove worktree.
     """
     g = GitWorktree.from_dir()
 
-    worktree = worktree or fzf(g.list())
+    worktree = worktree or fzf(g.list_wt())
     if not worktree:
         return
     g.remove(worktree)

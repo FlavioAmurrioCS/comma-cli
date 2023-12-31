@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from __future__ import annotations
 
 import itertools
@@ -11,9 +12,7 @@ from dataclasses import dataclass
 from importlib.resources import path as resource_path
 from typing import Callable
 from typing import Iterable
-from typing import List
 from typing import NamedTuple
-from typing import Optional
 from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import TypeVar
@@ -67,11 +66,12 @@ class LogToolConfigParser:
         if os.path.exists(config_file):
             self.config.read(config_file)
         else:
-            logging.warning(f'Config file {config_file} does not exist.')
+            logging.warning('Config file %s does not exist.', config_file)
 
     def get(self, section_name: str) -> LogToolConfig:
         if section_name not in self.config.sections():
-            raise KeyError(f'Section {section_name} does not exist.')
+            msg = f'Section {section_name} does not exist.'
+            raise KeyError(msg)
 
         selection = self.config[section_name]
 
@@ -165,7 +165,7 @@ class LogTool:
 
         return self.stream.filter(lambda x: any(p(x) for p in predicates))  # type:ignore
 
-    def print(self, original_stream: bool = False) -> None:
+    def print_log(self, original_stream: bool = False) -> None:
         stream = self.stream if original_stream else self.processed_stream
         print_format: str = self.log_tool_config['print_format']
         if not print_format:
@@ -180,8 +180,8 @@ class LogTool:
 
 @app_logtool.command()
 def pretty_search(
-    ini_config: Optional[str] = None,
-    files: List[str] = typer.Option(
+    ini_config: str | None = None,
+    files: list[str] = typer.Option(
         [], '--file', '-f', help='Files to search.',
     ),
     # interactive: bool = typer.Option(False, '--interactive', help='Prompt for file edit'),
@@ -194,19 +194,19 @@ def pretty_search(
         logs=(files or ['/dev/stdin']),
     )
     rprint(log_tool)
-    log_tool.print()
+    log_tool.print_log()
 
 
 @app_logtool.command()
 def search(
-    search_patterns: List[str],
+    search_patterns: list[str],
     ignore_case: bool = typer.Option(
         False, '--ignore-case', '-i',
         help='Perform case insensitive matching.',
     ),
     enable_regex: bool = typer.Option(False, '--regex', '-E', help='Enable Regex.'),
-    files: List[str] = typer.Option(['/dev/stdin'], '--file', '-f', help='Files to search.'),
-    ignore_patterns: List[str] = typer.Option([], '-v', help='Specify ignore pattern'),
+    files: list[str] = typer.Option(['/dev/stdin'], '--file', '-f', help='Files to search.'),
+    ignore_patterns: list[str] = typer.Option([], '-v', help='Specify ignore pattern'),
 ) -> None:
     """Search and color text files"""
     from functional import seq

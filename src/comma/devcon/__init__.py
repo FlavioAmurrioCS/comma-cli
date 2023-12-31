@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from __future__ import annotations
 
 import logging
@@ -5,7 +6,6 @@ import os
 from dataclasses import dataclass
 from dataclasses import field
 from textwrap import dedent
-from typing import List
 from typing import NamedTuple
 
 import typer
@@ -46,10 +46,10 @@ class DevContainer:
     _username: str | None = None
     image_name: str = 'devcon'
     ssh_port: int = 2222
-    volumes: List[tuple[str, str]] = field(default_factory=list)
-    ports: List[tuple[int, int]] = field(default_factory=list)
-    envs: List[tuple[str, str]] = field(default_factory=list)
-    additional_args: List[str] = field(default_factory=list)
+    volumes: list[tuple[str, str]] = field(default_factory=list)
+    ports: list[tuple[int, int]] = field(default_factory=list)
+    envs: list[tuple[str, str]] = field(default_factory=list)
+    additional_args: list[str] = field(default_factory=list)
 
     @property
     def group_id(self) -> str:
@@ -195,10 +195,7 @@ class DevContainer:
         ).execvp()
 
     def is_running(self) -> bool:
-        for container in DOCKER_CLIENT.list_containers():
-            if container['Names'] == self.image_name:
-                return True
-        return False
+        return any(container['Names'] == self.image_name for container in DOCKER_CLIENT.list_containers())
 
     def sshMachine(self) -> SshMachine:
         return SshMachine(hostname='localhost', port=self.ssh_port, user=self.username)
@@ -235,12 +232,12 @@ class DockerVolumes(NamedTuple):
 
 @app_devcon.command()
 def start(
-    ports: List[DockerPorts] = typer.Option(
+    ports: list[DockerPorts] = typer.Option(
         [], '-p', '--expose',
         help="Publish a container's port(s) to the host. ie -p=8080:9090",
         parser=DockerPorts.parse,
     ),
-    volumes: List[DockerVolumes] = typer.Option(
+    volumes: list[DockerVolumes] = typer.Option(
         [], '-v', '--volume',
         help='Bind mount a volume. ie -v=/host:/container',
         parser=DockerVolumes.parse,

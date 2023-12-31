@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from contextlib import ExitStack
-from types import TracebackType
 from typing import Iterable
-from typing import Optional
 from typing import TextIO
-from typing import Type
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
+    from types import TracebackType
     from typing_extensions import Self
 
 
@@ -49,8 +47,8 @@ class DualWriter:
         """
         self.__stack__ = ExitStack().__enter__()
         try:
-            self.left_writer = self.__stack__.enter_context(open(self.__left__, 'w'))
-            self.right_writer = self.__stack__.enter_context(open(self.__right__, 'w'))
+            self.left_writer = self.__stack__.enter_context(open(self.__left__, 'w'))  # noqa: SIM115
+            self.right_writer = self.__stack__.enter_context(open(self.__right__, 'w'))  # noqa: SIM115
         except BaseException:
             self.__stack__.close()
             raise
@@ -58,10 +56,10 @@ class DualWriter:
 
     def __exit__(
             self,
-            tp: Optional[Type[BaseException]],
-            inst: Optional[BaseException],
-            tb: Optional[TracebackType],
-    ) -> Optional[bool]:
+            tp: type[BaseException] | None,
+            inst: BaseException | None,
+            tb: TracebackType | None,
+    ) -> bool | None:
         """
         Exits the context and closes the left and right files.
 

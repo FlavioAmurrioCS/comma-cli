@@ -7,9 +7,7 @@ from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from typing import ChainMap
-from typing import List
 from typing import NamedTuple
-from typing import Optional
 
 import typer
 from comma.command import Command
@@ -55,7 +53,7 @@ class _DockerImageInfo(TypedDict):
 
 class DockerClient(NamedTuple):
     @lru_cache(maxsize=1)
-    def list_containers(self) -> List[_DockerContainerInfo]:
+    def list_containers(self) -> list[_DockerContainerInfo]:
         return [
             json.loads(x)
             for x in Command(
@@ -66,7 +64,7 @@ class DockerClient(NamedTuple):
         ]
 
     @lru_cache(maxsize=1)
-    def list_images(self) -> List[_DockerImageInfo]:
+    def list_images(self) -> list[_DockerImageInfo]:
         return [
             json.loads(x)
             for x in Command(
@@ -138,10 +136,10 @@ class _DockerPlatform(str, Enum):
 
 @app_docker.command()
 def explore(
-        image: Optional[str] = typer.Argument(None),
+        image: str | None = typer.Argument(None),
         shell: str = 'sh',
-        user: Optional[str] = None,
-        platform: Optional[_DockerPlatform] = None,
+        user: str | None = None,
+        platform: _DockerPlatform | None = None,
 ) -> None:
     """
     Run a container and enter it.

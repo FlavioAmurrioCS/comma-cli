@@ -42,7 +42,7 @@ def foo(cmd: list[str]) -> Iterator[str]:
 
 
 def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p1:
+    with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p1:  # noqa: SIM117
         with subprocess.Popen(cmd2, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p2:
             if p2.stdout:
                 yield from p2.stdout
@@ -58,8 +58,7 @@ class Proxy(IO[str]):
                 print('done calling %s' % attr.__name__)
                 return result
             return newfunc
-        else:
-            return attr
+        return attr
 
     def fileno(self) -> int:
         return 1

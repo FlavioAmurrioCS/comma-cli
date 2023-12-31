@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Optional
 from typing import Sequence
 
 from comma.command import Command
@@ -34,8 +33,8 @@ class SshMachine(Machine):
     def __init__(
         self,
         hostname: str = os.environ.get('REMOTE_MACHINE', 'vdi'),
-        user: Optional[str] = None,
-        port: Optional[int] = None,
+        user: str | None = None,
+        port: int | None = None,
     ) -> None:
         _ssh_command = [
             'ssh',

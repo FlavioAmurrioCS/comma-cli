@@ -109,7 +109,7 @@ def temp_dir_context() -> Generator[str, None, None]:
 def unpacker_context(filename: str) -> Generator[str, None, None]:
     from rich.halo import FHalo
     with temp_dir_context() as temp_dir:
-        with (
+        with (  # noqa: SIM117
                 zipfile.ZipFile(filename)  # type:ignore
                 if filename.endswith('.zip')
                 else tarfile.open(filename)
@@ -192,7 +192,7 @@ def download_context(
                             progress_callback(len(chunk))
                             file.write(chunk)
                     except KeyboardInterrupt:
-                        raise SystemExit(1)
+                        raise SystemExit(1)  # noqa: TRY200
         yield full_path
 
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from __future__ import annotations
 
 import shutil
@@ -54,7 +55,7 @@ class TyperNode(NamedTuple):
         _level: int = 0,
     ) -> Generator[TyperNode, None, None]:
         app_name = app.info.name or root_name
-        path = path + (app_name,)
+        path = (*path, app_name)
         yield TyperNode(
             path=path,
             func=app,
@@ -68,7 +69,7 @@ class TyperNode(NamedTuple):
                 func_name = command.name or func.__name__.replace('_', '-')
                 doc = command.help or func.__doc__ or 'NO DOC'
                 yield TyperNode(
-                    path=path + (func_name,),
+                    path=(*path, func_name),
                     func=func,
                     name=func_name,
                     doc=doc,
@@ -105,11 +106,10 @@ def __traverse_nodes__() -> Generator[TyperNode, None, None]:
 
 
 def __pick_node__() -> TyperNode | None:
-    selected = fzf(
+    return fzf(
         __traverse_nodes__(),
         key=lambda x: f'{" ".join(x.path)} --> {x.doc.strip().splitlines()[0]}',
     )
-    return selected
 
 
 typer_settigs = {

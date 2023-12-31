@@ -40,7 +40,8 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_option
     annotation = param.annotation
     default = param.default
     if annotation is inspect.Parameter.empty and default is inspect.Parameter.empty:
-        raise ValueError(f'{var_name=} has no annotation or default value')
+        msg = f'{var_name=} has no annotation or default value'
+        raise ValueError(msg)
 
     if annotation is inspect.Parameter.empty:
         annotation = type(default).__name__
@@ -124,9 +125,8 @@ class _cli_app(Generic[FUNC]):
             parser.add_argument(field_arg, **kwargs)
         if unknown_args_var_name is None:
             return parser.parse_args(argv).__dict__
-        else:
-            args, unknonw = parser.parse_known_args(argv)
-            return {**args.__dict__, unknown_args_var_name: unknonw}
+        args, unknonw = parser.parse_known_args(argv)
+        return {**args.__dict__, unknown_args_var_name: unknonw}
 
     def __call__(self, argv: Sequence[str] | None = None) -> FUNC:
         args = self.__parse_args__(argv)

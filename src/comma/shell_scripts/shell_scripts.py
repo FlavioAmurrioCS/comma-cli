@@ -58,13 +58,14 @@ def sh(
         if tool == '--help':
             print(ctx.get_help())
         else:
-            logging.error(f'No tool named: {tool}')
+            logging.error('No tool named: %s', tool)
         return 1
     if which:
         print(tool_path)
         return 0
     cmd = (tool_path, *ctx.args)
     os.execvp(cmd[0], cmd)
+    return None
 
 
 if __name__ == '__main__':
