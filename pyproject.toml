@@ -127,6 +127,7 @@ packages = [
   "src/gum",
 ]
 
+# COMMMON SETTINGS BELOW
 [tool.hatch.envs.hatch-static-analysis]
 config-path = "none"
 
@@ -181,3 +182,16 @@ convention = "google"
 "**/_personal/**/*.py" = [
   "ALL",
 ]
+
+[tool.tox]
+legacy_tox_ini = """
+    [tox]
+    skip_missing_interpreters = True
+    envlist = py38, py39, py310, py311, py312
+
+    [testenv]
+    deps = pytest
+    commands =
+        ; mypy --ignore-missing-imports --scripts-are-modules comma
+        pytest -W ignore::DeprecationWarning -W ignore::PendingDeprecationWarning {posargs:tests}
+"""

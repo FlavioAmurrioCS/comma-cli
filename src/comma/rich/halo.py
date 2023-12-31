@@ -93,12 +93,7 @@ if typing.TYPE_CHECKING:
         "circleHalves",
         "dots3",
     ]
-    _MAIN = {
-        "info": "",
-        "success": "",
-        "warning": "",
-        "error": "",
-    }
+
     P = ParamSpec("P")
     R = TypeVar("R")
 

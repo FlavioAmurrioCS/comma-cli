@@ -5,7 +5,8 @@ from importlib.resources import Package
 from importlib.resources import path
 from typing import Any
 from typing import Generic
-from typing import TypeVar, TYPE_CHECKING
+from typing import TYPE_CHECKING
+from typing import TypeVar
 
 if TYPE_CHECKING:
     from pathlib import Path
