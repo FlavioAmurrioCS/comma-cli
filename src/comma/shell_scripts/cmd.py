@@ -1,3 +1,4 @@
+# flake8: noqa: S603
 from __future__ import annotations
 
 import subprocess
@@ -24,42 +25,54 @@ class _GrepOptions(TypedDict, total=False):
 
 def _grep_options(options: _GrepOptions) -> list[str]:
     flags = []
-    if options.get('ignore_case'):
-        flags.append('-i')
-    if options.get('invert_match'):
-        flags.append('-v')
+    if options.get("ignore_case"):
+        flags.append("-i")
+    if options.get("invert_match"):
+        flags.append("-v")
     return flags
 
 
 def grep(**kwargs: Unpack[_GrepOptions]) -> CMD:
-    return CMD('grep', _grep_options(kwargs))
+    return CMD("grep", _grep_options(kwargs))
 
 
 def foo(cmd: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p1:
+    with subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore"
+    ) as p1:
         if p1.stdout:
             yield from p1.stdout
 
 
 def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p1:
-        with subprocess.Popen(cmd2, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p2:
+    with subprocess.Popen(  # noqa: SIM117
+        cmd1, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore"
+    ) as p1:
+        with subprocess.Popen(
+            cmd2,
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=None,
+            encoding="utf-8",
+            errors="ignore",
+        ) as p2:
             if p2.stdout:
                 yield from p2.stdout
 
 
 class Proxy(IO[str]):
-    def __getattribute__(self, __name: str) -> Any:
+    def __getattribute__(self, __name: str) -> Any:  # noqa: ANN401
         attr = object.__getattribute__(self, __name)
-        if hasattr(attr, '__call__'):
-            def newfunc(*args, **kwargs) -> Any:  # type:ignore
-                print('before calling %s' % attr.__name__)
+        if callable(attr):
+
+            def newfunc(*args, **kwargs) -> Any:  # noqa: ANN003, ANN002, ANN401
+                print("before calling %s" % attr.__name__)
                 result = attr(*args, **kwargs)
-                print('done calling %s' % attr.__name__)
+                print("done calling %s" % attr.__name__)
                 return result
+
             return newfunc
-        else:
-            return attr
+        return attr
 
     def fileno(self) -> int:
         return 1

@@ -5,36 +5,32 @@ import os
 import shlex
 import shutil
 import subprocess
-from typing import List
 from typing import Mapping
 from typing import NamedTuple
-from typing import Optional
-from typing import Tuple
-from typing import Union
 
 from comma.rich.halo import FHalo
 
 
 class Command(NamedTuple):
-    cmd: Union[List[str], Tuple[str, ...]]
-    label: str = ''
+    cmd: list[str] | tuple[str, ...]
+    label: str = ""
     text: bool = True
     check: bool = False
-    cwd: Optional[str] = None
+    cwd: str | None = None
     capture_output: bool = True
-    input: Optional[str] = None
-    timeout: Optional[float] = None
-    env: Optional[Mapping[str, str]] = None
-    additional_env: Optional[Mapping[str, str]] = None
+    input: str | None = None  # noqa: A003
+    timeout: float | None = None
+    env: Mapping[str, str] | None = None
+    additional_env: Mapping[str, str] | None = None
 
     def run(self) -> subprocess.CompletedProcess[str]:
         self._exec_check()
         logging.debug(self)
         try:
             return subprocess.run(
-                self.cmd,
-                errors='ignore',
-                encoding='utf-8',
+                self.cmd,  # noqa: S603
+                errors="ignore",
+                encoding="utf-8",
                 text=self.text,
                 check=self.check,
                 cwd=self.cwd,
@@ -44,7 +40,7 @@ class Command(NamedTuple):
                 env=self.resolved_env,
             )
         except subprocess.CalledProcessError as e:
-            logging.error(e.stderr)
+            logging.exception(e.stderr)
             raise
 
     @property
@@ -60,7 +56,8 @@ class Command(NamedTuple):
 
     def execvp(self, *, log_command: bool = True) -> None:
         import sys
-        if 'pytest' in sys.modules:
+
+        if "pytest" in sys.modules:
             self.run()
             return
         if self.resolved_env:
@@ -71,19 +68,20 @@ class Command(NamedTuple):
         if log_command:
             logging.info(self)
         self._exec_check()
-        os.execvp(self.cmd[0], self.cmd)
+        os.execvp(self.cmd[0], self.cmd)  # noqa: S606
 
     def _exec_check(self) -> None:
         executable = self.cmd[0]
         if shutil.which(executable) is not None:
             return
         if not os.path.exists(executable):
-            logging.warning('Executable does not exist: %s', executable)
+            logging.warning("Executable does not exist: %s", executable)
         elif not os.access(executable, os.X_OK):
-            logging.warning('File is not executable: %s', executable)
+            logging.warning("File is not executable: %s", executable)
 
     def __repr__(self) -> str:
-        return ' '.join(map(shlex.quote, self.cmd))
+        """Return a string representation of the Command object."""
+        return " ".join(map(shlex.quote, self.cmd))
 
     def run_with_spinner(self) -> subprocess.CompletedProcess[str]:
         with FHalo(status=self.label or repr(self)) as halo:

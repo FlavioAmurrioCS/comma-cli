@@ -7,7 +7,6 @@ from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
 from typing import ChainMap
-from typing import List
 from typing import NamedTuple
 from typing import Optional
 
@@ -17,8 +16,8 @@ from typedfzf import fzf
 from typing_extensions import TypedDict
 
 app_docker: typer.Typer = typer.Typer(
-    name='docker',
-    help='Docker related commands',
+    name="docker",
+    help="Docker related commands",
 )
 
 
@@ -54,23 +53,23 @@ class _DockerImageInfo(TypedDict):
 
 
 class DockerClient(NamedTuple):
-    @lru_cache(maxsize=1)
-    def list_containers(self) -> List[_DockerContainerInfo]:
+    @lru_cache(maxsize=1)  # noqa: B019
+    def list_containers(self) -> list[_DockerContainerInfo]:
         return [
             json.loads(x)
             for x in Command(
-                cmd=('docker', 'container', 'ls', '--format={{json .}}'),
+                cmd=("docker", "container", "ls", "--format={{json .}}"),
             )
             .quick_run()
             .splitlines()
         ]
 
-    @lru_cache(maxsize=1)
-    def list_images(self) -> List[_DockerImageInfo]:
+    @lru_cache(maxsize=1)  # noqa: B019
+    def list_images(self) -> list[_DockerImageInfo]:
         return [
             json.loads(x)
             for x in Command(
-                cmd=('docker', 'image', 'ls', '--format={{json .}}'),
+                cmd=("docker", "image", "ls", "--format={{json .}}"),
             )
             .quick_run()
             .splitlines()
@@ -84,25 +83,26 @@ DOCKER_CLIENT = DockerClient()
 def _image_lookup_dict() -> dict[str, _DockerImageInfo]:
     data = DOCKER_CLIENT.list_images()
     return ChainMap(
-        {x['ID']: x for x in DOCKER_CLIENT.list_images()},
+        {x["ID"]: x for x in DOCKER_CLIENT.list_images()},
         {f"{image['Repository']}:{image['Tag']}": image for image in data},
         defaultdict(lambda: defaultdict(str)),  # type: ignore
     )
 
 
 def _docker_image_repr(image: _DockerImageInfo) -> str:
-    return f"{image['ID']} | {image['CreatedSince'].ljust(15)} | {image['Repository']}:{image['Tag']}"
+    return (
+        f"{image['ID']} | {image['CreatedSince'].ljust(15)} | {image['Repository']}:{image['Tag']}"
+    )
 
 
 def _docker_container_repr(container: _DockerContainerInfo) -> str:
-    return f"{container['ID']} | {container['Names'].ljust(23)} | {_docker_image_repr(_image_lookup_dict()[container['Image']])}"
+    image_info = _docker_image_repr(_image_lookup_dict()[container["Image"]])
+    return f"{container['ID']} | {container['Names'].ljust(23)} | {image_info}"
 
 
 @app_docker.command()
 def enter() -> None:
-    """
-    Enter container.
-    """
+    """Enter container."""
     selection = fzf(
         DOCKER_CLIENT.list_containers(),
         key=_docker_container_repr,
@@ -111,41 +111,42 @@ def enter() -> None:
     if selection:
         Command(
             cmd=(
-                'docker', 'exec', '-it',
-                selection['Names'], 'sh', '-c', 'which bash >/dev/null 2>&1 && exec bash || exec sh',
+                "docker",
+                "exec",
+                "-it",
+                selection["Names"],
+                "sh",
+                "-c",
+                "which bash >/dev/null 2>&1 && exec bash || exec sh",
             ),
         ).execvp()
 
 
 @app_docker.command()
 def stop() -> None:
-    """
-    Stop container.
-    """
+    """Stop container."""
     selection = fzf(
         DOCKER_CLIENT.list_containers(),
         key=_docker_container_repr,
         select_one=False,
     )
     if selection:
-        Command(cmd=('docker', 'stop', selection['Names'])).execvp()
+        Command(cmd=("docker", "stop", selection["Names"])).execvp()
 
 
 class _DockerPlatform(str, Enum):
-    amd64 = 'amd64'
-    aarch64 = 'aarch64'
+    amd64 = "amd64"
+    aarch64 = "aarch64"
 
 
 @app_docker.command()
 def explore(
-        image: Optional[str] = typer.Argument(None),
-        shell: str = 'sh',
-        user: Optional[str] = None,
-        platform: Optional[_DockerPlatform] = None,
+    image: Optional[str] = typer.Argument(None),  # noqa: UP007
+    shell: str = "sh",
+    user: Optional[str] = None,  # noqa: UP007
+    platform: Optional[_DockerPlatform] = None,  # noqa: UP007
 ) -> None:
-    """
-    Run a container and enter it.
-    """
+    """Run a container and enter it."""
     if not image:
         image_selection = fzf(
             DOCKER_CLIENT.list_images(),
@@ -154,23 +155,26 @@ def explore(
         )
         if image_selection:
             image = (
-                (image_selection['Repository'] + ':' + image_selection['Tag'])
-                if image_selection['Tag'] != '<none>'
-                else image_selection['ID']
+                (image_selection["Repository"] + ":" + image_selection["Tag"])
+                if image_selection["Tag"] != "<none>"
+                else image_selection["ID"]
             )
     if image:
         Command(
             cmd=(
-                'docker', 'run',
-                '-it', '--rm',
-                *((f'--user={user}',) if user else ()),
-                *((f'--platform=linux/{platform.value}',) if platform else ()),
-                '--entrypoint', shell,
-                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',
+                "docker",
+                "run",
+                "-it",
+                "--rm",
+                *((f"--user={user}",) if user else ()),
+                *((f"--platform=linux/{platform.value}",) if platform else ()),
+                "--entrypoint",
+                shell,
+                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',  # noqa: S311, E501
                 image,
             ),
         ).execvp()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_docker()
