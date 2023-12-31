@@ -17,7 +17,11 @@ class Tmux(NamedTuple):
         if not self.machine.has_executable("tmux"):
             logging.error("Tmux not in machine")
             raise SystemExit(1)
-        lines = [x for x in self.machine.quick_run(("tmux", "ls")).splitlines() if "no server running on" not in x and "error connecting" not in x]
+        lines = [
+            x
+            for x in self.machine.quick_run(("tmux", "ls")).splitlines()
+            if "no server running on" not in x and "error connecting" not in x
+        ]
         create_new_session = "<create new session>"
         lines.append(create_new_session)
         selection = fzf(lines)

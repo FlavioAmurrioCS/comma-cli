@@ -37,14 +37,25 @@ def grep(**kwargs: Unpack[_GrepOptions]) -> CMD:
 
 
 def foo(cmd: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore") as p1:
+    with subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore"
+    ) as p1:
         if p1.stdout:
             yield from p1.stdout
 
 
 def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore") as p1:  # noqa: SIM117
-        with subprocess.Popen(cmd2, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore") as p2:
+    with subprocess.Popen(  # noqa: SIM117
+        cmd1, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore"
+    ) as p1:
+        with subprocess.Popen(
+            cmd2,
+            stdin=p1.stdout,
+            stdout=subprocess.PIPE,
+            stderr=None,
+            encoding="utf-8",
+            errors="ignore",
+        ) as p2:
             if p2.stdout:
                 yield from p2.stdout
 

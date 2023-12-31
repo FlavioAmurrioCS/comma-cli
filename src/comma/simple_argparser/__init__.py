@@ -70,12 +70,20 @@ class CLIApp(Protocol):
 
     @overload
     @classmethod
-    def parse_args(cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[True]) -> tuple[Self, list[str]]:
+    def parse_args(
+        cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[True]
+    ) -> tuple[Self, list[str]]:
         ...
 
     @classmethod
-    def parse_args(cls, argv: Sequence[str] | None = None, *, allow_unknown_args: bool = False) -> tuple[Self, list[str]] | Self:
-        return cls.parser().parse_known_args(argv) if allow_unknown_args else cls.parser().parse_args(argv)  # type:ignore
+    def parse_args(
+        cls, argv: Sequence[str] | None = None, *, allow_unknown_args: bool = False
+    ) -> tuple[Self, list[str]] | Self:
+        return (
+            cls.parser().parse_known_args(argv)  # type:ignore
+            if allow_unknown_args
+            else cls.parser().parse_args(argv)
+        )
 
     @classmethod
     def run(cls, argv: Sequence[str] | None = None) -> int:

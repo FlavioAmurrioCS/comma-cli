@@ -200,7 +200,9 @@ def gum_confirm(
     options: _GumConfirmOptions | None = None,
 ) -> bool:
     options = options or {}
-    return subprocess.run(["gum", "confirm", *_gum_confirm_options(options), prompt]).returncode == 0
+    return (
+        subprocess.run(["gum", "confirm", *_gum_confirm_options(options), prompt]).returncode == 0
+    )
 
 
 ####################################################################################################

@@ -3,12 +3,12 @@ from __future__ import annotations
 import itertools
 import os
 import shutil
+from typing import TYPE_CHECKING
 
 from comma.command import Command
 from persistent_cache_decorator import persistent_cache
 
 from .machine import Machine
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from comma.types import CMD_ARGS
@@ -61,5 +61,9 @@ class LocalMachine(Machine):
         projects = os.path.expanduser("~/projects")
         foo = (os.path.join(projects, x) for x in os.listdir(projects))
         return list(
-            {x for x in itertools.chain(foo, all_git_projects()) if "trash" not in x and os.path.isdir(x)},
+            {
+                x
+                for x in itertools.chain(foo, all_git_projects())
+                if "trash" not in x and os.path.isdir(x)
+            },
         )

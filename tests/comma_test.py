@@ -20,7 +20,13 @@ ignore_commands = {
 }
 
 modules = (
-    name for _, name, _ in itertools.chain(*(pkgutil.walk_packages(pkg.__path__, f"{pkg.__name__}.") for pkg in (comma_pkg, gron_pkg, gum_pkg)))
+    name
+    for _, name, _ in itertools.chain(
+        *(
+            pkgutil.walk_packages(pkg.__path__, f"{pkg.__name__}.")
+            for pkg in (comma_pkg, gron_pkg, gum_pkg)
+        )
+    )
 )
 
 ignore_modules = {

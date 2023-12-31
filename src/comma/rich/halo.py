@@ -152,7 +152,12 @@ class FHalo(Status):
     def __enter__(self) -> Self:
         return typing.cast("Self", super().__enter__())
 
-    def __exit__(self, exc_type: type[BaseException] | None, exc_val: BaseException | None, exc_tb: TracebackType | None) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.console.print(self._success or self.status)
         return super().__exit__(exc_type, exc_val, exc_tb)
 

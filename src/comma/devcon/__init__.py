@@ -202,7 +202,9 @@ class DevContainer:
         ).execvp()
 
     def is_running(self) -> bool:
-        return any(container["Names"] == self.image_name for container in DOCKER_CLIENT.list_containers())
+        return any(
+            container["Names"] == self.image_name for container in DOCKER_CLIENT.list_containers()
+        )
 
     def ssh_machine(self) -> SshMachine:
         return SshMachine(hostname="localhost", port=self.ssh_port, user=self.username)

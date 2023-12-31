@@ -45,7 +45,11 @@ class Command(NamedTuple):
 
     @property
     def resolved_env(self) -> Mapping[str, str] | None:
-        return self.env if not self.additional_env else {**(self.env or os.environ), **self.additional_env}
+        return (
+            self.env
+            if not self.additional_env
+            else {**(self.env or os.environ), **self.additional_env}
+        )
 
     def quick_run(self) -> str:
         return self.run().stdout.strip()

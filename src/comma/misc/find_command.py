@@ -17,7 +17,9 @@ class FindCommand(NamedTuple):
 
     def cmd(self) -> list[str]:
         ret_cmd: list[str] = (
-            ["find", *self.paths] if not self.expand_paths else ["find", *map(os.path.expanduser, self.paths)]  # type:ignore
+            ["find", *self.paths]
+            if not self.expand_paths
+            else ["find", *map(os.path.expanduser, self.paths)]  # type:ignore
         )
 
         if self.maxdepth is not None:

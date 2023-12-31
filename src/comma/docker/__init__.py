@@ -90,7 +90,9 @@ def _image_lookup_dict() -> dict[str, _DockerImageInfo]:
 
 
 def _docker_image_repr(image: _DockerImageInfo) -> str:
-    return f"{image['ID']} | {image['CreatedSince'].ljust(15)} | {image['Repository']}:{image['Tag']}"
+    return (
+        f"{image['ID']} | {image['CreatedSince'].ljust(15)} | {image['Repository']}:{image['Tag']}"
+    )
 
 
 def _docker_container_repr(container: _DockerContainerInfo) -> str:
@@ -157,7 +159,11 @@ def explore(
             select_one=False,
         )
         if image_selection:
-            image = (image_selection["Repository"] + ":" + image_selection["Tag"]) if image_selection["Tag"] != "<none>" else image_selection["ID"]
+            image = (
+                (image_selection["Repository"] + ":" + image_selection["Tag"])
+                if image_selection["Tag"] != "<none>"
+                else image_selection["ID"]
+            )
     if image:
         Command(
             cmd=(

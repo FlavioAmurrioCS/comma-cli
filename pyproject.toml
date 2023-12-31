@@ -135,7 +135,7 @@ venvPath = "."
 venv = "venv"
 
 [tool.ruff]
-line-length = 150
+line-length = 100
 select = [
   "ALL",
 ]
@@ -150,7 +150,10 @@ ignore = [
   "ANN101",
   "ANN102",
   "ANN401",
-  "ERA001",
+  "ERA001", # Keep uncommented code
+  "E501",
+
+  # DO NOT ENABLE THE FOLLOWING
   "T20",    # flake8-print # DO NOT ENABLE, we use prints
   "PTH",    # flake8-use-pathlib # DO NOT ENABLE, we prefere non pathlib
   "I",      # isort # DO NOT ENABLE

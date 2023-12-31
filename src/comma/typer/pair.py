@@ -81,7 +81,9 @@ except TypeError:
             yield from astuple(self)
 
 
-def pair_parse(left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ",") -> Callable[[str], Pair[_L, _R]]:
+def pair_parse(
+    left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ","
+) -> Callable[[str], Pair[_L, _R]]:
     """
     Returns a function that parses a string into a Pair.
 

@@ -88,7 +88,11 @@ class LogToolConfigParser:
                 if "print_format" in selection
                 else r"[cyan]{TIMESTAMP} [yellow][{LOGLEVEL: ^7}] [red]{CLASS: >22}: [reset]{MSG}"
             ),
-            "loglevel": (selection["loglevel"].splitlines() if "loglevel" in selection else ["INFO", "WARN", "ERROR", "FATAL", "CRITICAL"]),
+            "loglevel": (
+                selection["loglevel"].splitlines()
+                if "loglevel" in selection
+                else ["INFO", "WARN", "ERROR", "FATAL", "CRITICAL"]
+            ),
             "clazz": (selection["clazz"].splitlines() if "clazz" in selection else []),
             "msg": (selection["msg"].splitlines() if "msg" in selection else []),
         }
@@ -103,7 +107,11 @@ class LogToolConfigParser:
 def seq_open_file(file: FileDescriptorOrPath) -> Iterable[str]:
     from functional import seq
 
-    return seq.open(file, errors="ignore", encoding="utf-8") if file not in ("/dev/stdin", "-") else sys.stdin
+    return (
+        seq.open(file, errors="ignore", encoding="utf-8")
+        if file not in ("/dev/stdin", "-")
+        else sys.stdin
+    )
 
 
 @dataclass

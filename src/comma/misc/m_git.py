@@ -17,7 +17,9 @@ from comma.command import Command
 from comma.misc.file_utils import find_up_dir
 
 
-def chunk_split(lines: Sequence[str], predicate: Callable[[str], bool] | None = None) -> Generator[list[str], None, None]:
+def chunk_split(
+    lines: Sequence[str], predicate: Callable[[str], bool] | None = None
+) -> Generator[list[str], None, None]:
     predicate = predicate or (lambda x: not x.strip())
     buffer: list[str] = []
     for line in lines:
@@ -113,7 +115,9 @@ class Git:
     @classmethod
     def from_dir(cls, directory: str | None = None) -> Self:
         directory = directory or os.getcwd()
-        git_home = find_up_dir(predicate=lambda p: os.path.isdir(os.path.join(p, ".git")), start_dir=directory) or find_up_dir(
+        git_home = find_up_dir(
+            predicate=lambda p: os.path.isdir(os.path.join(p, ".git")), start_dir=directory
+        ) or find_up_dir(
             predicate=lambda p: os.path.isfile(os.path.join(p, "packed-refs")),
             start_dir=directory,
         )
@@ -145,7 +149,11 @@ class GitWorktree(Git):
 
     def list_wt(self) -> list[str]:
         ret: list[str] = []
-        for chunk in itertools.islice(chunk_split(self._git_cmd("worktree", "list", "--porcelain").quick_run().splitlines()), 1, None):
+        for chunk in itertools.islice(
+            chunk_split(self._git_cmd("worktree", "list", "--porcelain").quick_run().splitlines()),
+            1,
+            None,
+        ):
             a = dict(k.split() for k in chunk)
             ret.append(a["worktree"])
         return ret

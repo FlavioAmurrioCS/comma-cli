@@ -65,7 +65,9 @@ class Graph(Generic[T]):
             connections.append(Pair(prev_line, curr_line))
             queue.append(current)
 
-        return Graph(connections) if root_name else Graph(x for x in connections if x.right != "ROOT")
+        return (
+            Graph(connections) if root_name else Graph(x for x in connections if x.right != "ROOT")
+        )
 
     @staticmethod
     def from_lines(
