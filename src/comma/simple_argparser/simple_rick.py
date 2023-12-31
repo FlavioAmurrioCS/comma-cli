@@ -89,7 +89,7 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _ArgumentOptions
         container_type = container_match.group(1).strip().lower()
         annotation = container_match.group(2).strip()
         if container_type == "literal":
-            choices = eval(annotation)  # noqa: S307
+            choices = eval(annotation)  # noqa: S307, PGH001
             annotation = type(choices[0]).__name__
         else:
             # WHICH ONE SHOULD I BE USING?
@@ -98,10 +98,10 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _ArgumentOptions
 
     if annotation == "bool":
         kwargs["action"] = "store_true" if default is True else "store_false"
-    else:  # TODO: CHECK FOR ALLOWED TYPES
-        kwargs["type"] = eval(annotation)  # noqa: S307
+    else:
+        kwargs["type"] = eval(annotation)  # noqa: S307, PGH001
 
-    # kwargs['help'] = help_text  # TODO: Double think this section
+    # kwargs['help'] = help_text
 
     return field_arg, kwargs
 
@@ -155,7 +155,7 @@ def main(
     has_kids: bool,  # noqa: FBT001
     *args: str,
 ) -> int:
-    """HEOMOE"""
+    """HEOMOE."""
     print(json.dumps(locals(), indent=4))
     return 1
 

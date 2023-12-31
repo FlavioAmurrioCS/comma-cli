@@ -11,8 +11,7 @@ if TYPE_CHECKING:
 
 
 class DualWriter:
-    """
-    A context manager that writes to two files simultaneously.
+    """A context manager that writes to two files simultaneously.
 
     Attributes:
         __left__ (str): The path to the left file.
@@ -29,8 +28,7 @@ class DualWriter:
     right_writer: TextIO
 
     def __init__(self, left: str, right: str) -> None:
-        """
-        Initializes a DualWriter instance.
+        """Initializes a DualWriter instance.
 
         Args:
             left (str): The path to the left file.
@@ -40,8 +38,7 @@ class DualWriter:
         self.__right__ = right
 
     def __enter__(self) -> Self:
-        """
-        Enters the context and opens the left and right files for writing.
+        """Enters the context and opens the left and right files for writing.
 
         Returns:
             Self: The DualWriter instance.
@@ -61,8 +58,7 @@ class DualWriter:
         inst: BaseException | None,
         tb: TracebackType | None,
     ) -> bool | None:
-        """
-        Exits the context and closes the left and right files.
+        """Exits the context and closes the left and right files.
 
         Args:
             tp (Optional[Type[BaseException]]): The type of the exception raised, if any.
@@ -75,8 +71,7 @@ class DualWriter:
         return self.__stack__.__exit__(tp, inst, tb)
 
     def write(self, s: str) -> int:
-        """
-        Writes a string to both the left and right files.
+        """Writes a string to both the left and right files.
 
         Args:
             s (str): The string to write.
@@ -88,15 +83,12 @@ class DualWriter:
         return self.right_writer.write(s)
 
     def flush(self) -> None:
-        """
-        Flushes the buffers for both the left and right files.
-        """
+        """Flushes the buffers for both the left and right files."""
         self.left_writer.flush()
         self.right_writer.flush()
 
     def writelines(self, lines: Iterable[str]) -> None:
-        """
-        Writes a sequence of strings to both the left and right files.
+        """Writes a sequence of strings to both the left and right files.
 
         Args:
             lines (Iterable[str]): The sequence of strings to write.

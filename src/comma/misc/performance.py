@@ -22,11 +22,11 @@ def time_it_ctx(
     label: str,
     printer: Callable[[str], None] = logging.debug,
 ) -> Generator[None, None, None]:
-    """
-    A context manager that measures the time taken by a block of code.
+    """A context manager that measures the time taken by a block of code.
 
     Args:
         label (str): A label to identify the block of code being measured.
+        printer (Callable[[str], None], optional): A function used to print the time measurement. Defaults to logging.debug.
 
     Yields:
         None: The context manager does not return any value.
@@ -35,7 +35,7 @@ def time_it_ctx(
         >>> with time_it_ctx(label="my_function"):
         ...     my_function()
         Time taken by my_function: 123.45 ms
-    """
+    """  # noqa: E501
     start = time.monotonic_ns()
     yield
     delta_ms = (time.monotonic_ns() - start) / 1_000_000
@@ -47,11 +47,11 @@ def time_it(
     label: str | None = None,
     printer: Callable[[str], None] = logging.debug,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """
-    A decorator that measures the time taken by a function.
+    """A decorator that measures the time taken by a function.
 
     Args:
         label (str, optional): A label to identify the function being measured. Defaults to None.
+        printer (Callable[[str], None], optional): A function used to print the time measurement. Defaults to logging.debug.
 
     Returns:
         Callable[[Callable[P, R]], Callable[P, R]]: A decorated function that measures the time taken by the original function.
@@ -60,7 +60,7 @@ def time_it(
         >>> @time_it(label="my_function")
         ... def my_function():
         ...     pass
-    """
+    """  # noqa: E501
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)

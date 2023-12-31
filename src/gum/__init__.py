@@ -1,4 +1,4 @@
-# flake8: noqa: C901, S603, S607, PLW1510,  PLR0912
+# flake8: noqa: C901, S603, S607, PLW1510, PLR0912, E501
 from __future__ import annotations
 
 import csv
@@ -386,8 +386,7 @@ def gum_filter(
     key: Callable[[T], str] | None = None,
     options: _GumFilterOptions | None = None,
 ) -> T | None | list[T]:
-    """
-    Selects one or more items from the given iterable using GumFilter.
+    """Selects one or more items from the given iterable using GumFilter.
 
     Args:
         items (Iterable[T]): The iterable to select items from.

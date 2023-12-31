@@ -241,14 +241,14 @@ class DockerVolumes(NamedTuple):
 
 @app_devcon.command()
 def start(
-    ports: List[DockerPorts] = typer.Option(  # noqa: UP006
+    ports: List[DockerPorts] = typer.Option(  # noqa: UP006, B008
         [],
         "-p",
         "--expose",
         help="Publish a container's port(s) to the host. ie -p=8080:9090",
         parser=DockerPorts.parse,
     ),
-    volumes: List[DockerVolumes] = typer.Option(  # noqa: UP006
+    volumes: List[DockerVolumes] = typer.Option(  # noqa: UP006, B008
         [],
         "-v",
         "--volume",
@@ -256,9 +256,7 @@ def start(
         parser=DockerVolumes.parse,
     ),
 ) -> None:
-    """
-    Start devcon.
-    """
+    """Start devcon."""
     if _devcon.is_running():
         logging.info("devcon is already running")
         return
@@ -271,9 +269,7 @@ def start(
 
 @app_devcon.command()
 def stop() -> None:
-    """
-    Stop devcon.
-    """
+    """Stop devcon."""
     if not _devcon.is_running():
         logging.info("devcon is not running")
         return
@@ -282,9 +278,7 @@ def stop() -> None:
 
 @app_devcon.command()
 def enter() -> None:
-    """
-    Enter devcon.
-    """
+    """Enter devcon."""
     if not _devcon.is_running():
         logging.info("devcon is not running")
         return
@@ -293,9 +287,7 @@ def enter() -> None:
 
 @app_devcon.command()
 def ssh_copy_id() -> None:
-    """
-    Copy ssh public key to docker container.
-    """
+    """Copy ssh public key to docker container."""
     if not _devcon.is_running():
         logging.info("devcon is not running")
         return
@@ -304,9 +296,7 @@ def ssh_copy_id() -> None:
 
 @app_devcon.command()
 def ssh() -> None:
-    """
-    SSH into devcon.
-    """
+    """SSH into devcon."""
     if not _devcon.is_running():
         logging.info("devcon is not running")
         return
@@ -315,9 +305,7 @@ def ssh() -> None:
 
 @app_devcon.command()
 def template() -> None:
-    """
-    Print template for devcon Dockerfile.
-    """
+    """Print template for devcon Dockerfile."""
     print(_devcon.template())
 
 

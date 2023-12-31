@@ -11,6 +11,7 @@ from dataclasses import field
 from functools import lru_cache
 from pathlib import Path
 from textwrap import dedent
+from typing import TYPE_CHECKING
 
 import typer
 from rich.logging import RichHandler
@@ -18,9 +19,11 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
-from selenium.webdriver.remote.webdriver import WebDriver
-from selenium.webdriver.remote.webelement import WebElement
 from twilio.rest import Client
+
+if TYPE_CHECKING:
+    from selenium.webdriver.remote.webelement import WebElement
+    from selenium.webdriver.remote.webdriver import WebDriver
 ###############################################################################
 
 FORMAT = "%(message)s"
@@ -50,7 +53,7 @@ class QuickEvent:
     link: str = field(repr=True)
     count: str
 
-    def __init__(self, li_element: WebElement):
+    def __init__(self, li_element: WebElement) -> None:
         time_element = li_element.find_element(By.TAG_NAME, "time")
         time_str = time_element.text
         title_elem = li_element.find_element(By.CLASS_NAME, "eventCardHead--title")
@@ -60,26 +63,26 @@ class QuickEvent:
         self.link = title_elem.get_attribute("href") or ""
         self.status = li_element.find_element(By.CLASS_NAME, "eventCard--clickable").text
         self.time_str = time_element.text
-        self.date = datetime.datetime.strptime(time_str, "%a, %b %d, %Y, %I:%M %p EDT")
+        self.date = datetime.datetime.strptime(time_str, "%a, %b %d, %Y, %I:%M %p EDT")  # noqa: DTZ007
 
         attending_elem = li_element.find_elements(By.CLASS_NAME, "avatarRow--attendingCount")
         self.count = "0" if not attending_elem else attending_elem[0].text
 
     def should_process_event(self) -> bool:
         if self.status == "Going":
-            logging.debug(f"Already going: {self}")
+            logging.debug("Already going: %s", self)
             return False
         if self.status == "Waitlist":
-            logging.debug(f"Already Waitlisted: {self}")
+            logging.debug("Already Waitlisted: %s", self)
             return False
         if self.date.weekday() < 5 and (self.date.hour < 16 or self.date.hour > 21):
-            logging.debug(f"Can't go: {self}")
+            logging.debug("Can't go: %s", self)
             return False
-        if (self.date - datetime.datetime.today()).days > 7:
-            logging.debug(f"Too much into the future: {self}")
+        if (self.date - datetime.datetime.today()).days > 7:  # noqa: DTZ002
+            logging.debug("Too much into the future: %s", self)
             return False
         if int(self.count.split()[0]) > 15:
-            logging.debug(f"Too many attendees: {self}")
+            logging.debug("Too many attendees: %s", self)
             return False
         return True
 
@@ -115,7 +118,7 @@ class Meetup:
             self.webdriver.get("https://www.meetup.com/")
             with open(self.cookies_file, "rb") as f:
                 logging.debug("Loading cookies...")
-                cookies = pickle.load(f)
+                cookies = pickle.load(f)  # noqa: S301
                 for cookie in cookies:
                     self.webdriver.add_cookie(cookie)
 
@@ -124,7 +127,7 @@ class Meetup:
             logging.debug("Saving cookies.")
             pickle.dump(self.webdriver.get_cookies(), f)
 
-    @lru_cache()
+    @lru_cache  # noqa: B019
     def ensure_login(self) -> None:
         self.webdriver.get("https://www.meetup.com/")
         if self.webdriver.find_elements(By.ID, "login-link"):
@@ -171,7 +174,7 @@ class Meetup:
         events = [x for x in events if x.should_process_event()]
         eligible_events_count = len(events)
         logging.info(
-            f"{events_url}. Scrapped: {total_events_count}. Eligible: {eligible_events_count}.",
+            f"{events_url}. Scrapped: {total_events_count}. Eligible: {eligible_events_count}.",  # noqa: G004
         )
 
         return events
@@ -187,7 +190,7 @@ class Meetup:
     #         logging.debug(f'Parsing {mid}...')
     #         self.webdriver.get(events_url)
 
-    #         if len(self.webdriver.find_elements(By.CSS_SELECTOR, '.eventList-list .list-item')) > 8:
+    #         if len(self.webdriver.find_elements(By.CSS_SELECTOR, '.eventList-list .list-item')) > 8:  # noqa: E501
     #             self.scroll_load_all()
 
     #         available_events_li = self.webdriver.find_elements(
@@ -239,8 +242,8 @@ app = typer.Typer()
 
 @app.command()
 def main() -> None:
-    USERNAME = ""
-    PASSWORD = ""
+    username = ""
+    passsword = ""
     meetings = (
         "braddock-rd-wallyball",  # AB+
         "fairfax-herndon-rec-wallyball-meetup",  # Regular Wally
@@ -253,8 +256,8 @@ def main() -> None:
         # executable_path='/snap/bin/geckodriver',  # type: ignore
     )
     meetup = Meetup(
-        username=USERNAME,
-        password=PASSWORD,
+        username=username,
+        password=passsword,
         # meetups=meetings,
         webdriver=driver,
         cookies_file=(Path.home() / ".meetup_cookies.pickle").as_posix(),

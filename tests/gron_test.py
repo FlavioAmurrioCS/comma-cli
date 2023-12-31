@@ -225,7 +225,7 @@ objs = (
 def test_gron(obj: JSON_TYPE) -> None:
     actual = gron(obj)
     expected = subprocess.run(
-        ("gron",),
+        ("gron",),  # noqa: S603
         input=json.dumps(obj),
         capture_output=True,
         text=True,
@@ -238,7 +238,7 @@ def test_gron(obj: JSON_TYPE) -> None:
     "original",
     (
         subprocess.run(
-            ("gron",),
+            ("gron",),  # noqa: S603
             capture_output=True,
             text=True,
             input=x,
@@ -251,7 +251,7 @@ def test_ungron(original: list[str]) -> None:
 
     expected = json.loads(
         subprocess.run(
-            ("gron", "--ungron"),
+            ("gron", "--ungron"),  # noqa: S603
             input="\n".join(original),
             capture_output=True,
             text=True,

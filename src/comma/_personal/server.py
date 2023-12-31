@@ -1,13 +1,10 @@
 from __future__ import annotations
 
 from typing import Any
-from typing import Union
 
 
 def server() -> None:
-    """
-    Run a FastAPI server
-    """
+    """Run a FastAPI server."""
     from fastapi import FastAPI
     import uvicorn
 
@@ -18,7 +15,7 @@ def server() -> None:
         return {"Hello": "World"}
 
     @app.get("/items/{item_id}")
-    def read_item(item_id: int, q: Union[str, None] = None) -> dict[str, Any]:
+    def read_item(item_id: int, q: str | None = None) -> dict[str, Any]:
         return {"item_id": item_id, "q": q}
 
     config = uvicorn.Config(

@@ -71,10 +71,6 @@ class SystemInfo(NamedTuple):
         )
 
     def opt_dir(self) -> str:
-        """
-        example: Linux-aarch64-ubuntu-22.04-docker
-        example: Darwin-arm64
-        """
         identifier = f"{self.uname.system}-{self.uname.machine}"
         if self.os_release:
             identifier = f"{identifier}-{self.os_release['ID']}-{self.os_release['VERSION_ID']}"
@@ -176,7 +172,7 @@ def download_context(
     url: str,
     session: requests.Session | None = None,
     filename: str | None = None,
-    **kwargs: Any,
+    **kwargs: Any,  # noqa: ANN401
 ) -> Generator[str, None, None]:
     import requests
 
@@ -186,8 +182,6 @@ def download_context(
     with temp_dir_context() as temp_dir:
         with session.get(url, stream=True, **kwargs) as response:
             response.raise_for_status()
-            # with suppress(KeyError):
-            #     filename, *_ = re.findall('filename=(.+)', response.headers['Content-Disposition']) + [filename]
             total_size = int(response.headers.get("content-length", 0))
             with progress_bar(total_size=total_size, filename=filename) as progress_callback:
                 full_path = os.path.join(temp_dir, filename)

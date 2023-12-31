@@ -15,7 +15,6 @@ app_shell_scripts = typer.Typer()
 
 
 def get_tool(tool: str) -> str:
-    # TODO: FIX THE FOLLOWING IGNORE
     with importlib.resources.as_file(  # type:ignore
         importlib.resources.files(__package__).joinpath(tool)  # type:ignore
     ) as tool_path:
@@ -24,7 +23,7 @@ def get_tool(tool: str) -> str:
 
 # @sqlite_cache(minutes=1)
 # def _tools() -> List[str]:
-#     # (resource.name for resource in importlib.resources.files(__package__).iterdir() if resource.is_file())
+#     # (resource.name for resource in importlib.resources.files(__package__).iterdir() if resource.is_file())  # noqa: E501
 #     return [
 #         x
 #         for x in os.listdir(script_dir())
@@ -51,10 +50,7 @@ def sh(
     ),
     which: bool = typer.Option(False, "--which", help="Print the command instead of running it."),  # noqa: FBT001, FBT003
 ) -> int:
-    """
-    Installs (if needed) and runs a tool.
-    """
-
+    """Installs (if needed) and runs a tool."""
     tool_path = get_tool(tool)
 
     if not os.path.exists(tool_path):

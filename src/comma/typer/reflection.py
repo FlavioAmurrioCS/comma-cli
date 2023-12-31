@@ -131,9 +131,7 @@ typer_settigs = {
 
 @app_reflection.command(**typer_settigs, name="show")  # type:ignore
 def show_func() -> None:
-    """
-    Show function source code.
-    """
+    """Show function source code."""
     node = _pick_node_()
     if node:
         node.print_source()
@@ -143,9 +141,7 @@ def show_func() -> None:
 
 @app_reflection.command(**typer_settigs, name="tree")  # type:ignore
 def tree() -> None:
-    """
-    Show all functions.
-    """
+    """Show all functions."""
     nodes = list(_traverse_nodes_())
     width = max(len(" ".join(x.path)) for x in nodes)
     for x in nodes:
@@ -156,11 +152,9 @@ def tree() -> None:
 
 @app_reflection.command(**typer_settigs, name="run")  # type:ignore
 def run_func(
-    ctx: typer.Context = typer.Argument(None),
+    ctx: typer.Context = typer.Argument(None),  # noqa: B008
 ) -> None:
-    """
-    Select function interactively and run it.
-    """
+    """Select function interactively and run it."""
     node = _pick_node_()
     if not node:
         return

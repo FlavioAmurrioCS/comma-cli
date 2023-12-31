@@ -17,9 +17,7 @@ def _() -> None:
 
 @app_sh.command()
 def select_project() -> None:
-    """
-    Select project.
-    """
+    """Select project."""
     selection = fzf(LocalMachine().project_list())
     if selection:
         print(selection)

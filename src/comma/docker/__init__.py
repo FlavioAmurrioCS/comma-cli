@@ -96,14 +96,13 @@ def _docker_image_repr(image: _DockerImageInfo) -> str:
 
 
 def _docker_container_repr(container: _DockerContainerInfo) -> str:
-    return f"{container['ID']} | {container['Names'].ljust(23)} | {_docker_image_repr(_image_lookup_dict()[container['Image']])}"
+    image_info = _docker_image_repr(_image_lookup_dict()[container["Image"]])
+    return f"{container['ID']} | {container['Names'].ljust(23)} | {image_info}"
 
 
 @app_docker.command()
 def enter() -> None:
-    """
-    Enter container.
-    """
+    """Enter container."""
     selection = fzf(
         DOCKER_CLIENT.list_containers(),
         key=_docker_container_repr,
@@ -125,9 +124,7 @@ def enter() -> None:
 
 @app_docker.command()
 def stop() -> None:
-    """
-    Stop container.
-    """
+    """Stop container."""
     selection = fzf(
         DOCKER_CLIENT.list_containers(),
         key=_docker_container_repr,
@@ -149,9 +146,7 @@ def explore(
     user: Optional[str] = None,  # noqa: UP007
     platform: Optional[_DockerPlatform] = None,  # noqa: UP007
 ) -> None:
-    """
-    Run a container and enter it.
-    """
+    """Run a container and enter it."""
     if not image:
         image_selection = fzf(
             DOCKER_CLIENT.list_images(),
@@ -175,7 +170,7 @@ def explore(
                 *((f"--platform=linux/{platform.value}",) if platform else ()),
                 "--entrypoint",
                 shell,
-                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',  # noqa: S311
+                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',  # noqa: S311, E501
                 image,
             ),
         ).execvp()

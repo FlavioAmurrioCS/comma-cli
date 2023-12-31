@@ -24,7 +24,7 @@ class TypedResourceHelper(Generic[JSONT, OTHERT]):
     def get_resource(self, resource: JSONT | OTHERT) -> AbstractContextManager[Path]:
         return path(self.package, resource)
 
-    def get_resource_json(self, resource: JSONT) -> Any:
+    def get_resource_json(self, resource: JSONT) -> Any:  # noqa: ANN401
         with path(self.package, resource) as file, file.open() as f:
             import json
 

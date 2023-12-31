@@ -39,6 +39,6 @@ class Gron(CLIApp):
 
 
 if __name__ == "__main__":
-    # prog = f'python3 -m {__package__}' if __package__ and not sys.argv[0].endswith('__main_.py') else None
+    # prog = f'python3 -m {__package__}' if __package__ and not sys.argv[0].endswith('__main_.py') else None  # noqa: E501
     # CLIApp.main(prog=prog)
     Gron.run()

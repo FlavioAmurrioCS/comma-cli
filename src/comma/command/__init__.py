@@ -80,6 +80,7 @@ class Command(NamedTuple):
             logging.warning("File is not executable: %s", executable)
 
     def __repr__(self) -> str:
+        """Return a string representation of the Command object."""
         return " ".join(map(shlex.quote, self.cmd))
 
     def run_with_spinner(self) -> subprocess.CompletedProcess[str]:

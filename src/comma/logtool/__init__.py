@@ -161,7 +161,6 @@ class LogTool:
                 .map(cast_to_non_none)  # type:ignore
             )
 
-        # TODO: Conditional Stream when items changes
         self.processed_stream = self.__process__()
 
     def __process__(self) -> FunctionalStream[LogLine]:  # type:ignore
@@ -203,7 +202,7 @@ class LogTool:
 @app_logtool.command()
 def pretty_search(
     ini_config: Optional[str] = None,  # noqa: UP007
-    files: List[str] = typer.Option(  # noqa: UP006
+    files: List[str] = typer.Option(  # noqa: UP006, B008
         [],
         "--file",
         "-f",
@@ -211,9 +210,7 @@ def pretty_search(
     ),
     # interactive: bool = typer.Option(False, '--interactive', help='Prompt for file edit'),
 ) -> None:
-    """
-    Use config file to search thru files.
-    """
+    """Use config file to search thru files."""
     log_tool = LogTool(
         ini_config=ini_config,
         logs=(files or ["/dev/stdin"]),
@@ -232,10 +229,10 @@ def search(
         help="Perform case insensitive matching.",
     ),
     enable_regex: bool = typer.Option(False, "--regex", "-E", help="Enable Regex."),  # noqa: FBT001, FBT003
-    files: List[str] = typer.Option(["/dev/stdin"], "--file", "-f", help="Files to search."),  # noqa: UP006
-    ignore_patterns: List[str] = typer.Option([], "-v", help="Specify ignore pattern"),  # noqa: UP006
+    files: List[str] = typer.Option(["/dev/stdin"], "--file", "-f", help="Files to search."),  # noqa: UP006, B008
+    ignore_patterns: List[str] = typer.Option([], "-v", help="Specify ignore pattern"),  # noqa: UP006, B008
 ) -> None:
-    """Search and color text files"""
+    """Search and color text files."""
     from functional import seq
 
     stream: FunctionalStream[str] = (  # type:ignore

@@ -14,9 +14,7 @@ app_wt: typer.Typer = typer.Typer(
 
 @app_wt.command()
 def clone(repository: str) -> None:
-    """
-    Clone project in ~/worktrees.
-    """
+    """Clone project in ~/worktrees."""
     g = GitWorktree(repository=repository)
     g.clone()
     print(g.home)
@@ -24,18 +22,14 @@ def clone(repository: str) -> None:
 
 @app_wt.command()
 def add(branch_name: str) -> None:
-    """
-    Create new worktree.
-    """
+    """Create new worktree."""
     g = GitWorktree.from_dir()
     g.add(branch_name)
 
 
 @app_wt.command()
 def ls() -> None:
-    """
-    List worktrees.
-    """
+    """List worktrees."""
     g = GitWorktree.from_dir()
     for line in g.list_wt():
         print(line)
@@ -43,9 +37,7 @@ def ls() -> None:
 
 @app_wt.command()
 def remove(worktree: Optional[str] = None) -> None:  # noqa: UP007
-    """
-    Remove worktree.
-    """
+    """Remove worktree."""
     g = GitWorktree.from_dir()
 
     worktree = worktree or fzf(g.list_wt())

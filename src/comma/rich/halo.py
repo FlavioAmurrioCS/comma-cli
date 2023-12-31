@@ -177,8 +177,7 @@ class FHalo(Status):
 def spinner(
     *title: str | None,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """
-    Decorator that adds a spinner animation to a function.
+    """Decorator that adds a spinner animation to a function.
 
     Args:
         *title: The title of the spinner animation. If not provided, the function name will be used.

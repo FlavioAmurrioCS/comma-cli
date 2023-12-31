@@ -61,11 +61,11 @@ def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
 
 
 class Proxy(IO[str]):
-    def __getattribute__(self, __name: str) -> Any:
+    def __getattribute__(self, __name: str) -> Any:  # noqa: ANN401
         attr = object.__getattribute__(self, __name)
         if callable(attr):
 
-            def newfunc(*args, **kwargs) -> Any:  # noqa: ANN003, ANN002
+            def newfunc(*args, **kwargs) -> Any:  # noqa: ANN003, ANN002, ANN401
                 print("before calling %s" % attr.__name__)
                 result = attr(*args, **kwargs)
                 print("done calling %s" % attr.__name__)

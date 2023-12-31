@@ -15,8 +15,7 @@ _R = TypeVar("_R")
 try:
 
     class Pair(NamedTuple, Generic[_L, _R]):  # type: ignore
-        """
-        A generic Pair class that represents a pair of values.
+        """A generic Pair class that represents a pair of values.
 
         Attributes:
         -----------
@@ -30,8 +29,7 @@ try:
         right: _R
 
         def flip(self) -> Pair[_R, _L]:
-            """
-            Returns a new Pair with the left and right values swapped.
+            """Returns a new Pair with the left and right values swapped.
 
             Returns:
             --------
@@ -44,8 +42,7 @@ except TypeError:
 
     @dataclass(frozen=True, unsafe_hash=True)
     class Pair(Generic[_L, _R]):  # type: ignore[no-redef]
-        """
-        A generic Pair class that represents a pair of values.
+        """A generic Pair class that represents a pair of values.
 
         Attributes:
         -----------
@@ -59,8 +56,7 @@ except TypeError:
         right: _R
 
         def flip(self) -> Pair[_R, _L]:
-            """
-            Returns a new Pair with the left and right values swapped.
+            """Returns a new Pair with the left and right values swapped.
 
             Returns:
             --------
@@ -70,8 +66,7 @@ except TypeError:
             return Pair(self.right, self.left)
 
         def __iter__(self) -> Iterator[_L | _R]:
-            """
-            Returns an iterator over the left and right values of the Pair.
+            """Returns an iterator over the left and right values of the Pair.
 
             Returns:
             --------
@@ -84,8 +79,7 @@ except TypeError:
 def pair_parse(
     left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ","
 ) -> Callable[[str], Pair[_L, _R]]:
-    """
-    Returns a function that parses a string into a Pair.
+    """Returns a function that parses a string into a Pair.
 
     Parameters:
     -----------

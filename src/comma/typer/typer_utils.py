@@ -18,11 +18,9 @@ def typer_command_wrap(
     name: Optional[str] = None,  # noqa: UP007
     help: Optional[str] = None,  # noqa: A002, UP007
 ) -> Callable[..., Any]:
-    """
-    Convert a regular function into a typer command.
-    """
+    """Convert a regular function into a typer command."""
 
-    def __inner(ctx: typer.Context) -> Any:
+    def __inner(ctx: typer.Context) -> Any:  # noqa: ANN401
         return func(ctx.args)
 
     __inner.__doc__ = func.__doc__
