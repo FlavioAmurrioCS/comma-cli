@@ -27,7 +27,7 @@ def get_required_env_vars(
     for var_name in itertools.chain((varname,), varnames):
         val = os.getenv(var_name)
         if val is None or (not allow_empty and not val):
-            msg = f'Environment variable {var_name} must not be empty.'
+            msg = f"Environment variable {var_name} must not be empty."
             raise ValueError(msg)
         ret.append(val)
     return tuple(ret)

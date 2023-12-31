@@ -23,18 +23,17 @@ from selenium.webdriver.remote.webelement import WebElement
 from twilio.rest import Client
 ###############################################################################
 
-FORMAT = '%(message)s'
+FORMAT = "%(message)s"
 logging.basicConfig(
-    level='NOTSET',
+    level="NOTSET",
     format=FORMAT,
-    datefmt='[%X]',
+    datefmt="[%X]",
     handlers=[RichHandler()],
     # handlers=[RichHandler(rich_tracebacks=True, tracebacks_suppress=[selenium])]
-
 )
-logging.getLogger('selenium').setLevel(logging.ERROR)
-logging.getLogger('urllib3').setLevel(logging.ERROR)
-logging.getLogger('twilio').setLevel(logging.ERROR)
+logging.getLogger("selenium").setLevel(logging.ERROR)
+logging.getLogger("urllib3").setLevel(logging.ERROR)
+logging.getLogger("twilio").setLevel(logging.ERROR)
 
 # log = logging.getLogger("rich")
 # log.info("Hello, World!")
@@ -42,7 +41,7 @@ logging.getLogger('twilio').setLevel(logging.ERROR)
 
 
 @dataclass
-class QuickEvent():
+class QuickEvent:
     title: str
     status: str
     time_str: str
@@ -52,48 +51,50 @@ class QuickEvent():
     count: str
 
     def __init__(self, li_element: WebElement):
-        time_element = li_element.find_element(By.TAG_NAME, 'time')
+        time_element = li_element.find_element(By.TAG_NAME, "time")
         time_str = time_element.text
-        title_elem = li_element.find_element(By.CLASS_NAME, 'eventCardHead--title')
+        title_elem = li_element.find_element(By.CLASS_NAME, "eventCardHead--title")
 
-        self.address = li_element.find_element(By.TAG_NAME, 'address').text
+        self.address = li_element.find_element(By.TAG_NAME, "address").text
         self.title = title_elem.text
-        self.link = title_elem.get_attribute('href') or ''
-        self.status = li_element.find_element(By.CLASS_NAME, 'eventCard--clickable').text
+        self.link = title_elem.get_attribute("href") or ""
+        self.status = li_element.find_element(By.CLASS_NAME, "eventCard--clickable").text
         self.time_str = time_element.text
-        self.date = datetime.datetime.strptime(time_str, '%a, %b %d, %Y, %I:%M %p EDT')
+        self.date = datetime.datetime.strptime(time_str, "%a, %b %d, %Y, %I:%M %p EDT")
 
-        attending_elem = li_element.find_elements(By.CLASS_NAME, 'avatarRow--attendingCount')
-        self.count = '0' if not attending_elem else attending_elem[0].text
+        attending_elem = li_element.find_elements(By.CLASS_NAME, "avatarRow--attendingCount")
+        self.count = "0" if not attending_elem else attending_elem[0].text
 
     def should_process_event(self) -> bool:
-        if self.status == 'Going':
-            logging.debug(f'Already going: {self}')
+        if self.status == "Going":
+            logging.debug(f"Already going: {self}")
             return False
-        if self.status == 'Waitlist':
-            logging.debug(f'Already Waitlisted: {self}')
+        if self.status == "Waitlist":
+            logging.debug(f"Already Waitlisted: {self}")
             return False
         if self.date.weekday() < 5 and (self.date.hour < 16 or self.date.hour > 21):
             logging.debug(f"Can't go: {self}")
             return False
         if (self.date - datetime.datetime.today()).days > 7:
-            logging.debug(f'Too much into the future: {self}')
+            logging.debug(f"Too much into the future: {self}")
             return False
-        if (int(self.count.split()[0]) > 15):
-            logging.debug(f'Too many attendees: {self}')
+        if int(self.count.split()[0]) > 15:
+            logging.debug(f"Too many attendees: {self}")
             return False
         return True
 
     def text_msg(self) -> str:
-        return dedent(f"""\
+        return dedent(
+            f"""\
             {self.title}
             {self.time_str}
             {self.count}
-            {self.link}""")
+            {self.link}"""
+        )
 
 
 @dataclass(unsafe_hash=True)
-class Meetup():
+class Meetup:
     username: str
     password: str
     webdriver: WebDriver = field(hash=False)
@@ -106,36 +107,36 @@ class Meetup():
 
     def close_driver(self) -> None:
         self.save_cookies()
-        logging.debug('Closing driver')
+        logging.debug("Closing driver")
         self.webdriver.close()
 
     def load_cookies(self) -> None:
         if os.path.exists(self.cookies_file):
-            self.webdriver.get('https://www.meetup.com/')
-            with open(self.cookies_file, 'rb') as f:
-                logging.debug('Loading cookies...')
+            self.webdriver.get("https://www.meetup.com/")
+            with open(self.cookies_file, "rb") as f:
+                logging.debug("Loading cookies...")
                 cookies = pickle.load(f)
                 for cookie in cookies:
                     self.webdriver.add_cookie(cookie)
 
     def save_cookies(self) -> None:
-        with open(self.cookies_file, 'wb') as f:
-            logging.debug('Saving cookies.')
+        with open(self.cookies_file, "wb") as f:
+            logging.debug("Saving cookies.")
             pickle.dump(self.webdriver.get_cookies(), f)
 
     @lru_cache()
     def ensure_login(self) -> None:
-        self.webdriver.get('https://www.meetup.com/')
-        if self.webdriver.find_elements(By.ID, 'login-link'):
-            logging.info('Trying to log in.')
+        self.webdriver.get("https://www.meetup.com/")
+        if self.webdriver.find_elements(By.ID, "login-link"):
+            logging.info("Trying to log in.")
             time.sleep(2)
-            self.webdriver.find_element(By.ID, 'login-link').click()
+            self.webdriver.find_element(By.ID, "login-link").click()
 
-            email_input = self.webdriver.find_element(By.ID, 'email')
+            email_input = self.webdriver.find_element(By.ID, "email")
             time.sleep(2)
             email_input.send_keys(self.username)
 
-            password_input = self.webdriver.find_element(By.ID, 'current-password')
+            password_input = self.webdriver.find_element(By.ID, "current-password")
             time.sleep(3)
             password_input.send_keys(self.password)
             password_input.send_keys(Keys.RETURN)
@@ -144,23 +145,25 @@ class Meetup():
             self.save_cookies()
             time.sleep(10)
         else:
-            logging.debug('No login-link found, assuming we are already logged in.')
+            logging.debug("No login-link found, assuming we are already logged in.")
 
     def list_eligible_group_events(self, group_id: str) -> list[QuickEvent]:
         self.ensure_login()
-        events_url = f'https://www.meetup.com/{group_id}/events/'
+        events_url = f"https://www.meetup.com/{group_id}/events/"
         # logging.debug(f'Scraping: {events_url}')
         self.webdriver.get(events_url)
 
         available_events_li = self.webdriver.find_elements(
-            By.CSS_SELECTOR, '.eventList-list .list-item',
+            By.CSS_SELECTOR,
+            ".eventList-list .list-item",
         )
 
         if len(available_events_li) > 8:
             # self.scroll_load_all()
-            self.webdriver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+            self.webdriver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             available_events_li = self.webdriver.find_elements(
-                By.CSS_SELECTOR, '.eventList-list .list-item',
+                By.CSS_SELECTOR,
+                ".eventList-list .list-item",
             )
 
         events = [QuickEvent(x) for x in available_events_li]
@@ -168,7 +171,7 @@ class Meetup():
         events = [x for x in events if x.should_process_event()]
         eligible_events_count = len(events)
         logging.info(
-            f'{events_url}. Scrapped: {total_events_count}. Eligible: {eligible_events_count}.',
+            f"{events_url}. Scrapped: {total_events_count}. Eligible: {eligible_events_count}.",
         )
 
         return events
@@ -218,13 +221,13 @@ class Meetup():
 
 
 def send_sms(tel_num: str, msg: str) -> None:
-    auth_token = os.environ['TWILIO_AUTH_TOKEN']
-    account_sid = os.environ['TWILIO_ACCOUNT_SID']
+    auth_token = os.environ["TWILIO_AUTH_TOKEN"]
+    account_sid = os.environ["TWILIO_ACCOUNT_SID"]
     client = Client(account_sid, auth_token)
 
     message = client.messages.create(
         body=msg,
-        from_=os.environ['TWILIO_PHONE_NUMBER'],
+        from_=os.environ["TWILIO_PHONE_NUMBER"],
         # media_url=['https://demo.twilio.com/owl.png'],
         to=tel_num,
     )
@@ -236,11 +239,11 @@ app = typer.Typer()
 
 @app.command()
 def main() -> None:
-    USERNAME = ''
-    PASSWORD = ''
+    USERNAME = ""
+    PASSWORD = ""
     meetings = (
-        'braddock-rd-wallyball',  # AB+
-        'fairfax-herndon-rec-wallyball-meetup',  # Regular Wally
+        "braddock-rd-wallyball",  # AB+
+        "fairfax-herndon-rec-wallyball-meetup",  # Regular Wally
         # 'fairfaxvolleyball',
     )
     options = FirefoxOptions()
@@ -254,12 +257,12 @@ def main() -> None:
         password=PASSWORD,
         # meetups=meetings,
         webdriver=driver,
-        cookies_file=(Path.home() / '.meetup_cookies.pickle').as_posix(),
+        cookies_file=(Path.home() / ".meetup_cookies.pickle").as_posix(),
     )
 
     for meeting in meetings:
         for e in meetup.list_eligible_group_events(meeting):
-            send_sms('', e.text_msg())
+            send_sms("", e.text_msg())
             logging.error(e)
 
 

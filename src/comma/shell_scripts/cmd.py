@@ -24,26 +24,26 @@ class _GrepOptions(TypedDict, total=False):
 
 def _grep_options(options: _GrepOptions) -> list[str]:
     flags = []
-    if options.get('ignore_case'):
-        flags.append('-i')
-    if options.get('invert_match'):
-        flags.append('-v')
+    if options.get("ignore_case"):
+        flags.append("-i")
+    if options.get("invert_match"):
+        flags.append("-v")
     return flags
 
 
 def grep(**kwargs: Unpack[_GrepOptions]) -> CMD:
-    return CMD('grep', _grep_options(kwargs))
+    return CMD("grep", _grep_options(kwargs))
 
 
 def foo(cmd: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p1:
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore") as p1:
         if p1.stdout:
             yield from p1.stdout
 
 
 def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
-    with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p1:  # noqa: SIM117
-        with subprocess.Popen(cmd2, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=None, encoding='utf-8', errors='ignore') as p2:
+    with subprocess.Popen(cmd1, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore") as p1:  # noqa: SIM117
+        with subprocess.Popen(cmd2, stdin=p1.stdout, stdout=subprocess.PIPE, stderr=None, encoding="utf-8", errors="ignore") as p2:
             if p2.stdout:
                 yield from p2.stdout
 
@@ -51,12 +51,14 @@ def pipe(cmd1: list[str], cmd2: list[str]) -> Iterator[str]:
 class Proxy(IO[str]):
     def __getattribute__(self, __name: str) -> Any:
         attr = object.__getattribute__(self, __name)
-        if hasattr(attr, '__call__'):
+        if hasattr(attr, "__call__"):
+
             def newfunc(*args, **kwargs) -> Any:  # type:ignore
-                print('before calling %s' % attr.__name__)
+                print("before calling %s" % attr.__name__)
                 result = attr(*args, **kwargs)
-                print('done calling %s' % attr.__name__)
+                print("done calling %s" % attr.__name__)
                 return result
+
             return newfunc
         return attr
 

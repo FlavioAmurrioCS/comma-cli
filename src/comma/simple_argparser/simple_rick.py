@@ -16,7 +16,8 @@ from typing import TypeVar
 
 if TYPE_CHECKING:
     from typing_extensions import ParamSpec
-    P = ParamSpec('P')
+
+    P = ParamSpec("P")
     from typing_extensions import Annotated
     from typing_extensions import TypedDict
 
@@ -28,7 +29,8 @@ if TYPE_CHECKING:
         type: Any
         choices: Sequence[Any]
 
-FUNC = TypeVar('FUNC', bound=Callable)  # type: ignore
+
+FUNC = TypeVar("FUNC", bound=Callable)  # type: ignore
 
 # Argument List:
 # - Optional
@@ -40,7 +42,7 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_option
     annotation = param.annotation
     default = param.default
     if annotation is inspect.Parameter.empty and default is inspect.Parameter.empty:
-        msg = f'{var_name=} has no annotation or default value'
+        msg = f"{var_name=} has no annotation or default value"
         raise ValueError(msg)
 
     if annotation is inspect.Parameter.empty:
@@ -52,49 +54,52 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _argument_option
 
     has_default = default is not inspect.Parameter.empty
     if has_default:
-        kwargs['default'] = default
+        kwargs["default"] = default
 
-    help_text = ''
+    help_text = ""
     # extract help text from Annotated
-    if annotation.startswith('Annotated['):
-        annotation, help_text = annotation[10:-1].rsplit(', ', maxsplit=1)
+    if annotation.startswith("Annotated["):
+        annotation, help_text = annotation[10:-1].rsplit(", ", maxsplit=1)
         help_text = help_text[1:-1]
         annotation = annotation.strip()
 
-    field_arg = var_name.replace('_', '-')
+    field_arg = var_name.replace("_", "-")
 
     # Check if Optional
     optional_match = (
-        re.match(r'^Optional\[(.*)\]$', annotation) or re.match(
-            r'^(.*) \| None$', annotation,
-        ) or re.match(r'^Union\[(.*), None\]$', annotation)
+        re.match(r"^Optional\[(.*)\]$", annotation)
+        or re.match(
+            r"^(.*) \| None$",
+            annotation,
+        )
+        or re.match(r"^Union\[(.*), None\]$", annotation)
     )
     # is_optional = optional_match is not None
     if optional_match:
         annotation = optional_match.group(1).strip()
 
     if has_default:
-        field_arg = f'--{field_arg}'
+        field_arg = f"--{field_arg}"
 
     # check if container type
-    container_match = re.match(r'^(.*)\[(.*)\]$', annotation, re.IGNORECASE)
+    container_match = re.match(r"^(.*)\[(.*)\]$", annotation, re.IGNORECASE)
     container_type = None
 
     if container_match:
         container_type = container_match.group(1).strip().lower()
         annotation = container_match.group(2).strip()
-        if container_type == 'literal':
+        if container_type == "literal":
             choices = eval(annotation)
             annotation = type(choices[0]).__name__
         else:
             # WHICH ONE SHOULD I BE USING?
             # kwargs['action'] = 'append'
-            kwargs['nargs'] = '+'
+            kwargs["nargs"] = "+"
 
-    if annotation == 'bool':
-        kwargs['action'] = 'store_true' if default is True else 'store_false'
+    if annotation == "bool":
+        kwargs["action"] = "store_true" if default is True else "store_false"
     else:  # TODO: CHECK FOR ALLOWED TYPES
-        kwargs['type'] = eval(annotation)
+        kwargs["type"] = eval(annotation)
 
     # kwargs['help'] = help_text  # TODO: Double think this section
 
@@ -137,13 +142,14 @@ class _cli_app(Generic[FUNC]):
 def cli_app(command_name: str | None = None):  # type: ignore
     def inner(func: FUNC) -> _cli_app[FUNC]:
         return _cli_app(func=func, command_name=command_name)
+
     return inner
 
 
 @cli_app()
 def main(
     name: Annotated[str | None, "SOME 'METADATA"],
-    color: Literal['red', 'green', 'blue'],
+    color: Literal["red", "green", "blue"],
     age: int,
     last: str | None,
     has_kids: bool,
@@ -154,5 +160,5 @@ def main(
     return 1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     a = main()

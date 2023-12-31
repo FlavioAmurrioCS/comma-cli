@@ -13,22 +13,22 @@ def server() -> None:
 
     app = FastAPI()
 
-    @app.get('/')
+    @app.get("/")
     def read_root() -> dict[str, str]:
-        return {'Hello': 'World'}
+        return {"Hello": "World"}
 
-    @app.get('/items/{item_id}')
+    @app.get("/items/{item_id}")
     def read_item(item_id: int, q: Union[str, None] = None) -> dict[str, Any]:
-        return {'item_id': item_id, 'q': q}
+        return {"item_id": item_id, "q": q}
 
     config = uvicorn.Config(
         app,
         port=5000,
-        log_level='info',
+        log_level="info",
     )
     server = uvicorn.Server(config)
     server.run()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     server()

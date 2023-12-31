@@ -220,11 +220,11 @@ objs = (
 )
 
 
-@pytest.mark.parametrize('obj', [json.loads(s) for s in objs])
+@pytest.mark.parametrize("obj", [json.loads(s) for s in objs])
 def test_gron(obj: JSON_TYPE) -> None:
     actual = gron(obj)
     expected = subprocess.run(
-        ('gron',),
+        ("gron",),
         input=json.dumps(obj),
         capture_output=True,
         text=True,
@@ -234,11 +234,13 @@ def test_gron(obj: JSON_TYPE) -> None:
 
 
 @pytest.mark.parametrize(
-    'original', (
+    "original",
+    (
         subprocess.run(
-            ('gron',),
+            ("gron",),
             capture_output=True,
-            text=True, input=x,
+            text=True,
+            input=x,
         ).stdout.splitlines()
         for x in objs
     ),
@@ -248,8 +250,8 @@ def test_ungron(original: list[str]) -> None:
 
     expected = json.loads(
         subprocess.run(
-            ('gron', '--ungron'),
-            input='\n'.join(original),
+            ("gron", "--ungron"),
+            input="\n".join(original),
             capture_output=True,
             text=True,
         ).stdout,
@@ -260,8 +262,8 @@ def test_ungron(original: list[str]) -> None:
     try:
         assert actual_str == expected_str
     except AssertionError:
-        print('actual:')
+        print("actual:")
         print(actual_str)
-        print('expected:')
+        print("expected:")
         print(expected_str)
         raise

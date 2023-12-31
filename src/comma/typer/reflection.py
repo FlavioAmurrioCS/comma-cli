@@ -28,19 +28,22 @@ class TyperNode(NamedTuple):
             return
         try:
             import inspect
+
             _, line_num = inspect.findsource(self.func)
             code = inspect.getsource(self.func)
             filename = inspect.getfile(self.func)
             width = max(len(x) for x in code.splitlines())
             from rich import print as rprint
-            rprint(f'{filename}:{line_num + 1}')
+
+            rprint(f"{filename}:{line_num + 1}")
             from rich.syntax import Syntax
+
             rprint(
                 Syntax(
                     code,
-                    'python',
+                    "python",
                     code_width=width,
-                    theme='ansi_dark',
+                    theme="ansi_dark",
                 ),
             )
         except TypeError:
@@ -50,7 +53,7 @@ class TyperNode(NamedTuple):
     def traverse_nodes(
         cls,
         app: typer.Typer,
-        root_name: str = '',
+        root_name: str = "",
         path: tuple[str, ...] = (),
         _level: int = 0,
     ) -> Generator[TyperNode, None, None]:
@@ -60,14 +63,14 @@ class TyperNode(NamedTuple):
             path=path,
             func=app,
             name=app_name,
-            doc=app.info.help or '',
+            doc=app.info.help or "",
             level=_level,
         )
         for command in app.registered_commands:
             func = command.callback
             if func:
-                func_name = command.name or func.__name__.replace('_', '-')
-                doc = command.help or func.__doc__ or 'NO DOC'
+                func_name = command.name or func.__name__.replace("_", "-")
+                doc = command.help or func.__doc__ or "NO DOC"
                 yield TyperNode(
                     path=(*path, func_name),
                     func=func,
@@ -89,20 +92,24 @@ class TyperNode(NamedTuple):
             with suppress(Exception):
                 import inspect
                 from comma import main
+
                 root_executable = (sys.executable, inspect.getfile(main))
         Command(
             cmd=(
-                *root_executable, *self.path[1:], *args,
+                *root_executable,
+                *self.path[1:],
+                *args,
             ),
         ).execvp(log_command=_print_cmd)
 
 
-app_reflection = typer.Typer(name='reflection', help='Reflect on the CLI.')
+app_reflection = typer.Typer(name="reflection", help="Reflect on the CLI.")
 
 
 def __traverse_nodes__() -> Generator[TyperNode, None, None]:
     from comma.main import app_main
-    yield from TyperNode.traverse_nodes(app_main, root_name='dev')
+
+    yield from TyperNode.traverse_nodes(app_main, root_name="dev")
 
 
 def __pick_node__() -> TyperNode | None:
@@ -113,16 +120,16 @@ def __pick_node__() -> TyperNode | None:
 
 
 typer_settigs = {
-    'add_help_option': False,
-    'no_args_is_help': False,
-    'context_settings': {
-        'allow_extra_args': True,
-        'ignore_unknown_options': True,
+    "add_help_option": False,
+    "no_args_is_help": False,
+    "context_settings": {
+        "allow_extra_args": True,
+        "ignore_unknown_options": True,
     },
 }
 
 
-@app_reflection.command(**typer_settigs, name='show')  # type:ignore
+@app_reflection.command(**typer_settigs, name="show")  # type:ignore
 def show_func() -> None:
     """
     Show function source code.
@@ -130,24 +137,24 @@ def show_func() -> None:
     node = __pick_node__()
     if node:
         node.print_source()
-        if node.path[-1] not in ('run', 'show'):
-            node.execute('--help', _print_cmd=True)
+        if node.path[-1] not in ("run", "show"):
+            node.execute("--help", _print_cmd=True)
 
 
-@app_reflection.command(**typer_settigs, name='tree')  # type:ignore
+@app_reflection.command(**typer_settigs, name="tree")  # type:ignore
 def tree() -> None:
     """
     Show all functions.
     """
     nodes = list(__traverse_nodes__())
-    width = max(len(' '.join(x.path)) for x in nodes)
+    width = max(len(" ".join(x.path)) for x in nodes)
     for x in nodes:
         print(
             f'{" ".join(x.path):<{width}} --> {x.doc.strip().splitlines()[0]}',
         )
 
 
-@app_reflection.command(**typer_settigs, name='run')  # type:ignore
+@app_reflection.command(**typer_settigs, name="run")  # type:ignore
 def run_func(
     ctx: typer.Context = typer.Argument(None),
 ) -> None:
@@ -161,5 +168,5 @@ def run_func(
     node.execute(*args, _print_cmd=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_reflection()

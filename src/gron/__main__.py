@@ -10,12 +10,13 @@ from gron import ungron
 
 class Gron(CLIApp):
     """Gron is a command line tool that makes JSON greppable."""
-    COMMAND_NAME = 'gron'
+
+    COMMAND_NAME = "gron"
     ARG_HELP = {  # noqa: RUF012
-        'file': 'File to read from. Defaults to stdin.',
-        'ungron': 'Ungron the input.',
+        "file": "File to read from. Defaults to stdin.",
+        "ungron": "Ungron the input.",
     }
-    file: str = '/dev/stdin'
+    file: str = "/dev/stdin"
     ungron: bool = False
 
     @classmethod
@@ -37,7 +38,7 @@ class Gron(CLIApp):
         return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # prog = f'python3 -m {__package__}' if __package__ and not sys.argv[0].endswith('__main_.py') else None
     # CLIApp.main(prog=prog)
     Gron.run()

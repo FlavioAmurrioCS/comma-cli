@@ -6,7 +6,7 @@ from comma.machine import LocalMachine
 from comma.machine import SshMachine
 from typedfzf import fzf
 
-app_c: typer.Typer = typer.Typer(name='c')
+app_c: typer.Typer = typer.Typer(name="c")
 
 
 def code_open(machine: LocalMachine | SshMachine, path: str | None = None) -> None:
@@ -31,5 +31,5 @@ def rc(path: str | None = typer.Argument(None)) -> None:
     code_open(SshMachine(), path)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_c()

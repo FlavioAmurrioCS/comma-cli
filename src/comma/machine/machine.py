@@ -21,19 +21,20 @@ class Machine(ABC):
         ...
 
     def has_executable(self, executable: str) -> bool:
-        return self.create_cmd(('which', executable)).run().returncode == 0
+        return self.create_cmd(("which", executable)).run().returncode == 0
 
     def quick_run(self, cmd: CMD_ARGS) -> str:
         return self.create_cmd(cmd=cmd).run().stdout.strip()
 
     def is_dir(self, path: str) -> bool:
-        return self.create_cmd(cmd=('test', '-d', path)).run().returncode == 0
+        return self.create_cmd(cmd=("test", "-d", path)).run().returncode == 0
 
     def fqdn(self) -> str:
-        return self.quick_run(('hostname',))
+        return self.quick_run(("hostname",))
 
     def is_local(self) -> bool:
         from comma.machine import LocalMachine
+
         return self.__class__ == LocalMachine
 
     def get_file_list(self, find_cmd: FindCommand) -> str:
@@ -42,7 +43,7 @@ class Machine(ABC):
     def project_list(self) -> list[str]:
         return self.get_file_list(
             FindCommand(
-                paths=('~/projects',),
+                paths=("~/projects",),
                 maxdepth=1,
                 mindepth=1,
                 expand_paths=self.is_local(),
@@ -50,4 +51,4 @@ class Machine(ABC):
         ).splitlines()
 
     def full_path(self, path: str) -> str:
-        return self.quick_run(('realpath', path))
+        return self.quick_run(("realpath", path))

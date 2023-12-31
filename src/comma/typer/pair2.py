@@ -19,12 +19,13 @@ from typing import TypeVar
 from comma.command import Command
 from comma.typer.pair import Pair
 from typing_extensions import TypedDict
-L = TypeVar('L')
-R = TypeVar('R')
-T = TypeVar('T')
+
+L = TypeVar("L")
+R = TypeVar("R")
+T = TypeVar("T")
 
 
-H = TypeVar('H', bound=Hashable)
+H = TypeVar("H", bound=Hashable)
 
 
 def uniqued(iterable: Iterable[H]) -> Generator[H, None, None]:
@@ -45,12 +46,9 @@ class Graph(Generic[T]):
 
     @staticmethod
     def from_indent_hierarchy(lines: Iterable[str], root_name: str | None = None) -> Graph[str]:
-        pairs = (
-            Pair(len(line) - len(line.lstrip()), line.strip())
-            for line in lines
-        )
+        pairs = (Pair(len(line) - len(line.lstrip()), line.strip()) for line in lines)
 
-        queue: list[Pair[int, str]] = [Pair(-1, root_name or 'ROOT')]
+        queue: list[Pair[int, str]] = [Pair(-1, root_name or "ROOT")]
         connections: list[Pair[str, str]] = []
 
         for current in pairs:
@@ -67,14 +65,15 @@ class Graph(Generic[T]):
             connections.append(Pair(prev_line, curr_line))
             queue.append(current)
 
-        return Graph(connections) if root_name else Graph(x for x in connections if x.right != 'ROOT')
+        return Graph(connections) if root_name else Graph(x for x in connections if x.right != "ROOT")
 
     @staticmethod
     def from_lines(
-            lines: Iterable[str],
-            spliter: Callable[
-                [str], Pair[str, str],
-            ] = lambda x: Pair(*x.split(maxsplit=1)),
+        lines: Iterable[str],
+        spliter: Callable[
+            [str],
+            Pair[str, str],
+        ] = lambda x: Pair(*x.split(maxsplit=1)),
     ) -> Graph[str]:
         return Graph(spliter(line) for line in lines)
 
@@ -84,17 +83,17 @@ class PlantUML:
         self.graph = graph
 
     def __str__(self) -> str:
-        return '\n'.join(self.lines())
+        return "\n".join(self.lines())
 
     def lines(self) -> Generator[str, None, None]:
-        yield '@startuml'
+        yield "@startuml"
         for left, rights in self.graph.adjeacency_list.items():
             for right in rights:
-                yield f'{left} --> {right}'
-        yield '@enduml'
+                yield f"{left} --> {right}"
+        yield "@enduml"
 
     def save(self, path: str) -> None:
-        with open(path, 'w') as f:
+        with open(path, "w") as f:
             f.write(str(self))
 
 
@@ -133,16 +132,26 @@ class DockerContainer(NamedTuple):
     docker_ls: ContainerLS
 
     def enter(self) -> None:
-        shell = Command(
-            cmd=(
-                'docker', 'exec', '-it',
-                self.docker_ls['ID'], 'which', 'bash',
-            ),
-        ).quick_run() or 'sh'
+        shell = (
+            Command(
+                cmd=(
+                    "docker",
+                    "exec",
+                    "-it",
+                    self.docker_ls["ID"],
+                    "which",
+                    "bash",
+                ),
+            ).quick_run()
+            or "sh"
+        )
         Command(
             cmd=(
-                'docker', 'exec', '-it',
-                self.docker_ls['ID'], shell,
+                "docker",
+                "exec",
+                "-it",
+                self.docker_ls["ID"],
+                shell,
             ),
         ).execvp()
 
@@ -158,29 +167,31 @@ class ContainerRunConfig:
 
     def run(
         self,
-            entrypoint: str | None = None,
-            command: Sequence[str] = (),
-            detached: bool = False,
-            privileged: bool = False,
+        entrypoint: str | None = None,
+        command: Sequence[str] = (),
+        detached: bool = False,
+        privileged: bool = False,
     ) -> None:
         Command(
             cmd=(
-                'docker', 'run',
-                '-it',
-                *(('--detach') if detached else ()),
-                *(('--privileged') if privileged else ()),
-                *((f'--entrypoint={entrypoint}') if entrypoint else ()),
-                '--rm',
+                "docker",
+                "run",
+                "-it",
+                *(("--detach") if detached else ()),
+                *(("--privileged") if privileged else ()),
+                *((f"--entrypoint={entrypoint}") if entrypoint else ()),
+                "--rm",
                 # '--restart=unless-stopped',
-                *(f'-v={volume_pair[0]}:{volume_pair[1]}' for volume_pair in self.volumes),
-                *(f'-p={port_pair[0]}:{port_pair[1]}' for port_pair in self.ports),
-                *(f'-e={env_pair[0]}={env_pair[1]}' for env_pair in self.envs),
+                *(f"-v={volume_pair[0]}:{volume_pair[1]}" for volume_pair in self.volumes),
+                *(f"-p={port_pair[0]}:{port_pair[1]}" for port_pair in self.ports),
+                *(f"-e={env_pair[0]}={env_pair[1]}" for env_pair in self.envs),
                 *self.additional_args,
-                '--name', self.name,
+                "--name",
+                self.name,
                 self.image,
                 *command,
             ),
-            label='Starting docker container',
+            label="Starting docker container",
             capture_output=False,
         ).run()
 
@@ -188,23 +199,23 @@ class ContainerRunConfig:
 class Docker:
     @property
     def binary(self) -> str:
-        return 'docker'
+        return "docker"
 
     @lru_cache(maxsize=1)
     def docker_bin_check(self) -> None:
         if not shutil.which(self.binary):
-            msg = f'{self.binary} not found in path'
+            msg = f"{self.binary} not found in path"
             raise Exception(msg)  # noqa: TRY002
 
-        if Command(cmd=(self.binary, 'ps')).run().returncode != 0:
-            msg = f'{self.binary} daemon not running'
+        if Command(cmd=(self.binary, "ps")).run().returncode != 0:
+            msg = f"{self.binary} daemon not running"
             raise Exception(msg)  # noqa: TRY002
 
     def list_containers(self) -> list[ContainerLS]:
         return [
             json.loads(x)
             for x in Command(
-                cmd=(self.binary, 'container', 'ls', '--format={{json .}}'),
+                cmd=(self.binary, "container", "ls", "--format={{json .}}"),
             )
             .quick_run()
             .splitlines()
@@ -214,7 +225,7 @@ class Docker:
         return [
             json.loads(x)
             for x in Command(
-                cmd=(self.binary, 'image', 'ls', '--format={{json .}}'),
+                cmd=(self.binary, "image", "ls", "--format={{json .}}"),
             )
             .quick_run()
             .splitlines()
@@ -222,8 +233,8 @@ class Docker:
 
     def stop(self, config: ContainerRunConfig) -> None:
         Command(
-            cmd=(self.binary, 'stop', config.name),
-            label='Stopping docker container',
+            cmd=(self.binary, "stop", config.name),
+            label="Stopping docker container",
         ).run_with_spinner()
 
     def start(self, config: ContainerRunConfig) -> None:
@@ -242,6 +253,5 @@ class Docker:
             self.stop(container_run_config)
 
 
-if __name__ == '__main__':
-
-    ContainerRunConfig(image='alpine', name='pine').run()
+if __name__ == "__main__":
+    ContainerRunConfig(image="alpine", name="pine").run()

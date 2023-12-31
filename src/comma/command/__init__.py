@@ -13,7 +13,7 @@ from comma.rich.halo import FHalo
 
 class Command(NamedTuple):
     cmd: list[str] | tuple[str, ...]
-    label: str = ''
+    label: str = ""
     text: bool = True
     check: bool = False
     cwd: str | None = None
@@ -29,8 +29,8 @@ class Command(NamedTuple):
         try:
             return subprocess.run(
                 self.cmd,
-                errors='ignore',
-                encoding='utf-8',
+                errors="ignore",
+                encoding="utf-8",
                 text=self.text,
                 check=self.check,
                 cwd=self.cwd,
@@ -45,18 +45,15 @@ class Command(NamedTuple):
 
     @property
     def resolved_env(self) -> Mapping[str, str] | None:
-        return (
-            self.env
-            if not self.additional_env
-            else {**(self.env or os.environ), **self.additional_env}
-        )
+        return self.env if not self.additional_env else {**(self.env or os.environ), **self.additional_env}
 
     def quick_run(self) -> str:
         return self.run().stdout.strip()
 
     def execvp(self, *, log_command: bool = True) -> None:
         import sys
-        if 'pytest' in sys.modules:
+
+        if "pytest" in sys.modules:
             self.run()
             return
         if self.resolved_env:
@@ -74,12 +71,12 @@ class Command(NamedTuple):
         if shutil.which(executable) is not None:
             return
         if not os.path.exists(executable):
-            logging.warning('Executable does not exist: %s', executable)
+            logging.warning("Executable does not exist: %s", executable)
         elif not os.access(executable, os.X_OK):
-            logging.warning('File is not executable: %s', executable)
+            logging.warning("File is not executable: %s", executable)
 
     def __repr__(self) -> str:
-        return ' '.join(map(shlex.quote, self.cmd))
+        return " ".join(map(shlex.quote, self.cmd))
 
     def run_with_spinner(self) -> subprocess.CompletedProcess[str]:
         with FHalo(status=self.label or repr(self)) as halo:

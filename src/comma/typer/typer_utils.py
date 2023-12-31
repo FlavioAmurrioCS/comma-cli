@@ -19,6 +19,7 @@ def typer_command_wrap(
     """
     Convert a regular function into a typer command.
     """
+
     def __inner(ctx: typer.Context) -> Any:
         return func(ctx.args)
 
@@ -27,7 +28,7 @@ def typer_command_wrap(
         name,
         help=help,
         context_settings={
-            'allow_extra_args': True,
-            'ignore_unknown_options': True,
+            "allow_extra_args": True,
+            "ignore_unknown_options": True,
         },
     )(__inner)

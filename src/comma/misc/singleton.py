@@ -11,4 +11,5 @@ def singleton(cls: type) -> type[Any]:
             if cls not in Singleton._instances:
                 Singleton._instances[cls] = super().__call__(*args, **kwargs)
             return Singleton._instances[cls]
+
     return Singleton(cls.__name__, cls.__bases__, dict(cls.__dict__))

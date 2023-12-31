@@ -9,10 +9,11 @@ from typing import NamedTuple
 from typing import TypeVar
 
 
-_L = TypeVar('_L')
-_R = TypeVar('_R')
+_L = TypeVar("_L")
+_R = TypeVar("_R")
 
 try:
+
     class Pair(NamedTuple, Generic[_L, _R]):  # type: ignore
         """
         A generic Pair class that represents a pair of values.
@@ -24,6 +25,7 @@ try:
         right : R
             The right value of the pair.
         """
+
         left: _L
         right: _R
 
@@ -39,6 +41,7 @@ try:
             return Pair(self.right, self.left)
 
 except TypeError:
+
     @dataclass(frozen=True, unsafe_hash=True)
     class Pair(Generic[_L, _R]):  # type: ignore[no-redef]
         """
@@ -51,6 +54,7 @@ except TypeError:
         right : R
             The right value of the pair.
         """
+
         left: _L
         right: _R
 
@@ -77,7 +81,7 @@ except TypeError:
             yield from astuple(self)
 
 
-def pair_parse(left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ',') -> Callable[[str], Pair[_L, _R]]:
+def pair_parse(left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ",") -> Callable[[str], Pair[_L, _R]]:
     """
     Returns a function that parses a string into a Pair.
 
@@ -95,7 +99,9 @@ def pair_parse(left_func: Callable[[str], _L], right_func: Callable[[str], _R], 
     Callable[[str], Pair[L, R]]
         A function that parses a string into a Pair.
     """
+
     def parse_pair(value: str) -> Pair[_L, _R]:
         left, right = value.split(delim, maxsplit=1)
         return Pair(left_func(left), right_func(right))
+
     return parse_pair

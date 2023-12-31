@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from contextlib import AbstractContextManager
 
 
-JSONT = TypeVar('JSONT', bound=str)
-OTHERT = TypeVar('OTHERT', bound=str)
+JSONT = TypeVar("JSONT", bound=str)
+OTHERT = TypeVar("OTHERT", bound=str)
 
 
 @dataclass
@@ -26,6 +26,7 @@ class TypedResourceHelper(Generic[JSONT, OTHERT]):
     def get_resource_json(self, resource: JSONT) -> Any:
         with path(self.package, resource) as file, file.open() as f:
             import json
+
             return json.load(f)
 
 

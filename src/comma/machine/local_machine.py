@@ -20,17 +20,24 @@ def all_git_projects() -> list[str]:
         os.path.dirname(x)
         for x in Command(
             cmd=(
-                'find',
+                "find",
                 os.path.expanduser(
-                    '~/dev',
-                ), os.path.expanduser('~/worktrees'), os.path.expanduser('~/projects'),
-                '-mindepth', '2',
-                '-maxdepth', '3',
-                '-name', '.git',
-                '-prune',
+                    "~/dev",
+                ),
+                os.path.expanduser("~/worktrees"),
+                os.path.expanduser("~/projects"),
+                "-mindepth",
+                "2",
+                "-maxdepth",
+                "3",
+                "-name",
+                ".git",
+                "-prune",
                 # '-exec', 'dirname', '{}', ';',
             ),
-        ).quick_run().splitlines()
+        )
+        .quick_run()
+        .splitlines()
     ]
 
 
@@ -42,7 +49,7 @@ class LocalMachine(Machine):
         return os.path.isdir(path)
 
     def code_open(self, path: str) -> None:
-        Command(cmd=('code', self.full_path(path))).execvp()
+        Command(cmd=("code", self.full_path(path))).execvp()
 
     def has_executable(self, executable: str) -> bool:
         return shutil.which(executable) is not None
@@ -51,12 +58,8 @@ class LocalMachine(Machine):
         return os.path.realpath(path)
 
     def project_list(self) -> list[str]:
-        projects = os.path.expanduser('~/projects')
+        projects = os.path.expanduser("~/projects")
         foo = (os.path.join(projects, x) for x in os.listdir(projects))
         return list(
-            {
-                x
-                for x in itertools.chain(foo, all_git_projects())
-                if 'trash' not in x and os.path.isdir(x)
-            },
+            {x for x in itertools.chain(foo, all_git_projects()) if "trash" not in x and os.path.isdir(x)},
         )

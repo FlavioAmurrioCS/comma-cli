@@ -11,7 +11,7 @@ def ancestors(path: str) -> Generator[str, None, None]:
     """
     path = os.path.abspath(path)
     yield path
-    while path != '/':
+    while path != "/":
         path = os.path.dirname(path)
         yield path
 

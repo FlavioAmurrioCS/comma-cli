@@ -15,8 +15,8 @@ from typedfzf import fzf
 from typing_extensions import TypedDict
 
 app_docker: typer.Typer = typer.Typer(
-    name='docker',
-    help='Docker related commands',
+    name="docker",
+    help="Docker related commands",
 )
 
 
@@ -57,7 +57,7 @@ class DockerClient(NamedTuple):
         return [
             json.loads(x)
             for x in Command(
-                cmd=('docker', 'container', 'ls', '--format={{json .}}'),
+                cmd=("docker", "container", "ls", "--format={{json .}}"),
             )
             .quick_run()
             .splitlines()
@@ -68,7 +68,7 @@ class DockerClient(NamedTuple):
         return [
             json.loads(x)
             for x in Command(
-                cmd=('docker', 'image', 'ls', '--format={{json .}}'),
+                cmd=("docker", "image", "ls", "--format={{json .}}"),
             )
             .quick_run()
             .splitlines()
@@ -82,7 +82,7 @@ DOCKER_CLIENT = DockerClient()
 def _image_lookup_dict() -> dict[str, _DockerImageInfo]:
     data = DOCKER_CLIENT.list_images()
     return ChainMap(
-        {x['ID']: x for x in DOCKER_CLIENT.list_images()},
+        {x["ID"]: x for x in DOCKER_CLIENT.list_images()},
         {f"{image['Repository']}:{image['Tag']}": image for image in data},
         defaultdict(lambda: defaultdict(str)),  # type: ignore
     )
@@ -109,8 +109,13 @@ def enter() -> None:
     if selection:
         Command(
             cmd=(
-                'docker', 'exec', '-it',
-                selection['Names'], 'sh', '-c', 'which bash >/dev/null 2>&1 && exec bash || exec sh',
+                "docker",
+                "exec",
+                "-it",
+                selection["Names"],
+                "sh",
+                "-c",
+                "which bash >/dev/null 2>&1 && exec bash || exec sh",
             ),
         ).execvp()
 
@@ -126,20 +131,20 @@ def stop() -> None:
         select_one=False,
     )
     if selection:
-        Command(cmd=('docker', 'stop', selection['Names'])).execvp()
+        Command(cmd=("docker", "stop", selection["Names"])).execvp()
 
 
 class _DockerPlatform(str, Enum):
-    amd64 = 'amd64'
-    aarch64 = 'aarch64'
+    amd64 = "amd64"
+    aarch64 = "aarch64"
 
 
 @app_docker.command()
 def explore(
-        image: str | None = typer.Argument(None),
-        shell: str = 'sh',
-        user: str | None = None,
-        platform: _DockerPlatform | None = None,
+    image: str | None = typer.Argument(None),
+    shell: str = "sh",
+    user: str | None = None,
+    platform: _DockerPlatform | None = None,
 ) -> None:
     """
     Run a container and enter it.
@@ -151,24 +156,23 @@ def explore(
             select_one=False,
         )
         if image_selection:
-            image = (
-                (image_selection['Repository'] + ':' + image_selection['Tag'])
-                if image_selection['Tag'] != '<none>'
-                else image_selection['ID']
-            )
+            image = (image_selection["Repository"] + ":" + image_selection["Tag"]) if image_selection["Tag"] != "<none>" else image_selection["ID"]
     if image:
         Command(
             cmd=(
-                'docker', 'run',
-                '-it', '--rm',
-                *((f'--user={user}',) if user else ()),
-                *((f'--platform=linux/{platform.value}',) if platform else ()),
-                '--entrypoint', shell,
+                "docker",
+                "run",
+                "-it",
+                "--rm",
+                *((f"--user={user}",) if user else ()),
+                *((f"--platform=linux/{platform.value}",) if platform else ()),
+                "--entrypoint",
+                shell,
                 f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',
                 image,
             ),
         ).execvp()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_docker()

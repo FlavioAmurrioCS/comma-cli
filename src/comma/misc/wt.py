@@ -6,8 +6,8 @@ from comma.misc.m_git import GitWorktree
 from typedfzf import fzf
 
 app_wt: typer.Typer = typer.Typer(
-    name='wt',
-    help='Git worktree utilities.',
+    name="wt",
+    help="Git worktree utilities.",
 )
 
 
@@ -53,5 +53,5 @@ def remove(worktree: str | None = None) -> None:
     g.remove(worktree)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_wt()

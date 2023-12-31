@@ -29,24 +29,25 @@ def get_tool(tool: str) -> str:
 #         if os.path.isfile(x) and os.access(x, os.X_OK) and not x.endswith('.py')
 #     ]
 
-__TOOLS__ = ('dev.sh',)  # Tool list should be generated from the files in the package
+__TOOLS__ = ("dev.sh",)  # Tool list should be generated from the files in the package
 
 
 @app_shell_scripts.command(
     add_help_option=False,
     no_args_is_help=True,
     context_settings={
-        'allow_extra_args': True,
-        'ignore_unknown_options': True,
+        "allow_extra_args": True,
+        "ignore_unknown_options": True,
     },
 )
 def sh(
     ctx: typer.Context,
     tool: str = typer.Argument(
-        'dev.sh', autocompletion=lambda: __TOOLS__,
+        "dev.sh",
+        autocompletion=lambda: __TOOLS__,
         help=f'{" ".join(__TOOLS__)}',
     ),
-    which: bool = typer.Option(False, '--which', help='Print the command instead of running it.'),
+    which: bool = typer.Option(False, "--which", help="Print the command instead of running it."),
 ) -> int:
     """
     Installs (if needed) and runs a tool.
@@ -55,10 +56,10 @@ def sh(
     tool_path = get_tool(tool)
 
     if not os.path.exists(tool_path):
-        if tool == '--help':
+        if tool == "--help":
             print(ctx.get_help())
         else:
-            logging.error('No tool named: %s', tool)
+            logging.error("No tool named: %s", tool)
         return 1
     if which:
         print(tool_path)
@@ -68,5 +69,5 @@ def sh(
     return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app_shell_scripts()

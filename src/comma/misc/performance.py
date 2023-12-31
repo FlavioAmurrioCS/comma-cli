@@ -12,8 +12,8 @@ if TYPE_CHECKING:
     from typing_extensions import ParamSpec
     from typing import TypeVar
 
-    P = ParamSpec('P')
-    R = TypeVar('R')
+    P = ParamSpec("P")
+    R = TypeVar("R")
 
 
 @contextmanager
@@ -32,14 +32,14 @@ def time_it_ctx(
         None: The context manager does not return any value.
 
     Example:
-        >>> with time_it_ctx(label='my_function'):
+        >>> with time_it_ctx(label="my_function"):
         ...     my_function()
         Time taken by my_function: 123.45 ms
     """
     start = time.monotonic_ns()
     yield
     delta_ms = (time.monotonic_ns() - start) / 1_000_000
-    printer(f'Time taken by {label}: {delta_ms} ms')
+    printer(f"Time taken by {label}: {delta_ms} ms")
 
 
 def time_it(
@@ -57,14 +57,17 @@ def time_it(
         Callable[[Callable[P, R]], Callable[P, R]]: A decorated function that measures the time taken by the original function.
 
     Example:
-        >>> @time_it(label='my_function')
+        >>> @time_it(label="my_function")
         ... def my_function():
         ...     pass
     """
+
     def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
             with time_it_ctx(label=(label or func.__name__), printer=printer):
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

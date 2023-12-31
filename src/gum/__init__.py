@@ -65,6 +65,7 @@ from typing_extensions import TypedDict
 #   --limit=1     Maximum number of options to pick
 #   --no-limit    Pick unlimited number of options (ignores limit)
 
+
 class _GumChooseOptions(TypedDict, total=False):
     ordered: bool
     height: int
@@ -81,32 +82,32 @@ class _GumChooseOptions(TypedDict, total=False):
 
 def _gum_choose_options(kwargs: _GumChooseOptions) -> list[str]:
     cmd = []
-    if kwargs.get('ordered'):
-        cmd.append('--ordered')
-    if 'height' in kwargs and kwargs['height']:
+    if kwargs.get("ordered"):
+        cmd.append("--ordered")
+    if "height" in kwargs and kwargs["height"]:
         cmd.append(f'--height={kwargs["height"]}')
-    if 'cursor' in kwargs and kwargs['cursor']:
+    if "cursor" in kwargs and kwargs["cursor"]:
         cmd.append(f'--cursor={kwargs["cursor"]}')
-    if 'header' in kwargs and kwargs['header']:
+    if "header" in kwargs and kwargs["header"]:
         cmd.append(f'--header={kwargs["header"]}')
-    if 'cursor_prefix' in kwargs and kwargs['cursor_prefix']:
+    if "cursor_prefix" in kwargs and kwargs["cursor_prefix"]:
         cmd.append(f'--cursor-prefix={kwargs["cursor_prefix"]}')
-    if 'selected_prefix' in kwargs and kwargs['selected_prefix']:
+    if "selected_prefix" in kwargs and kwargs["selected_prefix"]:
         cmd.append(f'--selected-prefix={kwargs["selected_prefix"]}')
-    if 'unselected_prefix' in kwargs and kwargs['unselected_prefix']:
+    if "unselected_prefix" in kwargs and kwargs["unselected_prefix"]:
         cmd.append(f'--unselected-prefix={kwargs["unselected_prefix"]}')
-    if 'selected' in kwargs and kwargs['selected']:
+    if "selected" in kwargs and kwargs["selected"]:
         cmd.append(f'--selected={kwargs["selected"]}')
-    if 'timeout' in kwargs:
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
-    if 'limit' in kwargs and kwargs['limit']:
+    if "limit" in kwargs and kwargs["limit"]:
         cmd.append(f'--limit={kwargs["limit"]}')
-    if kwargs.get('no_limit'):
-        cmd.append('--no-limit')
+    if kwargs.get("no_limit"):
+        cmd.append("--no-limit")
     return cmd
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @overload
@@ -143,14 +144,14 @@ def gum_choose(
 ) -> T | None | list[T]:
     options = options or {}
     if multi:
-        options['no_limit'] = True
-        options.pop('limit', None)
+        options["no_limit"] = True
+        options.pop("limit", None)
     else:
-        options['limit'] = 1
-        options.pop('no_limit', None)
+        options["limit"] = 1
+        options.pop("no_limit", None)
 
     return select_helper(
-        cmd=['gum', 'choose', *_gum_choose_options(options)],
+        cmd=["gum", "choose", *_gum_choose_options(options)],
         items=items,
         multi=multi,  # type:ignore
         select_one=select_one,
@@ -173,6 +174,7 @@ def gum_choose(
 #       --timeout=0            Timeout until confirm returns selected value or default if provided
 #                              ($GUM_CONFIRM_TIMEOUT)
 
+
 class _GumConfirmOptions(TypedDict, total=False):
     default: bool
     affirmative: str
@@ -182,13 +184,13 @@ class _GumConfirmOptions(TypedDict, total=False):
 
 def _gum_confirm_options(kwargs: _GumConfirmOptions) -> list[str]:
     cmd = []
-    if kwargs.get('default'):
-        cmd.append('--default')
-    if 'affirmative' in kwargs and kwargs['affirmative']:
+    if kwargs.get("default"):
+        cmd.append("--default")
+    if "affirmative" in kwargs and kwargs["affirmative"]:
         cmd.append(f'--affirmative={kwargs["affirmative"]}')
-    if 'negative' in kwargs and kwargs['negative']:
+    if "negative" in kwargs and kwargs["negative"]:
         cmd.append(f'--negative={kwargs["negative"]}')
-    if 'timeout' in kwargs:
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
     return cmd
 
@@ -198,7 +200,8 @@ def gum_confirm(
     options: _GumConfirmOptions | None = None,
 ) -> bool:
     options = options or {}
-    return subprocess.run(['gum', 'confirm', *_gum_confirm_options(options), prompt]).returncode == 0
+    return subprocess.run(["gum", "confirm", *_gum_confirm_options(options), prompt]).returncode == 0
+
 
 ####################################################################################################
 # Usage: gum file [<path>]
@@ -228,31 +231,33 @@ class _GumFileOptions(TypedDict, total=False):
 
 def _gum_file_options(kwargs: _GumFileOptions) -> list[str]:
     cmd = []
-    if 'cursor' in kwargs and kwargs['cursor']:
+    if "cursor" in kwargs and kwargs["cursor"]:
         cmd.append(f'--cursor={kwargs["cursor"]}')
-    if kwargs.get('all'):
-        cmd.append('--all')
-    if kwargs.get('file'):
-        cmd.append('--file')
-    if kwargs.get('directory'):
-        cmd.append('--directory')
-    if 'height' in kwargs and kwargs['height']:
+    if kwargs.get("all"):
+        cmd.append("--all")
+    if kwargs.get("file"):
+        cmd.append("--file")
+    if kwargs.get("directory"):
+        cmd.append("--directory")
+    if "height" in kwargs and kwargs["height"]:
         cmd.append(f'--height={kwargs["height"]}')
-    if 'timeout' in kwargs:
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
     return cmd
 
 
 def gum_file(
-        path: str | None = None,
-        options: _GumFileOptions | None = None,
+    path: str | None = None,
+    options: _GumFileOptions | None = None,
 ) -> str | None:
     options = options or {}
-    cmd = ['gum', 'file', *_gum_file_options(options)]
+    cmd = ["gum", "file", *_gum_file_options(options)]
     if path is not None:
         cmd.append(path)
     result = subprocess.run(
-        cmd, encoding='utf-8', errors='ignore',
+        cmd,
+        encoding="utf-8",
+        errors="ignore",
         capture_output=True,
     ).stdout.strip()
     return result if result else None
@@ -290,6 +295,7 @@ def gum_file(
 #   --no-limit       Pick unlimited number of options (ignores limit)
 #   --[no-]strict    Only returns if anything matched. Otherwise return Filter
 
+
 class _GumFilterOptions(TypedDict, total=False):
     indicator: str
     selected_prefix: str
@@ -311,37 +317,37 @@ class _GumFilterOptions(TypedDict, total=False):
 
 def _gum_filter_options(kwargs: _GumFilterOptions) -> list[str]:
     cmd = []
-    if 'indicator' in kwargs and kwargs['indicator']:
+    if "indicator" in kwargs and kwargs["indicator"]:
         cmd.append(f'--indicator={kwargs["indicator"]}')
-    if 'selected_prefix' in kwargs and kwargs['selected_prefix']:
+    if "selected_prefix" in kwargs and kwargs["selected_prefix"]:
         cmd.append(f'--selected-prefix={kwargs["selected_prefix"]}')
-    if 'unselected_prefix' in kwargs and kwargs['unselected_prefix']:
+    if "unselected_prefix" in kwargs and kwargs["unselected_prefix"]:
         cmd.append(f'--unselected-prefix={kwargs["unselected_prefix"]}')
-    if 'header' in kwargs and kwargs['header']:
+    if "header" in kwargs and kwargs["header"]:
         cmd.append(f'--header={kwargs["header"]}')
-    if 'placeholder' in kwargs and kwargs['placeholder']:
+    if "placeholder" in kwargs and kwargs["placeholder"]:
         cmd.append(f'--placeholder={kwargs["placeholder"]}')
-    if 'prompt' in kwargs and kwargs['prompt']:
+    if "prompt" in kwargs and kwargs["prompt"]:
         cmd.append(f'--prompt={kwargs["prompt"]}')
-    if 'width' in kwargs and kwargs['width']:
+    if "width" in kwargs and kwargs["width"]:
         cmd.append(f'--width={kwargs["width"]}')
-    if 'height' in kwargs and kwargs['height']:
+    if "height" in kwargs and kwargs["height"]:
         cmd.append(f'--height={kwargs["height"]}')
-    if 'value' in kwargs and kwargs['value']:
+    if "value" in kwargs and kwargs["value"]:
         cmd.append(f'--value={kwargs["value"]}')
-    if kwargs.get('reverse'):
-        cmd.append('--reverse')
-    if 'fuzzy' in kwargs:
+    if kwargs.get("reverse"):
+        cmd.append("--reverse")
+    if "fuzzy" in kwargs:
         cmd.append(f'--{"no-" if not kwargs["fuzzy"] else ""}fuzzy')
-    if 'sort' in kwargs:
+    if "sort" in kwargs:
         cmd.append(f'--{"no-" if not kwargs["sort"] else ""}sort')
-    if 'timeout' in kwargs:
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
-    if 'limit' in kwargs and kwargs['limit']:
+    if "limit" in kwargs and kwargs["limit"]:
         cmd.append(f'--limit={kwargs["limit"]}')
-    if kwargs.get('no_limit'):
-        cmd.append('--no-limit')
-    if 'strict' in kwargs:
+    if kwargs.get("no_limit"):
+        cmd.append("--no-limit")
+    if "strict" in kwargs:
         cmd.append(f'--{"no-" if not kwargs["strict"] else ""}strict')
     return cmd
 
@@ -393,18 +399,20 @@ def gum_filter(
     """
     options = options or {}
     if multi:
-        options['no_limit'] = True
-        options.pop('limit', None)
+        options["no_limit"] = True
+        options.pop("limit", None)
     else:
-        options['limit'] = 1
-        options.pop('no_limit', None)
+        options["limit"] = 1
+        options.pop("no_limit", None)
     return select_helper(
-        cmd=['gum', 'filter', *_gum_filter_options(options)],
+        cmd=["gum", "filter", *_gum_filter_options(options)],
         items=items,
         multi=multi,  # type:ignore
         select_one=select_one,
         key=key,
     )
+
+
 ####################################################################################################
 # Usage: gum format [<template> ...]
 # Format a string using a template
@@ -429,11 +437,11 @@ class _GumFormatOptions(TypedDict, total=False):
 
 def _gum_format_options(kwargs: _GumFormatOptions) -> list[str]:
     cmd = []
-    if 'theme' in kwargs and kwargs['theme']:
+    if "theme" in kwargs and kwargs["theme"]:
         cmd.append(f'--theme={kwargs["theme"]}')
-    if 'language' in kwargs and kwargs['language']:
+    if "language" in kwargs and kwargs["language"]:
         cmd.append(f'--language={kwargs["language"]}')
-    if 'type' in kwargs and kwargs['type']:
+    if "type" in kwargs and kwargs["type"]:
         cmd.append(f'--type={kwargs["type"]}')
     return cmd
 
@@ -441,12 +449,13 @@ def _gum_format_options(kwargs: _GumFormatOptions) -> list[str]:
 def gum_format(template: str, options: _GumFormatOptions | None = None) -> str:
     options = options or {}
     return subprocess.run(
-        ['gum', 'format', *_gum_format_options(options), template],
-        encoding='utf-8',
-        errors='ignore',
+        ["gum", "format", *_gum_format_options(options), template],
+        encoding="utf-8",
+        errors="ignore",
         stdout=subprocess.PIPE,
         stderr=None,
     ).stdout.strip()
+
 
 ####################################################################################################
 # Usage: gum input
@@ -470,7 +479,7 @@ def gum_format(template: str, options: _GumFormatOptions | None = None) -> str:
 class _GumInputOptions(TypedDict, total=False):
     placeholder: str
     prompt: str
-    cursor_mode: Literal['blink', 'hide', 'static']
+    cursor_mode: Literal["blink", "hide", "static"]
     value: str
     char_limit: int
     width: int
@@ -481,23 +490,23 @@ class _GumInputOptions(TypedDict, total=False):
 
 def _gum_input_options(kwargs: _GumInputOptions) -> list[str]:
     cmd = []
-    if 'placeholder' in kwargs and kwargs['placeholder']:
+    if "placeholder" in kwargs and kwargs["placeholder"]:
         cmd.append(f'--placeholder={kwargs["placeholder"]}')
-    if 'prompt' in kwargs and kwargs['prompt']:
+    if "prompt" in kwargs and kwargs["prompt"]:
         cmd.append(f'--prompt={kwargs["prompt"]}')
-    if 'cursor_mode' in kwargs and kwargs['cursor_mode']:
+    if "cursor_mode" in kwargs and kwargs["cursor_mode"]:
         cmd.append(f'--cursor.mode={kwargs["cursor_mode"]}')
-    if 'value' in kwargs and kwargs['value']:
+    if "value" in kwargs and kwargs["value"]:
         cmd.append(f'--value={kwargs["value"]}')
-    if 'char_limit' in kwargs:
+    if "char_limit" in kwargs:
         cmd.append(f'--char-limit={kwargs["char_limit"]}')
-    if 'width' in kwargs:
+    if "width" in kwargs:
         cmd.append(f'--width={kwargs["width"]}')
-    if kwargs.get('password'):
-        cmd.append('--password')
-    if 'header' in kwargs and kwargs['header']:
+    if kwargs.get("password"):
+        cmd.append("--password")
+    if "header" in kwargs and kwargs["header"]:
         cmd.append(f'--header={kwargs["header"]}')
-    if 'timeout' in kwargs:
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
     return cmd
 
@@ -507,9 +516,9 @@ def gum_input(
 ) -> str:
     options = options or {}
     return subprocess.run(
-        ['gum', 'input', *_gum_input_options(options)],
-        encoding='utf-8',
-        errors='ignore',
+        ["gum", "input", *_gum_input_options(options)],
+        encoding="utf-8",
+        errors="ignore",
         stdout=subprocess.PIPE,
         stderr=None,
     ).stdout.strip()
@@ -527,32 +536,34 @@ def gum_input(
 #       --horizontal      Join (potentially multi-line) strings horizontally
 #       --vertical        Join (potentially multi-line) strings vertically
 
+
 class _GumJoinOptions(TypedDict, total=False):
-    align: Literal['left', 'center', 'right']
+    align: Literal["left", "center", "right"]
     horizontal: bool
     vertical: bool
 
 
 def _gum_join_options(kwargs: _GumJoinOptions) -> list[str]:
     cmd = []
-    if 'align' in kwargs and kwargs['align']:
+    if "align" in kwargs and kwargs["align"]:
         cmd.append(f'--align={kwargs["align"]}')
-    if kwargs.get('horizontal'):
-        cmd.append('--horizontal')
-    if kwargs.get('vertical'):
-        cmd.append('--vertical')
+    if kwargs.get("horizontal"):
+        cmd.append("--horizontal")
+    if kwargs.get("vertical"):
+        cmd.append("--vertical")
     return cmd
 
 
 def gum_join(text: str, options: _GumJoinOptions | None = None) -> str:
     options = options or {}
     return subprocess.run(
-        ['gum', 'join', *_gum_join_options(options), text],
-        encoding='utf-8',
-        errors='ignore',
+        ["gum", "join", *_gum_join_options(options), text],
+        encoding="utf-8",
+        errors="ignore",
         stdout=subprocess.PIPE,
         stderr=None,
     ).stdout.strip()
+
 
 ####################################################################################################
 # Usage: gum pager [<content>]
@@ -575,11 +586,11 @@ class _GumPagerOptions(TypedDict, total=False):
 
 def _gum_pager_options(kwargs: _GumPagerOptions) -> list[str]:
     cmd = []
-    if kwargs.get('show_line_numbers'):
-        cmd.append('--show-line-numbers')
-    if kwargs.get('soft_wrap'):
-        cmd.append('--soft-wrap')
-    if 'timeout' in kwargs:
+    if kwargs.get("show_line_numbers"):
+        cmd.append("--show-line-numbers")
+    if kwargs.get("soft_wrap"):
+        cmd.append("--soft-wrap")
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
     return cmd
 
@@ -588,10 +599,15 @@ def gum_pager(content: str, options: _GumPagerOptions | None = None) -> None:
     options = options or {}
     subprocess.run(
         [
-            'gum', 'pager', *_gum_pager_options(options),
+            "gum",
+            "pager",
+            *_gum_pager_options(options),
             content,
-        ], encoding='utf-8', errors='ignore',
+        ],
+        encoding="utf-8",
+        errors="ignore",
     )
+
 
 ####################################################################################################
 # Usage: gum spin <command> ...
@@ -616,21 +632,21 @@ class _GumSpinOptions(TypedDict, total=False):
     show_output: bool
     spinner: str
     title: str
-    align: Literal['left', 'center', 'right']
+    align: Literal["left", "center", "right"]
     timeout: int
 
 
 def _gum_spin_options(kwargs: _GumSpinOptions) -> list[str]:
     cmd = []
-    if kwargs.get('show_output'):
-        cmd.append('--show-output')
-    if 'spinner' in kwargs and kwargs['spinner']:
+    if kwargs.get("show_output"):
+        cmd.append("--show-output")
+    if "spinner" in kwargs and kwargs["spinner"]:
         cmd.append(f'--spinner={kwargs["spinner"]}')
-    if 'title' in kwargs and kwargs['title']:
+    if "title" in kwargs and kwargs["title"]:
         cmd.append(f'--title={kwargs["title"]}')
-    if 'align' in kwargs and kwargs['align']:
+    if "align" in kwargs and kwargs["align"]:
         cmd.append(f'--align={kwargs["align"]}')
-    if 'timeout' in kwargs:
+    if "timeout" in kwargs:
         cmd.append(f'--timeout={kwargs["timeout"]}')
     return cmd
 
@@ -641,12 +657,13 @@ def gum_spin(
 ) -> str:
     options = options or {}
     return subprocess.run(
-        ['gum', 'spin', *_gum_spin_options(options), '--', *command],
-        encoding='utf-8',
-        errors='ignore',
+        ["gum", "spin", *_gum_spin_options(options), "--", *command],
+        encoding="utf-8",
+        errors="ignore",
         stdout=subprocess.PIPE,
         stderr=None,
     ).stdout.strip()
+
 
 ####################################################################################################
 # Usage: gum style [<text> ...]
@@ -678,12 +695,22 @@ class _GumStyleOptions(TypedDict, total=False):
     background: str
     foreground: str
     border: Literal[
-        'none', 'single', 'double', 'round', 'bold', 'single_double', 'double_single',
-        'bold_round', 'bold_double', 'double_round', 'bold_single_double', 'bold_double_single',
+        "none",
+        "single",
+        "double",
+        "round",
+        "bold",
+        "single_double",
+        "double_single",
+        "bold_round",
+        "bold_double",
+        "double_round",
+        "bold_single_double",
+        "bold_double_single",
     ]
     border_background: str
     border_foreground: str
-    align: Literal['left', 'center', 'right']
+    align: Literal["left", "center", "right"]
     height: int
     width: int
     margin: str
@@ -697,36 +724,36 @@ class _GumStyleOptions(TypedDict, total=False):
 
 def _gum_style_options(kwargs: _GumStyleOptions) -> list[str]:
     cmd = []
-    if 'background' in kwargs and kwargs['background']:
+    if "background" in kwargs and kwargs["background"]:
         cmd.append(f'--background={kwargs["background"]}')
-    if 'foreground' in kwargs and kwargs['foreground']:
+    if "foreground" in kwargs and kwargs["foreground"]:
         cmd.append(f'--foreground={kwargs["foreground"]}')
-    if 'border' in kwargs and kwargs['border']:
+    if "border" in kwargs and kwargs["border"]:
         cmd.append(f'--border={kwargs["border"]}')
-    if 'border_background' in kwargs and kwargs['border_background']:
+    if "border_background" in kwargs and kwargs["border_background"]:
         cmd.append(f'--border-background={kwargs["border_background"]}')
-    if 'border_foreground' in kwargs and kwargs['border_foreground']:
+    if "border_foreground" in kwargs and kwargs["border_foreground"]:
         cmd.append(f'--border-foreground={kwargs["border_foreground"]}')
-    if 'align' in kwargs and kwargs['align']:
+    if "align" in kwargs and kwargs["align"]:
         cmd.append(f'--align={kwargs["align"]}')
-    if 'height' in kwargs and kwargs['height']:
+    if "height" in kwargs and kwargs["height"]:
         cmd.append(f'--height={kwargs["height"]}')
-    if 'width' in kwargs and kwargs['width']:
+    if "width" in kwargs and kwargs["width"]:
         cmd.append(f'--width={kwargs["width"]}')
-    if 'margin' in kwargs and kwargs['margin']:
+    if "margin" in kwargs and kwargs["margin"]:
         cmd.append(f'--margin={kwargs["margin"]}')
-    if 'padding' in kwargs and kwargs['padding']:
+    if "padding" in kwargs and kwargs["padding"]:
         cmd.append(f'--padding={kwargs["padding"]}')
-    if kwargs.get('bold'):
-        cmd.append('--bold')
-    if kwargs.get('faint'):
-        cmd.append('--faint')
-    if kwargs.get('italic'):
-        cmd.append('--italic')
-    if kwargs.get('strikethrough'):
-        cmd.append('--strikethrough')
-    if kwargs.get('underline'):
-        cmd.append('--underline')
+    if kwargs.get("bold"):
+        cmd.append("--bold")
+    if kwargs.get("faint"):
+        cmd.append("--faint")
+    if kwargs.get("italic"):
+        cmd.append("--italic")
+    if kwargs.get("strikethrough"):
+        cmd.append("--strikethrough")
+    if kwargs.get("underline"):
+        cmd.append("--underline")
     return cmd
 
 
@@ -736,9 +763,9 @@ def gum_style(
 ) -> str:
     options = options or {}
     return subprocess.run(
-        ['gum', 'style', *_gum_style_options(options), text],
-        encoding='utf-8',
-        errors='ignore',
+        ["gum", "style", *_gum_style_options(options), text],
+        encoding="utf-8",
+        errors="ignore",
         stdout=subprocess.PIPE,
         stderr=None,
     ).stdout.strip()
@@ -760,6 +787,7 @@ def gum_style(
 #       --height=10              Table height
 #   -f, --file=""                file path
 
+
 class _GumTableOptions(TypedDict, total=False):
     separator: str
     columns: list[str]
@@ -770,13 +798,13 @@ class _GumTableOptions(TypedDict, total=False):
 
 def _gum_table_options(kwargs: _GumTableOptions) -> list[str]:
     cmd = []
-    if 'separator' in kwargs and kwargs['separator']:
+    if "separator" in kwargs and kwargs["separator"]:
         cmd.append(f'--separator={kwargs["separator"]}')
-    if 'columns' in kwargs and kwargs['columns']:
+    if "columns" in kwargs and kwargs["columns"]:
         cmd.append(f'--columns={",".join(kwargs["columns"])}')
-    if 'widths' in kwargs and kwargs['widths']:
+    if "widths" in kwargs and kwargs["widths"]:
         cmd.append(f'--widths={",".join(map(str, kwargs["widths"]))}')
-    if 'height' in kwargs and kwargs['height']:
+    if "height" in kwargs and kwargs["height"]:
         cmd.append(f'--height={kwargs["height"]}')
     # if 'file' in kwargs and kwargs['file']:
     #     cmd.append(f'--file={kwargs["file"]}')
@@ -794,20 +822,20 @@ def gum_table(
     if not data_or_file:
         return None
     options = options or {}
-    cmd = ['gum', 'table', *_gum_table_options(options)]
+    cmd = ["gum", "table", *_gum_table_options(options)]
 
-    with tempfile.NamedTemporaryFile(mode='w') as f:
+    with tempfile.NamedTemporaryFile(mode="w") as f:
         filename = data_or_file if isinstance(data_or_file, str) else f.name
         if not isinstance(data_or_file, str):
             dict_writer = csv.DictWriter(f, fieldnames=data_or_file[0].keys())
             dict_writer.writeheader()
             dict_writer.writerows(data_or_file)
-        cmd.append(f'--file={filename}')
+        cmd.append(f"--file={filename}")
         result = subprocess.run(
             cmd,
             stdout=subprocess.PIPE,
             stderr=None,
-            encoding='utf-8',
+            encoding="utf-8",
         ).stdout.strip()
         return result if result else None
 
@@ -826,6 +854,7 @@ def gum_table(
 #       --char-limit=400         Maximum value length (0 for no limit)
 #       --cursor.mode="blink"    Cursor mode ($GUM_WRITE_CURSOR_MODE)
 
+
 class _GumWriteOptions(TypedDict, total=False):
     width: int
     height: int
@@ -836,30 +865,30 @@ class _GumWriteOptions(TypedDict, total=False):
     show_line_numbers: bool
     value: str
     char_limit: int
-    cursor_mode: Literal['blink', 'hide', 'static']
+    cursor_mode: Literal["blink", "hide", "static"]
 
 
 def _gum_write_options(kwargs: _GumWriteOptions) -> list[str]:
     cmd = []
-    if 'width' in kwargs:
+    if "width" in kwargs:
         cmd.append(f'--width={kwargs["width"]}')
-    if 'height' in kwargs:
+    if "height" in kwargs:
         cmd.append(f'--height={kwargs["height"]}')
-    if 'header' in kwargs and kwargs['header']:
+    if "header" in kwargs and kwargs["header"]:
         cmd.append(f'--header={kwargs["header"]}')
-    if 'placeholder' in kwargs:
+    if "placeholder" in kwargs:
         cmd.append(f'--placeholder={kwargs["placeholder"]}')
-    if 'prompt' in kwargs and kwargs['prompt']:
+    if "prompt" in kwargs and kwargs["prompt"]:
         cmd.append(f'--prompt={kwargs["prompt"]}')
-    if kwargs.get('show_cursor_line'):
-        cmd.append('--show-cursor-line')
-    if kwargs.get('show_line_numbers'):
-        cmd.append('--show-line-numbers')
-    if 'value' in kwargs and kwargs['value']:
+    if kwargs.get("show_cursor_line"):
+        cmd.append("--show-cursor-line")
+    if kwargs.get("show_line_numbers"):
+        cmd.append("--show-line-numbers")
+    if "value" in kwargs and kwargs["value"]:
         cmd.append(f'--value={kwargs["value"]}')
-    if 'char_limit' in kwargs:
+    if "char_limit" in kwargs:
         cmd.append(f'--char-limit={kwargs["char_limit"]}')
-    if 'cursor_mode' in kwargs and kwargs['cursor_mode']:
+    if "cursor_mode" in kwargs and kwargs["cursor_mode"]:
         cmd.append(f'--cursor.mode={kwargs["cursor_mode"]}')
     return cmd
 
@@ -867,12 +896,12 @@ def _gum_write_options(kwargs: _GumWriteOptions) -> list[str]:
 def gum_write(options: _GumWriteOptions | None = None) -> str:
     options = options or {}
     return subprocess.run(
-        ['gum', 'write', *_gum_write_options(options)],
+        ["gum", "write", *_gum_write_options(options)],
         stdout=subprocess.PIPE,
-        encoding='utf-8',
+        encoding="utf-8",
     ).stdout
 
 
 ####################################################################################################
-if __name__ == '__main__':
-    gum_spin(['sleep', '5'], {'title': 'Sleeping for 5 seconds...', 'show_output': True})
+if __name__ == "__main__":
+    gum_spin(["sleep", "5"], {"title": "Sleeping for 5 seconds...", "show_output": True})
