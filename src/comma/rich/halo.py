@@ -3,16 +3,14 @@ from __future__ import annotations
 import functools
 import platform
 import typing
-from types import TracebackType
 from typing import Callable
-from typing import Optional
-from typing import Type
 from typing import TypeVar
 
 from rich.status import Status
 from typing_extensions import TypedDict
 
 if typing.TYPE_CHECKING:
+    from types import TracebackType
     from rich.console import Console
     from rich.console import RenderableType
     from rich.style import StyleType
@@ -21,27 +19,83 @@ if typing.TYPE_CHECKING:
     from typing_extensions import Self
 
     SPINNER = Literal[
-        'aesthetic', 'bounce', 'circleQuarters', 'dots4', 'dqpb', 'hearts',
-        'noise', 'simpleDotsScrolling', 'toggle10', 'toggle5', 'arc',
-        'bouncingBall', 'clock', 'dots5', 'earth', 'layer', 'pipe', 'smiley',
-        'toggle11', 'toggle6', 'arrow', 'bouncingBar', 'dots', 'dots6', 'flip',
-        'line', 'point', 'squareCorners', 'toggle12', 'toggle7', 'arrow2',
-        'boxBounce', 'dots10', 'dots7', 'grenade', 'line2', 'pong', 'squish',
-        'toggle13', 'toggle8', 'arrow3', 'boxBounce2', 'dots11', 'dots8',
-        'growHorizontal', 'material', 'runner', 'star', 'toggle2', 'toggle9',
-        'balloon', 'christmas', 'dots12', 'dots8Bit', 'growVertical', 'monkey',
-        'shark', 'star2', 'toggle3', 'triangle', 'balloon2', 'circle', 'dots2',
-        'dots9', 'hamburger', 'moon', 'simpleDots', 'toggle', 'toggle4', 'weather',
-        'betaWave', 'circleHalves', 'dots3',
+        "aesthetic",
+        "bounce",
+        "circleQuarters",
+        "dots4",
+        "dqpb",
+        "hearts",
+        "noise",
+        "simpleDotsScrolling",
+        "toggle10",
+        "toggle5",
+        "arc",
+        "bouncingBall",
+        "clock",
+        "dots5",
+        "earth",
+        "layer",
+        "pipe",
+        "smiley",
+        "toggle11",
+        "toggle6",
+        "arrow",
+        "bouncingBar",
+        "dots",
+        "dots6",
+        "flip",
+        "line",
+        "point",
+        "squareCorners",
+        "toggle12",
+        "toggle7",
+        "arrow2",
+        "boxBounce",
+        "dots10",
+        "dots7",
+        "grenade",
+        "line2",
+        "pong",
+        "squish",
+        "toggle13",
+        "toggle8",
+        "arrow3",
+        "boxBounce2",
+        "dots11",
+        "dots8",
+        "growHorizontal",
+        "material",
+        "runner",
+        "star",
+        "toggle2",
+        "toggle9",
+        "balloon",
+        "christmas",
+        "dots12",
+        "dots8Bit",
+        "growVertical",
+        "monkey",
+        "shark",
+        "star2",
+        "toggle3",
+        "triangle",
+        "balloon2",
+        "circle",
+        "dots2",
+        "dots9",
+        "hamburger",
+        "moon",
+        "simpleDots",
+        "toggle",
+        "toggle4",
+        "weather",
+        "betaWave",
+        "circleHalves",
+        "dots3",
     ]
-    _MAIN = {
-        'info': '',
-        'success': '',
-        'warning': '',
-        'error': '',
-    }
-    P = ParamSpec('P')
-    R = TypeVar('R')
+
+    P = ParamSpec("P")
+    R = TypeVar("R")
 
 
 class _Symbols(TypedDict):
@@ -52,30 +106,34 @@ class _Symbols(TypedDict):
 
 
 # pip install log_symbols
-symbols: _Symbols = {
-    'info': 'ℹ',
-    'success': '✔',
-    'warning': '⚠',
-    'error': '✖',
-}if platform.system() != 'Windows' else {
-    'info': '¡',
-    'success': 'v',
-    'warning': '!!',
-    'error': '×',
-}
+symbols: _Symbols = (
+    {
+        "info": "ℹ",  # noqa: RUF001
+        "success": "✔",
+        "warning": "⚠",
+        "error": "✖",
+    }
+    if platform.system() != "Windows"
+    else {
+        "info": "¡",
+        "success": "v",
+        "warning": "!!",
+        "error": "×",  # noqa: RUF001
+    }
+)
 
 
 class FHalo(Status):
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         status: RenderableType,
         *,
-        console: Optional[Console] = None,
-        spinner: SPINNER = 'dots',
-        spinner_style: StyleType = 'status.spinner',
+        console: Console | None = None,
+        spinner: SPINNER = "dots",
+        spinner_style: StyleType = "status.spinner",
         speed: float = 1,
         refresh_per_second: float = 12.5,
-    ):
+    ) -> None:
         super().__init__(
             status,
             console=console,
@@ -87,9 +145,14 @@ class FHalo(Status):
         self._success: str = f'{symbols["info"]} {status}'
 
     def __enter__(self) -> Self:
-        return typing.cast('Self', super().__enter__())
+        return typing.cast("Self", super().__enter__())
 
-    def __exit__(self, exc_type: Optional[Type[BaseException]], exc_val: Optional[BaseException], exc_tb: Optional[TracebackType]) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
         self.console.print(self._success or self.status)
         return super().__exit__(exc_type, exc_val, exc_tb)
 
@@ -98,23 +161,23 @@ class FHalo(Status):
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
             with self:
                 return func(*args, **kwargs)
+
         return wrapped
 
-    def succeed(self, text: Optional[str] = None) -> None:
+    def succeed(self, text: str | None = None) -> None:
         self._success = f'[green bold]{symbols["success"]}[/green bold] {text or self.status}'
 
-    def fail(self, text: Optional[str] = None) -> None:
+    def fail(self, text: str | None = None) -> None:
         self._success = f'[red bold]{symbols["error"]}[/red bold] {text or self.status}'
 
-    def warn(self, text: Optional[str] = None) -> None:
+    def warn(self, text: str | None = None) -> None:
         self._success = f'[yellow bold]{symbols["warning"]}[/yellow bold] {text or self.status}'
 
 
 def spinner(
     *title: str | None,
 ) -> Callable[[Callable[P, R]], Callable[P, R]]:
-    """
-    Decorator that adds a spinner animation to a function.
+    """Decorator that adds a spinner animation to a function.
 
     Args:
         *title: The title of the spinner animation. If not provided, the function name will be used.
@@ -131,18 +194,22 @@ def spinner(
             # Function implementation
             pass
     """
-    def __inner__(func: Callable[P, R]) -> Callable[P, R]:
+
+    def _inner_(func: Callable[P, R]) -> Callable[P, R]:
         @functools.wraps(func)
         def wrapped(*args: P.args, **kwargs: P.kwargs) -> R:
             with FHalo(
-                status=f'{title or func.__name__}',
+                status=f"{title or func.__name__}",
             ) as halo:
                 try:
                     result = func(*args, **kwargs)
                     halo.succeed()
-                    return result
                 except Exception:
                     halo.fail()
                     raise
+                else:
+                    return result
+
         return wrapped
-    return __inner__
+
+    return _inner_
