@@ -119,8 +119,8 @@ class LogTool:
     # config_file: str
     log_tool_config: LogToolConfig
     log_pattern: str
-    # stream: FunctionalStream[LogLine]  # type:ignore
-    # processed_stream: FunctionalStream[LogLine]  # type:ignore
+    # stream: FunctionalStream[LogLine]
+    # processed_stream: FunctionalStream[LogLine]
     config_parser: LogToolConfigParser
     section: str
     log_files: list[str]
@@ -156,14 +156,14 @@ class LogTool:
             self.stream = (
                 seq(self.log_files)
                 .flat_map(seq_open_file)
-                .map(line_to_logline)  # type:ignore
-                .filter(lambda x: x is not None)  # type:ignore
-                .map(cast_to_non_none)  # type:ignore
+                .map(line_to_logline)
+                .filter(lambda x: x is not None)
+                .map(cast_to_non_none)
             )
 
         self.processed_stream = self.__process__()
 
-    def __process__(self) -> FunctionalStream[LogLine]:  # type:ignore
+    def __process__(self) -> FunctionalStream[LogLine]:
         predicates: list[Callable[[LogLine], bool]] = []
 
         loglevels = set(self.log_tool_config["loglevel"])
@@ -180,9 +180,9 @@ class LogTool:
             predicates.append(lambda x: bool(pattern.search(x.parts["MSG"])))
 
         if not predicates:
-            return self.stream  # type:ignore
+            return self.stream
 
-        return self.stream.filter(lambda x: any(p(x) for p in predicates))  # type:ignore
+        return self.stream.filter(lambda x: any(p(x) for p in predicates))
 
     def print_log(self, *, original_stream: bool = False) -> None:
         stream = self.stream if original_stream else self.processed_stream
@@ -196,7 +196,7 @@ class LogTool:
             def func(log_line: LogLine) -> str:
                 return print_format.format_map(log_line.parts)
 
-        stream.map(func).for_each(rprint)  # type:ignore
+        stream.map(func).for_each(rprint)
 
 
 @app_logtool.command()
@@ -235,9 +235,7 @@ def search(
     """Search and color text files."""
     from functional import seq
 
-    stream: FunctionalStream[str] = (  # type:ignore
-        seq(files).flat_map(seq_open_file)
-    )
+    stream: FunctionalStream[str] = seq(files).flat_map(seq_open_file)
     search_patterns.sort(key=len, reverse=True)
     if not enable_regex:
         search_patterns = [re.escape(x) for x in search_patterns]
@@ -245,12 +243,12 @@ def search(
     joined_search_pattern: str = "|".join(search_patterns)
     pat = re.compile(joined_search_pattern, flag)
 
-    stream = stream.filter(lambda x: bool(pat.search(x))).map(str.strip)  # type:ignore
+    stream = stream.filter(lambda x: bool(pat.search(x))).map(str.strip)
 
     if ignore_patterns:
         ignore_patterns.sort(key=len, reverse=True)
         ignore_pat = re.compile("|".join(ignore_patterns), flag)
-        stream = stream.filter_not(lambda x: bool(ignore_pat.search(x)))  # type:ignore
+        stream = stream.filter_not(lambda x: bool(ignore_pat.search(x)))
 
     colors = (
         # "black",
@@ -284,7 +282,7 @@ def search(
             line = pat.sub(color, line)
         return line
 
-    stream.map(_inner_).for_each(LOG_TOOL_CONSOLE.print)  # type:ignore
+    stream.map(_inner_).for_each(LOG_TOOL_CONSOLE.print)
 
 
 if __name__ == "__main__":

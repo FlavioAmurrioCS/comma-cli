@@ -84,9 +84,7 @@ class TyperNode(NamedTuple):
 
     def execute(self, *args: str, _print_cmd: bool = False) -> None:
         # Check if root command is in the path
-        root_executable: tuple[str, ...] = (
-            shutil.which(self.path[0]),  # type:ignore
-        )
+        root_executable: tuple[str, ...] = (shutil.which(self.path[0]),)  # type: ignore
         if root_executable[0] is None:
             root_executable = (sys.argv[0],)
             with suppress(Exception):
@@ -129,7 +127,7 @@ typer_settigs = {
 }
 
 
-@app_reflection.command(**typer_settigs, name="show")  # type:ignore
+@app_reflection.command(**typer_settigs, name="show")
 def show_func() -> None:
     """Show function source code."""
     node = _pick_node_()
@@ -139,7 +137,7 @@ def show_func() -> None:
             node.execute("--help", _print_cmd=True)
 
 
-@app_reflection.command(**typer_settigs, name="tree")  # type:ignore
+@app_reflection.command(**typer_settigs, name="tree")
 def tree() -> None:
     """Show all functions."""
     nodes = list(_traverse_nodes_())
@@ -150,7 +148,7 @@ def tree() -> None:
         )
 
 
-@app_reflection.command(**typer_settigs, name="run")  # type:ignore
+@app_reflection.command(**typer_settigs, name="run")
 def run_func(
     ctx: typer.Context = typer.Argument(None),  # noqa: B008
 ) -> None:

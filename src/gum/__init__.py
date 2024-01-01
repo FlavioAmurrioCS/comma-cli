@@ -153,7 +153,7 @@ def gum_choose(
     return select_helper(
         cmd=["gum", "choose", *_gum_choose_options(options)],
         items=items,
-        multi=multi,  # type:ignore
+        multi=multi,
         select_one=select_one,
         key=key,
     )
@@ -411,7 +411,7 @@ def gum_filter(
     return select_helper(
         cmd=["gum", "filter", *_gum_filter_options(options)],
         items=items,
-        multi=multi,  # type:ignore
+        multi=multi,
         select_one=select_one,
         key=key,
     )

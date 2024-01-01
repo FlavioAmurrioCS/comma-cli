@@ -14,7 +14,7 @@ _R = TypeVar("_R")
 
 try:
 
-    class Pair(NamedTuple, Generic[_L, _R]):  # type: ignore
+    class Pair(NamedTuple, Generic[_L, _R]):
         """
         A generic Pair class that represents a pair of values.
 
