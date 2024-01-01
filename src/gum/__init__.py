@@ -386,9 +386,11 @@ def gum_filter(
     key: Callable[[T], str] | None = None,
     options: _GumFilterOptions | None = None,
 ) -> T | None | list[T]:
-    """Selects one or more items from the given iterable using GumFilter.
+    """
+    Selects one or more items from the given iterable using GumFilter.
 
     Args:
+    ----
         items (Iterable[T]): The iterable to select items from.
         multi (bool, optional): Whether to allow selecting multiple items. Defaults to False.
         select_one (bool, optional): Whether to select only one item. Defaults to True.
@@ -396,6 +398,7 @@ def gum_filter(
         options (GumFilterOptions | None, optional): Options for the GumFilter command. Defaults to None.
 
     Returns:
+    -------
         Union[list[T], T, None]: The selected item(s), or None if no items were selected.
     """
     options = options or {}
