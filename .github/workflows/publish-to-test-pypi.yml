@@ -105,6 +105,7 @@ jobs:
         --repo '${{ github.repository }}'
 
   publish-to-testpypi:
+    if: false  # uncomment this line to enable publishing to TestPyPI
     name: Publish Python 🐍 distribution 📦 to TestPyPI
     needs:
     - build

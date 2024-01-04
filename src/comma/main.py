@@ -7,7 +7,6 @@ import sys
 import typer
 from comma.devcon import app_devcon
 from comma.docker import app_docker
-from comma.logtool import app_logtool
 from comma.misc.code import c
 from comma.misc.tmux import mux
 from comma.shell_scripts.shell_utils import app_sh
@@ -19,7 +18,6 @@ app_main: typer.Typer = typer.Typer(help="Set of tools made with flavor.")
 app_main.command()(c)
 app_main.command()(mux)
 app_main.add_typer(app_docker)
-app_main.add_typer(app_logtool)
 app_main.add_typer(app_devcon)
 app_main.add_typer(app_reflection)
 

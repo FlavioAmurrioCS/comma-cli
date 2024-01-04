@@ -14,11 +14,12 @@ _R = TypeVar("_R")
 
 try:
 
-    class Pair(NamedTuple, Generic[_L, _R]):  # type: ignore
-        """A generic Pair class that represents a pair of values.
+    class Pair(NamedTuple, Generic[_L, _R]):
+        """
+        A generic Pair class that represents a pair of values.
 
-        Attributes:
-        -----------
+        Attributes
+        ----------
         left : L
             The left value of the pair.
         right : R
@@ -29,10 +30,11 @@ try:
         right: _R
 
         def flip(self) -> Pair[_R, _L]:
-            """Returns a new Pair with the left and right values swapped.
+            """
+            Returns a new Pair with the left and right values swapped.
 
-            Returns:
-            --------
+            Returns
+            -------
             Pair[R, L]
                 A new Pair with the left and right values swapped.
             """
@@ -42,10 +44,11 @@ except TypeError:
 
     @dataclass(frozen=True, unsafe_hash=True)
     class Pair(Generic[_L, _R]):  # type: ignore[no-redef]
-        """A generic Pair class that represents a pair of values.
+        """
+        A generic Pair class that represents a pair of values.
 
-        Attributes:
-        -----------
+        Attributes
+        ----------
         left : L
             The left value of the pair.
         right : R
@@ -56,20 +59,22 @@ except TypeError:
         right: _R
 
         def flip(self) -> Pair[_R, _L]:
-            """Returns a new Pair with the left and right values swapped.
+            """
+            Returns a new Pair with the left and right values swapped.
 
-            Returns:
-            --------
+            Returns
+            -------
             Pair[R, L]
                 A new Pair with the left and right values swapped.
             """
             return Pair(self.right, self.left)
 
         def __iter__(self) -> Iterator[_L | _R]:
-            """Returns an iterator over the left and right values of the Pair.
+            """
+            Returns an iterator over the left and right values of the Pair.
 
-            Returns:
-            --------
+            Returns
+            -------
             Iterator[Union[L, R]]
                 An iterator over the left and right values of the Pair.
             """
@@ -79,10 +84,11 @@ except TypeError:
 def pair_parse(
     left_func: Callable[[str], _L], right_func: Callable[[str], _R], delim: str = ","
 ) -> Callable[[str], Pair[_L, _R]]:
-    """Returns a function that parses a string into a Pair.
+    """
+    Returns a function that parses a string into a Pair.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     left_func : Callable[[str], L]
         A function that converts a string into the left value of the Pair.
     right_func : Callable[[str], R]
@@ -90,8 +96,8 @@ def pair_parse(
     delim : str, optional
         The delimiter used to separate the left and right values of the Pair. Default is ','.
 
-    Returns:
-    --------
+    Returns
+    -------
     Callable[[str], Pair[L, R]]
         A function that parses a string into a Pair.
     """

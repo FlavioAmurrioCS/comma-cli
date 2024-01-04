@@ -12,7 +12,7 @@ from typing import Sequence
 from typing import TypeVar
 from typing import Union
 
-from typedfzf import select_helper
+from fzf import select_helper
 from typing_extensions import TypeAlias
 from typing_extensions import TypedDict
 
@@ -153,7 +153,7 @@ def gum_choose(
     return select_helper(
         cmd=["gum", "choose", *_gum_choose_options(options)],
         items=items,
-        multi=multi,  # type:ignore
+        multi=multi,
         select_one=select_one,
         key=key,
     )
@@ -386,9 +386,11 @@ def gum_filter(
     key: Callable[[T], str] | None = None,
     options: _GumFilterOptions | None = None,
 ) -> T | None | list[T]:
-    """Selects one or more items from the given iterable using GumFilter.
+    """
+    Selects one or more items from the given iterable using GumFilter.
 
     Args:
+    ----
         items (Iterable[T]): The iterable to select items from.
         multi (bool, optional): Whether to allow selecting multiple items. Defaults to False.
         select_one (bool, optional): Whether to select only one item. Defaults to True.
@@ -396,6 +398,7 @@ def gum_filter(
         options (GumFilterOptions | None, optional): Options for the GumFilter command. Defaults to None.
 
     Returns:
+    -------
         Union[list[T], T, None]: The selected item(s), or None if no items were selected.
     """
     options = options or {}
@@ -408,7 +411,7 @@ def gum_filter(
     return select_helper(
         cmd=["gum", "filter", *_gum_filter_options(options)],
         items=items,
-        multi=multi,  # type:ignore
+        multi=multi,
         select_one=select_one,
         key=key,
     )

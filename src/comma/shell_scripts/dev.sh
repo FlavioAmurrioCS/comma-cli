@@ -147,7 +147,7 @@ function ,release_python_package() {
         git checkout main &&
         git pull &&
         latest_tag=$(git describe --tags --abbrev=0) &&
-        project_version=$(hatch version) || return 1
+        project_version="v$(hatch version)" || return 1
     if [[ "$latest_tag" == "$project_version" ]]; then
         echo "No new version to release"
         return 0

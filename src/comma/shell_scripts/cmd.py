@@ -65,7 +65,7 @@ class Proxy(IO[str]):
         attr = object.__getattribute__(self, __name)
         if callable(attr):
 
-            def newfunc(*args, **kwargs) -> Any:  # noqa: ANN003, ANN002, ANN401
+            def newfunc(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
                 print("before calling %s" % attr.__name__)
                 result = attr(*args, **kwargs)
                 print("done calling %s" % attr.__name__)

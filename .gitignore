@@ -167,3 +167,4 @@ launch.json
 _geckobuild
 .ruff_cache
 .trunk
+src/comma/_version.py

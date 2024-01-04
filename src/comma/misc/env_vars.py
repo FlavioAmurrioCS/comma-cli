@@ -9,17 +9,21 @@ def get_required_env_vars(
     *varnames: str,
     allow_empty: bool = False,
 ) -> tuple[str, ...]:
-    """Get the values of the specified environment variables, raising an error if any of them are not set or empty.
+    """
+    Get the values of the specified environment variables, raising an error if any of them are not set or empty.
 
     Args:
+    ----
         varname: The name of the first environment variable to get.
         varnames: The names of any additional environment variables to get.
         allow_empty: Whether to allow empty values for the environment variables.
 
     Returns:
+    -------
         An iterable of the values of the specified environment variables.
 
     Raises:
+    ------
         ValueError: If any of the specified environment variables are not set or empty.
     """  # noqa: E501
     ret: list[str] = []
@@ -37,14 +41,17 @@ def get_env_vars_or_default(
     *varname_default_pairs: tuple[str, str],
     allow_empty: bool = False,
 ) -> tuple[str, ...]:
-    """Get the values of the specified environment variables, using default values if any of them are not set or empty.
+    """
+    Get the values of the specified environment variables, using default values if any of them are not set or empty.
 
     Args:
+    ----
         varname_default_pair: A tuple containing the name of the first environment variable to get and its default value.
         varname_default_pairs: Tuples containing the names and default values of any additional environment variables to get.
         allow_empty: Whether to allow empty values for the environment variables.
 
     Returns:
+    -------
         An iterable of the values of the specified environment variables, using the default values
         for any that are not set or empty.
     """  # noqa: E501
