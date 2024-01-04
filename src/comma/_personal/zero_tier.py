@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 
 import typer
 from comma.machine import SshMachine
-from persistent_cache_decorator import persistent_cache
-from typedfzf import fzf
+from fzf import fzf
+from persistent_cache.decorators import persistent_cache
 
 if TYPE_CHECKING:
     from requests import Session

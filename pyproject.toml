@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -25,12 +25,12 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "persistent-cache-decorator",
+  "persistent-cache-decorator==0.1.1",
   "pyfunctional",
   "requests",
   "rich",
-  "runtool",
-  "typedfzf",
+  "runtool==1.0.3",
+  "typedfzf==1.0.3",
   "typer",
   "typing-extensions",
 ]
@@ -64,12 +64,16 @@ Issues = "https://github.com/FlavioAmurrioCS/comma-cli/issues"
 Source = "https://github.com/FlavioAmurrioCS/comma-cli"
 
 [tool.hatch.version]
-path = "src/comma/__about__.py"
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/comma/_version.py"
 
 [tool.hatch.envs.default]
 dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
+  "setuptools-scm",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
@@ -127,8 +131,13 @@ packages = [
   "src/gum",
 ]
 
+
 # COMMON SETTINGS BELOW
+[tool.pyright]
+pythonVersion = "3.8"
+
 [tool.mypy]
+python_version = "3.8"
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true

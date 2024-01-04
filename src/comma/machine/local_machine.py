@@ -3,15 +3,11 @@ from __future__ import annotations
 import itertools
 import os
 import shutil
-from typing import TYPE_CHECKING
 
 from comma.command import Command
-from persistent_cache_decorator import persistent_cache
+from persistent_cache.decorators import persistent_cache
 
 from .machine import Machine
-
-if TYPE_CHECKING:
-    from comma.types import CMD_ARGS
 
 
 @persistent_cache(minutes=20)
@@ -42,7 +38,7 @@ def all_git_projects() -> list[str]:
 
 
 class LocalMachine(Machine):
-    def create_cmd(self, cmd: CMD_ARGS) -> Command:
+    def create_cmd(self, cmd: list[str] | tuple[str, ...]) -> Command:
         return Command(cmd=cmd)
 
     def is_dir(self, path: str) -> bool:

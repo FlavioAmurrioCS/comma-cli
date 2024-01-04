@@ -7,7 +7,7 @@ import typer
 from comma.machine import LocalMachine
 from comma.machine import Machine
 from comma.machine import SshMachine
-from typedfzf import fzf
+from fzf import fzf
 
 
 class Tmux(NamedTuple):

@@ -7,13 +7,12 @@ from typing import TYPE_CHECKING
 from comma.misc.find_command import FindCommand
 
 if TYPE_CHECKING:
-    from comma.types import CMD_ARGS
     from comma.command import Command
 
 
 class Machine(ABC):
     @abstractmethod
-    def create_cmd(self, cmd: CMD_ARGS) -> Command:
+    def create_cmd(self, cmd: list[str] | tuple[str, ...]) -> Command:
         ...
 
     @abstractmethod
@@ -23,7 +22,7 @@ class Machine(ABC):
     def has_executable(self, executable: str) -> bool:
         return self.create_cmd(("which", executable)).run().returncode == 0
 
-    def quick_run(self, cmd: CMD_ARGS) -> str:
+    def quick_run(self, cmd: list[str] | tuple[str, ...]) -> str:
         return self.create_cmd(cmd=cmd).run().stdout.strip()
 
     def is_dir(self, path: str) -> bool:

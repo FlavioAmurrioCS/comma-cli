@@ -12,7 +12,7 @@ from typing import Sequence
 
 import typer
 from comma.command import Command
-from typedfzf import fzf
+from fzf import fzf
 from typer.models import ArgumentInfo
 
 

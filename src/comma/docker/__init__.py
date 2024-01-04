@@ -12,7 +12,7 @@ from typing import Optional
 
 import typer
 from comma.command import Command
-from typedfzf import fzf
+from fzf import fzf
 from typing_extensions import TypedDict
 
 app_docker: typer.Typer = typer.Typer(

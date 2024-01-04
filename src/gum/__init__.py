@@ -12,7 +12,7 @@ from typing import Sequence
 from typing import TypeVar
 from typing import Union
 
-from typedfzf import select_helper
+from fzf import select_helper
 from typing_extensions import TypeAlias
 from typing_extensions import TypedDict
 

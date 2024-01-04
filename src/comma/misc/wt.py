@@ -4,7 +4,7 @@ from typing import Optional
 
 import typer
 from comma.misc.m_git import GitWorktree
-from typedfzf import fzf
+from fzf import fzf
 
 app_wt: typer.Typer = typer.Typer(
     name="wt",
