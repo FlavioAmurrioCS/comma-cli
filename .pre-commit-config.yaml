@@ -1,5 +1,8 @@
 ci:
-  skip: [hatch-test, taplo, tox]
+  skip:
+    - hatch-test
+    - taplo
+    # - tox
 repos:
   - repo: https://github.com/ComPWA/mirrors-taplo
     rev: "v0.8.1"
