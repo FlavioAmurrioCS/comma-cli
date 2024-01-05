@@ -101,64 +101,68 @@ class TyperNode(NamedTuple):
         ).execvp(log_command=_print_cmd)
 
 
-app_reflection = typer.Typer(name="reflection", help="Reflect on the CLI.")
+class TyperReflection(NamedTuple):
+    app: typer.Typer
+    root_name: str = "dev"
 
+    def _traverse_nodes_(self) -> Generator[TyperNode, None, None]:
+        yield from TyperNode.traverse_nodes(self.app, root_name=self.root_name)
 
-def _traverse_nodes_() -> Generator[TyperNode, None, None]:
-    from comma.main import app_main
-
-    yield from TyperNode.traverse_nodes(app_main, root_name="dev")
-
-
-def _pick_node_() -> TyperNode | None:
-    return fzf(
-        _traverse_nodes_(),
-        key=lambda x: f'{" ".join(x.path)} --> {x.doc.strip().splitlines()[0]}',
-    )
-
-
-typer_settigs = {
-    "add_help_option": False,
-    "no_args_is_help": False,
-    "context_settings": {
-        "allow_extra_args": True,
-        "ignore_unknown_options": True,
-    },
-}
-
-
-@app_reflection.command(**typer_settigs, name="show")
-def show_func() -> None:
-    """Show function source code."""
-    node = _pick_node_()
-    if node:
-        node.print_source()
-        if node.path[-1] not in ("run", "show"):
-            node.execute("--help", _print_cmd=True)
-
-
-@app_reflection.command(**typer_settigs, name="tree")
-def tree() -> None:
-    """Show all functions."""
-    nodes = list(_traverse_nodes_())
-    width = max(len(" ".join(x.path)) for x in nodes)
-    for x in nodes:
-        print(
-            f'{" ".join(x.path):<{width}} --> {x.doc.strip().splitlines()[0]}',
+    def _pick_node_(self) -> TyperNode | None:
+        return fzf(
+            self._traverse_nodes_(),
+            key=lambda x: f'{" ".join(x.path)} --> {x.doc.strip().splitlines()[0]}',
         )
 
+    def show_func(self) -> None:
+        """Show function source code."""
+        node = self._pick_node_()
+        if node:
+            node.print_source()
+            if node.path[-1] not in ("run", "show"):
+                node.execute("--help", _print_cmd=True)
 
-@app_reflection.command(**typer_settigs, name="run")
-def run_func(
-    ctx: typer.Context = typer.Argument(None),  # noqa: B008
-) -> None:
-    """Select function interactively and run it."""
-    node = _pick_node_()
-    if not node:
-        return
-    args: Sequence[str] = ctx.args if ctx and not isinstance(ctx, ArgumentInfo) else sys.argv[1:]
-    node.execute(*args, _print_cmd=True)
+    def tree(self) -> None:
+        """Show all functions."""
+        nodes = list(self._traverse_nodes_())
+        width = max(len(" ".join(x.path)) for x in nodes)
+        for x in nodes:
+            print(
+                f'{" ".join(x.path):<{width}} --> {x.doc.strip().splitlines()[0]}',
+            )
+
+    def run_func(
+        self,
+        ctx: typer.Context = typer.Argument(None),  # noqa: B008
+    ) -> None:
+        """Select function interactively and run it."""
+        node = self._pick_node_()
+        if not node:
+            return
+        args: Sequence[str] = (
+            ctx.args if ctx and not isinstance(ctx, ArgumentInfo) else sys.argv[1:]
+        )
+        node.execute(*args, _print_cmd=True)
+
+    def get_app(self) -> typer.Typer:
+        app_reflection = typer.Typer(name="reflection", help="Reflect on the CLI.")
+        typer_settigs = {
+            "add_help_option": False,
+            "no_args_is_help": False,
+            "context_settings": {
+                "allow_extra_args": True,
+                "ignore_unknown_options": True,
+            },
+        }
+
+        app_reflection.command(**typer_settigs, name="show")(self.show_func)
+        app_reflection.command(**typer_settigs, name="tree")(self.tree)
+        app_reflection.command(**typer_settigs, name="run")(self.run_func)
+
+        return app_reflection
 
 
-if __name__ == "__main__":
-    app_reflection()
+# app_reflection = TyperReflection().get_app()
+
+# if __name__ == "__main__":
+#     app_reflection()

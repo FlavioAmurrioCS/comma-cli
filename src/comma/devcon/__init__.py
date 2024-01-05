@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import logging
 import os
+import platform as _platform
 from dataclasses import dataclass
 from dataclasses import field
 from textwrap import dedent
@@ -17,19 +18,34 @@ from comma.machine import SshMachine
 from persistent_cache.decorators import persistent_cache
 from typing_extensions import Literal
 
+
 _DOCKERFILE = os.path.join(comma_utils.opt_dir, "devcon", "Dockerfile")
 
-app_devcon: typer.Typer = typer.Typer(
-    name="devcon",
-    help=dedent(
-        f"""
-            Development container.
-            \b
+
+class DockerPorts(NamedTuple):
+    host: int
+    container: int
+
+    def __str__(self) -> str:
+        return f"{self.host}:{self.container}"
+
+    @classmethod
+    def parse(cls, s: str) -> DockerPorts:
+        host, container = map(int, s.split(":"))
+        return cls(host, container)
 
 
-            To customize container, modify the following file: {_DOCKERFILE}"""
-    ),
-)
+class DockerVolumes(NamedTuple):
+    host: str
+    container: str
+
+    def __str__(self) -> str:
+        return f"{self.host}:{self.container}"
+
+    @classmethod
+    def parse(cls, s: str) -> DockerVolumes:
+        host, container = s.split(":")
+        return cls(host, container)
 
 
 @persistent_cache(days=7)
@@ -43,6 +59,8 @@ def user_info() -> dict[Literal["group_id", "user_id", "username"], str]:
 
 @dataclass
 class DevContainer:
+    """Base image must be ubuntu based."""
+
     base_image: str = "ubuntu:jammy"
     _group_id: str | None = None
     _user_id: str | None = None
@@ -53,6 +71,10 @@ class DevContainer:
     ports: list[tuple[int, int]] = field(default_factory=list)
     envs: list[tuple[str, str]] = field(default_factory=list)
     additional_args: list[str] = field(default_factory=list)
+    additional_setup: str = ""
+    platform: Literal["linux/arm64", "linux/amd64"] = (
+        "linux/arm64" if _platform.machine() == "arm64" else "linux/amd64"
+    )
 
     @property
     def group_id(self) -> str:
@@ -70,9 +92,10 @@ class DevContainer:
         return self._username
 
     def template(self) -> str:
-        return dedent(
-            rf"""
-            FROM {self.base_image}
+        return (
+            dedent(
+                rf"""
+            FROM --platform={self.platform} {self.base_image}
             USER root
 
             ENV LANG=C.UTF-8
@@ -141,9 +164,10 @@ class DevContainer:
                 && bash /tmp/sdkman \
                 && rm /tmp/sdkman \
                 && python3.11 -m venv /tmp/_venv \
-                && /tmp/_venv/bin/pip install --upgrade pip pipx \
-                && /tmp/_venv/bin/pipx install pipx \
-                && /tmp/_venv/bin/pipx install git+https://github.com/FlavioAmurrioCS/comma.git \
+                && /tmp/_venv/bin/pip install --upgrade pip shiv \
+                && mkdir -p ${{HOME}}/.local/bin/ \
+                && /tmp/_venv/bin/shiv -o ${{HOME}}/.local/bin/dev -c dev comma-cli \
+                && /tmp/_venv/bin/shiv -o ${{HOME}}/.local/bin/runtool -c runtool runtool \
                 && echo 'export PATH="${{HOME}}/.local/bin:${{PATH}}"' >> ~/.bashrc \
                 && rm -rf /tmp/_venv/bin/pipx \
                 && :
@@ -152,7 +176,10 @@ class DevContainer:
             ENTRYPOINT [ "/tmp/entrypoint" ]
             CMD [ "/bin/bash" ]
             """
-        ).strip()
+            ).strip()
+            + "\n"
+            + self.additional_setup
+        )
 
     def start(self) -> None:
         if not os.path.exists(_DOCKERFILE):
@@ -160,14 +187,17 @@ class DevContainer:
             with open(_DOCKERFILE, "w") as f:
                 f.write(self.template())
         logging.info("Building docker image based on %s", _DOCKERFILE)
-        Command(
+        result = Command(
             cmd=("docker", "build", "--tag", self.image_name, "."),
             input=self.template(),
-            capture_output=True,
-            check=True,
+            capture_output=False,
+            check=False,
             label="Building docker image",
             cwd=os.path.dirname(_DOCKERFILE),
-        ).run_with_spinner()
+        ).run()
+        if result.returncode != 0:
+            logging.error("Failed to build docker image")
+            raise SystemExit(1)
         Command(
             cmd=(
                 "docker",
@@ -209,105 +239,93 @@ class DevContainer:
     def ssh_machine(self) -> SshMachine:
         return SshMachine(hostname="localhost", port=self.ssh_port, user=self.username)
 
+    # region: CLI
 
-_devcon = DevContainer()
+    def start_cmd(
+        self,
+        ports: List[DockerPorts] = typer.Option(  # noqa: UP006, B008
+            [],
+            "-p",
+            "--expose",
+            help="Publish a container's port(s) to the host. ie -p=8080:9090",
+            parser=DockerPorts.parse,
+        ),
+        volumes: List[DockerVolumes] = typer.Option(  # noqa: UP006, B008
+            [],
+            "-v",
+            "--volume",
+            help="Bind mount a volume. ie -v=/host:/container",
+            parser=DockerVolumes.parse,
+        ),
+    ) -> None:
+        """Start devcon."""
+        if self.is_running():
+            logging.info("devcon is already running")
+            return
 
+        self.ports.extend(ports)
+        self.volumes.extend(volumes)
 
-class DockerPorts(NamedTuple):
-    host: int
-    container: int
+        self.start()
 
-    def __str__(self) -> str:
-        return f"{self.host}:{self.container}"
+    def stop_cmd(self) -> None:
+        """Stop devcon."""
+        if not self.is_running():
+            logging.info("devcon is not running")
+            return
+        self.stop()
 
-    @classmethod
-    def parse(cls, s: str) -> DockerPorts:
-        host, container = map(int, s.split(":"))
-        return cls(host, container)
+    def enter_cmd(self) -> None:
+        """Enter devcon."""
+        if not self.is_running():
+            logging.info("devcon is not running")
+            return
+        DevContainer().enter()
 
+    def ssh_copy_id(self) -> None:
+        """Copy ssh public key to docker container."""
+        if not self.is_running():
+            logging.info("devcon is not running")
+            return
+        Command(cmd=("ssh-copy-id", "-p", str(self.ssh_port), "localhost")).execvp()
 
-class DockerVolumes(NamedTuple):
-    host: str
-    container: str
+    def ssh(self) -> None:
+        """SSH into devcon."""
+        if not self.is_running():
+            logging.info("devcon is not running")
+            return
+        self.ssh_machine().create_cmd(()).execvp()
 
-    def __str__(self) -> str:
-        return f"{self.host}:{self.container}"
+    def template_cmd(self) -> None:
+        """Print template for devcon Dockerfile."""
+        print(self.template())
 
-    @classmethod
-    def parse(cls, s: str) -> DockerVolumes:
-        host, container = s.split(":")
-        return cls(host, container)
-
-
-@app_devcon.command()
-def start(
-    ports: List[DockerPorts] = typer.Option(  # noqa: UP006, B008
-        [],
-        "-p",
-        "--expose",
-        help="Publish a container's port(s) to the host. ie -p=8080:9090",
-        parser=DockerPorts.parse,
-    ),
-    volumes: List[DockerVolumes] = typer.Option(  # noqa: UP006, B008
-        [],
-        "-v",
-        "--volume",
-        help="Bind mount a volume. ie -v=/host:/container",
-        parser=DockerVolumes.parse,
-    ),
-) -> None:
-    """Start devcon."""
-    if _devcon.is_running():
-        logging.info("devcon is already running")
-        return
-
-    _devcon.ports.extend(ports)
-    _devcon.volumes.extend(volumes)
-
-    _devcon.start()
-
-
-@app_devcon.command()
-def stop() -> None:
-    """Stop devcon."""
-    if not _devcon.is_running():
-        logging.info("devcon is not running")
-        return
-    _devcon.stop()
-
-
-@app_devcon.command()
-def enter() -> None:
-    """Enter devcon."""
-    if not _devcon.is_running():
-        logging.info("devcon is not running")
-        return
-    DevContainer().enter()
+    def get_app(self) -> typer.Typer:
+        app_devcon: typer.Typer = typer.Typer(
+            name="devcon",
+            help=dedent(
+                f"""
+            Development container.
+            \b
 
 
-@app_devcon.command()
-def ssh_copy_id() -> None:
-    """Copy ssh public key to docker container."""
-    if not _devcon.is_running():
-        logging.info("devcon is not running")
-        return
-    Command(cmd=("ssh-copy-id", "-p", str(_devcon.ssh_port), "localhost")).execvp()
+            To customize container, modify the following file: {_DOCKERFILE}"""
+            ),
+        )
+
+        app_devcon.command(name="start")(self.start_cmd)
+        app_devcon.command(name="stop")(self.stop_cmd)
+        app_devcon.command(name="enter")(self.enter_cmd)
+        app_devcon.command(name="ssh-copy-id")(self.ssh_copy_id)
+        app_devcon.command(name="ssh")(self.ssh)
+        app_devcon.command(name="template")(self.template_cmd)
+
+        return app_devcon
+
+    # endregion: CLI
 
 
-@app_devcon.command()
-def ssh() -> None:
-    """SSH into devcon."""
-    if not _devcon.is_running():
-        logging.info("devcon is not running")
-        return
-    _devcon.ssh_machine().create_cmd(()).execvp()
-
-
-@app_devcon.command()
-def template() -> None:
-    """Print template for devcon Dockerfile."""
-    print(_devcon.template())
-
+app_devcon = DevContainer(platform="linux/amd64").get_app()
 
 if __name__ == "__main__":
     app_devcon()
