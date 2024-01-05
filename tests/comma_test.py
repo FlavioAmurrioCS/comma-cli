@@ -2,15 +2,18 @@ from __future__ import annotations
 
 import itertools
 import pkgutil
+from typing import TYPE_CHECKING
 
 import comma as comma_pkg
 import gron as gron_pkg
 import gum as gum_pkg
 import pytest
 from comma.main import app_main
-from comma.typer.reflection import _traverse_nodes_
-from comma.typer.reflection import TyperNode
+from comma.typer.reflection import TyperReflection
 from typer.testing import CliRunner
+
+if TYPE_CHECKING:
+    from comma.typer.reflection import TyperNode
 
 
 runner = CliRunner()
@@ -34,7 +37,7 @@ ignore_modules = {
 }
 
 
-@pytest.mark.parametrize("node", _traverse_nodes_())
+@pytest.mark.parametrize("node", TyperReflection(app=app_main)._traverse_nodes_())  # noqa: SLF001
 def test_help(node: TyperNode) -> None:
     if node.path in ignore_commands:
         return

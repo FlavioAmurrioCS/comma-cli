@@ -34,18 +34,18 @@ repos:
         additional_dependencies: [types-all]
   - repo: local
     hooks:
-      - id: tox
-        name: tox
-        entry: tox run-parallel
-        language: python
-        additional_dependencies: ["tox"]
-        pass_filenames: false
-        always_run: true
-        types: [python]
       - id: hatch-test
         name: hatch-test
-        entry: hatch run --parallel all:test
+        entry: env HATCH_ENV_TYPE_VIRTUAL_PATH='' hatch run --parallel all:test
         language: python
         additional_dependencies: [hatch]
         pass_filenames: false
         always_run: true
+      # - id: tox
+      #   name: tox
+      #   entry: tox run-parallel
+      #   language: python
+      #   additional_dependencies: ["tox"]
+      #   pass_filenames: false
+      #   always_run: true
+      #   types: [python]
