@@ -21,6 +21,7 @@ class DualWriter:
         __stack__ (ExitStack): The exit stack used to manage the context.
         left_writer (TextIO): The file object for the left file.
         right_writer (TextIO): The file object for the right file.
+
     """
 
     __left__: str
@@ -37,6 +38,7 @@ class DualWriter:
         ----
             left (str): The path to the left file.
             right (str): The path to the right file.
+
         """
         self.__left__ = left
         self.__right__ = right
@@ -48,6 +50,7 @@ class DualWriter:
         Returns
         -------
             Self: The DualWriter instance.
+
         """
         self.__stack__ = ExitStack().__enter__()
         try:
@@ -76,6 +79,7 @@ class DualWriter:
         Returns:
         -------
             Optional[bool]: True if the exception was handled, False otherwise.
+
         """
         return self.__stack__.__exit__(tp, inst, tb)
 
@@ -90,6 +94,7 @@ class DualWriter:
         Returns:
         -------
             int: The number of characters written to the right file.
+
         """
         self.left_writer.write(s)
         return self.right_writer.write(s)
@@ -106,6 +111,7 @@ class DualWriter:
         Args:
         ----
             lines (Iterable[str]): The sequence of strings to write.
+
         """
         self.left_writer.writelines(lines)
         self.right_writer.writelines(lines)

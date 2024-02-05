@@ -39,6 +39,7 @@ def time_it_ctx(
         >>> with time_it_ctx(label="my_function"):
         ...     my_function()
         Time taken by my_function: 123.45 ms
+
     """  # noqa: E501
     start = time.monotonic_ns()
     yield
@@ -68,6 +69,7 @@ def time_it(
         >>> @time_it(label="my_function")
         ... def my_function():
         ...     pass
+
     """  # noqa: E501
 
     def decorator(func: Callable[P, R]) -> Callable[P, R]:

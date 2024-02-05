@@ -24,6 +24,7 @@ try:
             The left value of the pair.
         right : R
             The right value of the pair.
+
         """
 
         left: _L
@@ -37,6 +38,7 @@ try:
             -------
             Pair[R, L]
                 A new Pair with the left and right values swapped.
+
             """
             return Pair(self.right, self.left)
 
@@ -53,6 +55,7 @@ except TypeError:
             The left value of the pair.
         right : R
             The right value of the pair.
+
         """
 
         left: _L
@@ -66,6 +69,7 @@ except TypeError:
             -------
             Pair[R, L]
                 A new Pair with the left and right values swapped.
+
             """
             return Pair(self.right, self.left)
 
@@ -77,6 +81,7 @@ except TypeError:
             -------
             Iterator[Union[L, R]]
                 An iterator over the left and right values of the Pair.
+
             """
             yield from astuple(self)
 
@@ -100,6 +105,7 @@ def pair_parse(
     -------
     Callable[[str], Pair[L, R]]
         A function that parses a string into a Pair.
+
     """
 
     def parse_pair(value: str) -> Pair[_L, _R]:

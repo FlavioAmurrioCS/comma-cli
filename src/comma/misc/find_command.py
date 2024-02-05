@@ -12,7 +12,7 @@ class FindCommand(NamedTuple):
     maxdepth: int | None = None
     mindepth: int | None = None
     expand_paths: bool = False
-    type: Literal["d", "f"] | None = None  # noqa: A003
+    type: Literal["d", "f"] | None = None
     follow: bool = False
 
     def cmd(self) -> list[str]:
