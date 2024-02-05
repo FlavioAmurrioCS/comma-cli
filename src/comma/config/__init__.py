@@ -113,7 +113,7 @@ def unpacker_context(filename: str) -> Generator[str, None, None]:
             else tarfile.open(filename)
         ) as archive:
             with FHalo(f"Extracting {filename}...") as halo:
-                archive.extractall(temp_dir)
+                archive.extractall(temp_dir)  # noqa: S202
                 halo.succeed()
         yield temp_dir
 

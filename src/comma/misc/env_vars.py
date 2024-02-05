@@ -25,6 +25,7 @@ def get_required_env_vars(
     Raises:
     ------
         ValueError: If any of the specified environment variables are not set or empty.
+
     """  # noqa: E501
     ret: list[str] = []
     for var_name in itertools.chain((varname,), varnames):
@@ -54,6 +55,7 @@ def get_env_vars_or_default(
     -------
         An iterable of the values of the specified environment variables, using the default values
         for any that are not set or empty.
+
     """  # noqa: E501
     ret: list[str] = []
     for var_name, default in itertools.chain((varname_default_pair,), varname_default_pairs):

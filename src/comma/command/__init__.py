@@ -18,7 +18,7 @@ class Command(NamedTuple):
     check: bool = False
     cwd: str | None = None
     capture_output: bool = True
-    input: str | None = None  # noqa: A003
+    input: str | None = None
     timeout: float | None = None
     env: Mapping[str, str] | None = None
     additional_env: Mapping[str, str] | None = None

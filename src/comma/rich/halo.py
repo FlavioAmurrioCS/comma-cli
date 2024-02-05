@@ -198,6 +198,7 @@ def spinner(
         def process_data(data: List[int]) -> List[int]:
             # Function implementation
             pass
+
     """
 
     def _inner_(func: Callable[P, R]) -> Callable[P, R]:

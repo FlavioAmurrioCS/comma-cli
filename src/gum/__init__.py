@@ -1,4 +1,4 @@
-# flake8: noqa: C901, S603, S607, PLW1510, PLR0912, E501
+# flake8: noqa: C901, S603, S607, PLW1510, PLR0912, E501, RUF019
 from __future__ import annotations
 
 import csv
@@ -153,7 +153,7 @@ def gum_choose(
     return select_helper(
         cmd=["gum", "choose", *_gum_choose_options(options)],
         items=items,
-        multi=multi,
+        multi=multi,  # pyright: ignore[reportGeneralTypeIssues]
         select_one=select_one,
         key=key,
     )
@@ -400,6 +400,7 @@ def gum_filter(
     Returns:
     -------
         Union[list[T], T, None]: The selected item(s), or None if no items were selected.
+
     """
     options = options or {}
     if multi:
@@ -411,7 +412,7 @@ def gum_filter(
     return select_helper(
         cmd=["gum", "filter", *_gum_filter_options(options)],
         items=items,
-        multi=multi,
+        multi=multi,  # pyright: ignore[reportGeneralTypeIssues]
         select_one=select_one,
         key=key,
     )
