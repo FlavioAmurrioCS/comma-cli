@@ -12,6 +12,8 @@ jobs:
     permissions:
       contents: write
       id-token: write
+    secrets:
+      PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
     with:
       pypa-name: comma-cli
       zipapp-entrypoint: dev
