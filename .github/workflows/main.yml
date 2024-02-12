@@ -19,6 +19,7 @@ jobs:
     with:
       pypa-name: comma-cli
       zipapp-entrypoint: dev
+      zipapp-name: dev
 # name: Publish Python 🐍 distribution 📦 to PyPI and TestPyPI
 
 # on: push
