@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import itertools
 import pkgutil
+from typing import Generator
+from typing import Sequence
 from typing import TYPE_CHECKING
 
 import comma as comma_pkg
@@ -13,6 +15,7 @@ from comma.typer.reflection import TyperReflection
 from typer.testing import CliRunner
 
 if TYPE_CHECKING:
+    from types import ModuleType
     from comma.typer.reflection import TyperNode
 
 
@@ -56,3 +59,13 @@ def test_module_imports(import_name: str) -> None:
         return
     print(f"Importing {import_name}")
     __import__(import_name, fromlist=["_trash"])
+
+
+def iter_modules(modules: Sequence[ModuleType]) -> Generator[ModuleType, None, None]:
+    seen = set()
+    for _, name, _ in itertools.chain(
+        *(pkgutil.walk_packages(pkg.__path__, f"{pkg.__name__}.") for pkg in modules)
+    ):
+        if name not in seen:
+            seen.add(name)
+            yield __import__(name, fromlist=["_trash"])
