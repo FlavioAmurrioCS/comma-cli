@@ -25,12 +25,12 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
 dependencies = [
-  "persistent-cache-decorator==0.1.2",
+  "persistent-cache-decorator",
   "pyfunctional",
   "requests",
   "rich",
-  "runtool==1.0.3",
-  "typedfzf==1.0.3",
+  "runtool",
+  "typedfzf",
   "typer",
   "typing-extensions",
 ]
@@ -131,8 +131,10 @@ packages = [
   "src/gum",
 ]
 
-
 # COMMON SETTINGS BELOW
+[tool.hatch.envs.hatch-static-analysis]
+config-path = "none"
+
 [tool.pyright]
 pythonVersion = "3.8"
 
@@ -146,16 +148,15 @@ no_implicit_optional = true
 warn_redundant_casts = true
 warn_unused_ignores = true
 
-[tool.hatch.envs.hatch-static-analysis]
-config-path = "none"
 
 [tool.ruff]
 line-length = 100
-lint.select = [
+
+[tool.ruff.lint]
+select = [
   "ALL",
 ]
-
-lint.ignore = [
+ignore = [
   "ANN101", # missing-type-self
   "ANN102", # missing-type-cls
   "COM812", # missing-trailing-comma

@@ -23,7 +23,7 @@ done < <(grep -E "^function " "${__DEV_SH_SCRIPT__}" | cut -d' ' -f2 | cut -d'('
 ###############################################################################
 function _select_project() {
     local selected
-    selected="$(find ~/{dev,worktrees,projects,dev/*git*/*} -maxdepth 3 \( -name .git -or -name packed-refs \) -prune -exec dirname {} \; 2>/dev/null | grep -v projects/trash | fzf)"
+    selected="$(find ~/{dev,worktrees,projects,dev/*git*/*} -maxdepth 3 \( -name .git -or -name packed-refs \) -prune -exec dirname {} \; 2>/dev/null | grep -v /trash/ | fzf --keep-right)"
     [ -n "${selected}" ] && echo "${selected}" && return 0
     return 1
 }
