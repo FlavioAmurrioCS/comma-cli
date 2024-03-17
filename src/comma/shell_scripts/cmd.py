@@ -5,11 +5,14 @@ import subprocess
 from dataclasses import dataclass
 from dataclasses import field
 from typing import IO
-from typing import Iterator
+from typing import TYPE_CHECKING
 from typing import TypedDict
 
 from typing_extensions import Any
 from typing_extensions import Unpack
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 @dataclass

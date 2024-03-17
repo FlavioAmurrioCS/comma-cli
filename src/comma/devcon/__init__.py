@@ -7,7 +7,6 @@ import platform as _platform
 from dataclasses import dataclass
 from dataclasses import field
 from textwrap import dedent
-from typing import List
 from typing import NamedTuple
 
 import typer
@@ -243,14 +242,14 @@ class DevContainer:
 
     def start_cmd(
         self,
-        ports: List[DockerPorts] = typer.Option(  # noqa: UP006, B008
+        ports: list[DockerPorts] = typer.Option(  # noqa: B008
             [],
             "-p",
             "--expose",
             help="Publish a container's port(s) to the host. ie -p=8080:9090",
             parser=DockerPorts.parse,
         ),
-        volumes: List[DockerVolumes] = typer.Option(  # noqa: UP006, B008
+        volumes: list[DockerVolumes] = typer.Option(  # noqa: B008
             [],
             "-v",
             "--volume",

@@ -6,11 +6,11 @@ from contextlib import suppress
 from textwrap import dedent
 from typing import Literal
 from typing import overload
-from typing import Sequence
 from typing import TYPE_CHECKING
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing_extensions import Protocol  # python3.8+
     from typing_extensions import Self
 else:
@@ -60,20 +60,19 @@ class CLIApp(Protocol):
 
     @overload
     @classmethod
-    def parse_args(cls, argv: Sequence[str] | None) -> Self:
-        ...
+    def parse_args(cls, argv: Sequence[str] | None) -> Self: ...
 
     @overload
     @classmethod
-    def parse_args(cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[False]) -> Self:
-        ...
+    def parse_args(
+        cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[False]
+    ) -> Self: ...
 
     @overload
     @classmethod
     def parse_args(
         cls, argv: Sequence[str] | None, *, allow_unknown_args: Literal[True]
-    ) -> tuple[Self, list[str]]:
-        ...
+    ) -> tuple[Self, list[str]]: ...
 
     @classmethod
     def parse_args(
@@ -86,8 +85,7 @@ class CLIApp(Protocol):
         )
 
     @classmethod
-    def run(cls, argv: Sequence[str] | None = None) -> int:
-        ...
+    def run(cls, argv: Sequence[str] | None = None) -> int: ...
 
     @classmethod
     def main(cls, argv: Sequence[str] | None = None, prog: str | None = None) -> int:

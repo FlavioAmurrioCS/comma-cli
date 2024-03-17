@@ -4,11 +4,10 @@ from __future__ import annotations
 import csv
 import subprocess
 import tempfile
+from collections.abc import Sequence
 from typing import Callable
-from typing import Dict
 from typing import Literal
 from typing import overload
-from typing import Sequence
 from typing import TypeVar
 from typing import Union
 
@@ -118,8 +117,7 @@ def gum_choose(  # type:ignore
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
     options: _GumChooseOptions | None,
-) -> T | None:
-    ...
+) -> T | None: ...
 
 
 @overload
@@ -130,8 +128,7 @@ def gum_choose(
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
     options: _GumChooseOptions | None,
-) -> list[T]:
-    ...
+) -> list[T]: ...
 
 
 def gum_choose(
@@ -362,8 +359,7 @@ def gum_filter(  # type:ignore
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
     options: _GumFilterOptions | None = None,
-) -> T | None:
-    ...
+) -> T | None: ...
 
 
 @overload
@@ -374,8 +370,7 @@ def gum_filter(
     select_one: bool = ...,
     key: Callable[[T], str] | None = ...,
     options: _GumFilterOptions | None = None,
-) -> list[T]:
-    ...
+) -> list[T]: ...
 
 
 def gum_filter(
@@ -817,7 +812,7 @@ def _gum_table_options(kwargs: _GumTableOptions) -> list[str]:
 
 
 _CSV_CELL: TypeAlias = Union[str, int, float, bool]
-_CSV_DATA: TypeAlias = Union[Sequence[Dict[str, _CSV_CELL]], str]
+_CSV_DATA: TypeAlias = Union[Sequence[dict[str, _CSV_CELL]], str]
 
 
 def gum_table(

@@ -9,13 +9,13 @@ from contextlib import contextmanager
 from tempfile import TemporaryDirectory
 from typing import Any
 from typing import Callable
-from typing import Generator
 from typing import NamedTuple
 from typing import TYPE_CHECKING
 
 from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
     import requests
 
 

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import os
 from typing import Callable
-from typing import Generator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def ancestors(path: str) -> Generator[str, None, None]:

@@ -7,7 +7,7 @@ name = "comma-cli"
 dynamic = ["version"]
 description = "Multi-Tool"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = "MIT"
 keywords = []
 authors = [
@@ -16,7 +16,6 @@ authors = [
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -46,17 +45,15 @@ personal = [
 ]
 
 [project.scripts]
-- = "comma.main:app_main"
--c = "comma.misc.code:app_c"
--devcon = "comma.devcon:app_devcon"
--docker = "comma.docker:app_docker"
--lt = "comma.logtool:app_logtool"
--mux = "comma.misc.tmux:app_mux"
--runFunc = "comma.typer.reflection:run_func"
--sh = "comma.shell_scripts.shell_utils:app_sh"
--sh-script = "comma.shell_scripts.shell_scripts:app_shell_scripts"
--showFunc = "comma.typer.reflection:show_func"
 dev = "comma.main:app_main"
+',' = "comma.main:app_main"
+',c' = "comma.misc.code:app_c"
+',devcon' = "comma.devcon:app_devcon"
+',docker' = "comma.docker:app_docker"
+',mux' = "comma.misc.tmux:app_mux"
+',reflection' = "comma.typer.reflection:_main"
+',sh' = "comma.shell_scripts.shell_utils:app_sh"
+',sh-script' = "comma.shell_scripts.shell_scripts:app_shell_scripts"
 
 [project.urls]
 Documentation = "https://github.com/FlavioAmurrioCS/comma-cli#readme"
@@ -74,6 +71,7 @@ dependencies = [
   "coverage[toml]>=6.5",
   "pytest",
   "setuptools-scm",
+  "tomlkit",
 ]
 [tool.hatch.envs.default.scripts]
 test = "pytest {args:tests}"
@@ -89,7 +87,7 @@ cov = [
 ]
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12"]
+python = ["3.9", "3.10", "3.11", "3.12"]
 
 [tool.hatch.envs.types]
 dependencies = [
@@ -136,10 +134,10 @@ packages = [
 config-path = "none"
 
 [tool.pyright]
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 check_untyped_defs = true
 disallow_any_generics = true
 disallow_incomplete_defs = true

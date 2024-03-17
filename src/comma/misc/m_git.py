@@ -6,11 +6,11 @@ import os
 from dataclasses import dataclass
 from functools import cached_property
 from typing import Callable
-from typing import Generator
-from typing import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from collections.abc import Generator
     from typing_extensions import Self
 
 from comma.command import Command

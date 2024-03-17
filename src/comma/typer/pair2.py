@@ -3,17 +3,17 @@ from __future__ import annotations
 import json
 import shutil
 from collections import defaultdict
+from collections.abc import Generator
+from collections.abc import Hashable
+from collections.abc import Iterable
+from collections.abc import Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from dataclasses import field
 from functools import lru_cache
 from typing import Callable
-from typing import Generator
 from typing import Generic
-from typing import Hashable
-from typing import Iterable
 from typing import NamedTuple
-from typing import Sequence
 from typing import TypeVar
 
 from comma.command import Command

@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import os
 from typing import NamedTuple
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from typing_extensions import Literal
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class FindCommand(NamedTuple):

@@ -12,12 +12,10 @@ if TYPE_CHECKING:
 
 class Machine(ABC):
     @abstractmethod
-    def create_cmd(self, cmd: list[str] | tuple[str, ...]) -> Command:
-        ...
+    def create_cmd(self, cmd: list[str] | tuple[str, ...]) -> Command: ...
 
     @abstractmethod
-    def code_open(self, path: str) -> None:
-        ...
+    def code_open(self, path: str) -> None: ...
 
     def has_executable(self, executable: str) -> bool:
         return self.create_cmd(("which", executable)).run().returncode == 0

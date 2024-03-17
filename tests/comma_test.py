@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import itertools
 import pkgutil
-from typing import Generator
-from typing import Sequence
 from typing import TYPE_CHECKING
 
 import comma as comma_pkg
@@ -15,6 +13,8 @@ from comma.typer.reflection import TyperReflection
 from typer.testing import CliRunner
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from collections.abc import Generator
     from types import ModuleType
     from comma.typer.reflection import TyperNode
 

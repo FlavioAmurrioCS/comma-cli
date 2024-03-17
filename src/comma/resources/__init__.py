@@ -31,5 +31,4 @@ class TypedResourceHelper(Generic[JSONT, OTHERT]):
             return json.load(f)
 
 
-class GenericResourceHelper(TypedResourceHelper[str, str]):
-    ...
+class GenericResourceHelper(TypedResourceHelper[str, str]): ...
