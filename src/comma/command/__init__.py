@@ -5,10 +5,11 @@ import os
 import shlex
 import shutil
 import subprocess
-from typing import Mapping
 from typing import NamedTuple
+from typing import TYPE_CHECKING
 
-from comma.rich.halo import FHalo
+if TYPE_CHECKING:
+    from collections.abc import Mapping
 
 
 class Command(NamedTuple):
@@ -84,6 +85,8 @@ class Command(NamedTuple):
         return " ".join(map(shlex.quote, self.cmd))
 
     def run_with_spinner(self) -> subprocess.CompletedProcess[str]:
+        from comma.rich.halo import FHalo
+
         with FHalo(status=self.label or repr(self)) as halo:
             try:
                 result = self.run()

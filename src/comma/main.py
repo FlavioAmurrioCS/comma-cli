@@ -11,7 +11,9 @@ from comma.misc.tmux import mux
 from comma.typer.reflection import TyperReflection
 
 
-app_main: typer.Typer = typer.Typer(help="Set of tools made with flavor.")
+app_main: typer.Typer = typer.Typer(
+    help="Set of tools made with flavor.", pretty_exceptions_show_locals=False
+)
 app_main.command()(mux)
 app_main.add_typer(app_docker)
 app_main.add_typer(app_devcon)

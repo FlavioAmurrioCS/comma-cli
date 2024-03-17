@@ -9,16 +9,16 @@ from typing import Any
 from typing import Callable
 from typing import Generic
 from typing import Literal
-from typing import Sequence
 from typing import TYPE_CHECKING
 from typing import TypeVar
 
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
     from typing_extensions import ParamSpec
 
     P = ParamSpec("P")
-    from typing_extensions import Annotated
+    from typing import Annotated
     from typing_extensions import TypedDict
 
     class _ArgumentOptions(TypedDict, total=False):

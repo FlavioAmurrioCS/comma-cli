@@ -6,14 +6,17 @@ import sys
 from contextlib import suppress
 from typing import Any
 from typing import Callable
-from typing import Generator
 from typing import NamedTuple
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 import typer
 from comma.command import Command
 from fzf import fzf
 from typer.models import ArgumentInfo
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from collections.abc import Generator
 
 
 class TyperNode(NamedTuple):
@@ -162,7 +165,11 @@ class TyperReflection(NamedTuple):
         return app_reflection
 
 
-# app_reflection = TyperReflection().get_app()
+def _main() -> None:
+    from comma.main import app_main
 
-# if __name__ == "__main__":
-#     app_reflection()
+    TyperReflection(app=app_main, root_name="dev").get_app()()
+
+
+if __name__ == "__main__":
+    _main()

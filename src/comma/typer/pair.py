@@ -4,9 +4,12 @@ from dataclasses import astuple
 from dataclasses import dataclass
 from typing import Callable
 from typing import Generic
-from typing import Iterator
 from typing import NamedTuple
+from typing import TYPE_CHECKING
 from typing import TypeVar
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 
 _L = TypeVar("_L")

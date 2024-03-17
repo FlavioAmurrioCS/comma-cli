@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from comma.simple_argparser import CLIApp
 from gron import gron
 from gron import ungron
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 class Gron(CLIApp):

@@ -5,10 +5,10 @@ import logging
 import time
 from contextlib import contextmanager
 from typing import Callable
-from typing import Generator
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+    from collections.abc import Generator
     from typing_extensions import ParamSpec
     from typing import TypeVar
 

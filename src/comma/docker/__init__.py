@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 import random
 import string
+from collections import ChainMap
 from collections import defaultdict
 from enum import Enum
 from functools import lru_cache
-from typing import ChainMap
 from typing import NamedTuple
 from typing import Optional
 

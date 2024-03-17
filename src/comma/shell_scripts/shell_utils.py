@@ -11,8 +11,7 @@ app_sh: typer.Typer = typer.Typer(
 
 
 @app_sh.command()
-def _() -> None:
-    ...
+def _() -> None: ...
 
 
 @app_sh.command()

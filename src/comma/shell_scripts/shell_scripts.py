@@ -15,8 +15,8 @@ app_shell_scripts = typer.Typer()
 
 
 def get_tool(tool: str) -> str:
-    with importlib.resources.as_file(  # type: ignore
-        importlib.resources.files(__package__).joinpath(tool)  # type: ignore
+    with importlib.resources.as_file(
+        importlib.resources.files(__package__).joinpath(tool)
     ) as tool_path:
         return tool_path.as_posix()
 

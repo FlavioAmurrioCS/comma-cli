@@ -4,17 +4,18 @@ from __future__ import annotations
 
 import re
 from typing import Any
-from typing import Dict
-from typing import Generator
-from typing import Iterable
-from typing import List
-from typing import Sequence
+from typing import TYPE_CHECKING
 from typing import Union
 
 from typing_extensions import TypeAlias
 
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from collections.abc import Iterable
+    from collections.abc import Generator
 
-JSON_TYPE: TypeAlias = Union[str, int, float, bool, None, List[Any], Dict[str, Any]]
+
+JSON_TYPE: TypeAlias = Union[str, int, float, bool, None, list[Any], dict[str, Any]]
 
 
 def _gron_helper(obj: JSON_TYPE, path: str = "json") -> Generator[tuple[str, str], None, None]:

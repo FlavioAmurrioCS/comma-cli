@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import os
-from typing import Sequence
+from typing import TYPE_CHECKING
 
 from comma.command import Command
 from comma.machine import Machine
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 
 _ssh_options = (
