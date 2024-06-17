@@ -8,15 +8,15 @@ import comma as comma_pkg
 import gron as gron_pkg
 import gum as gum_pkg
 import pytest
+from comma._typer.reflection import TyperReflection
 from comma.main import app_main
-from comma.typer.reflection import TyperReflection
 from typer.testing import CliRunner
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from collections.abc import Generator
     from types import ModuleType
-    from comma.typer.reflection import TyperNode
+    from comma._typer.reflection import TyperNode
 
 
 runner = CliRunner()
@@ -40,7 +40,7 @@ ignore_modules = {
 }
 
 
-@pytest.mark.parametrize("node", TyperReflection(app=app_main)._traverse_nodes_())  # noqa: SLF001
+@pytest.mark.parametrize("node", TyperReflection(app=app_main)._traverse_nodes_())
 def test_help(node: TyperNode) -> None:
     if node.path in ignore_commands:
         return

@@ -54,8 +54,8 @@ class DualWriter:
         """
         self.__stack__ = ExitStack().__enter__()
         try:
-            self.left_writer = self.__stack__.enter_context(open(self.__left__, "w"))  # noqa: SIM115
-            self.right_writer = self.__stack__.enter_context(open(self.__right__, "w"))  # noqa: SIM115
+            self.left_writer = self.__stack__.enter_context(open(self.__left__, "w"))
+            self.right_writer = self.__stack__.enter_context(open(self.__right__, "w"))
         except BaseException:
             self.__stack__.close()
             raise
