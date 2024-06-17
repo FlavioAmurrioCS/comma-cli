@@ -5,10 +5,11 @@ import os
 import sys
 
 import typer
+from comma._typer.reflection import TyperReflection
 from comma.devcon import app_devcon
 from comma.docker import app_docker
 from comma.misc.tmux import mux
-from comma.typer.reflection import TyperReflection
+from comma.scratch import app_temp
 
 
 app_main: typer.Typer = typer.Typer(
@@ -17,6 +18,7 @@ app_main: typer.Typer = typer.Typer(
 app_main.command()(mux)
 app_main.add_typer(app_docker)
 app_main.add_typer(app_devcon)
+app_main.add_typer(app_temp)
 app_main.add_typer(TyperReflection(app=app_main).get_app())
 
 

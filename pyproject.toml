@@ -27,6 +27,7 @@ dependencies = [
   "persistent-cache-decorator",
   "pyfunctional",
   "requests",
+  "urllib3<2.0.0",
   "rich",
   "runtool",
   "typedfzf",
@@ -51,7 +52,7 @@ dev = "comma.main:app_main"
 ',devcon' = "comma.devcon:app_devcon"
 ',docker' = "comma.docker:app_docker"
 ',mux' = "comma.misc.tmux:app_mux"
-',reflection' = "comma.typer.reflection:_main"
+',reflection' = "comma._typer.reflection:_main"
 ',sh' = "comma.shell_scripts.shell_utils:app_sh"
 ',sh-script' = "comma.shell_scripts.shell_scripts:app_shell_scripts"
 

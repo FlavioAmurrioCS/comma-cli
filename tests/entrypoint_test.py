@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import shutil
 import subprocess
 from typing import TYPE_CHECKING
 
@@ -22,6 +23,7 @@ def test_help(pair: tuple[str, str]) -> None:
     k, v = pair
     result = subprocess.run([k, "--help"], check=False, capture_output=True, text=True)  # noqa: S603
     if result.returncode != 0:
+        logging.error(shutil.which(k))
         logging.error(result.stderr)
         msg = f"Error running {k} --help"
         raise AssertionError(msg)

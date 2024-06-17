@@ -29,7 +29,7 @@ if os.getenv("ENABLE_RICH_LOGGING"):
     )
 else:
     logging.basicConfig(
-        level="DEBUG",
+        level="INFO",
         format="[%(asctime)s] [%(levelname)-7s] [%(module)s] %(filename)s:%(lineno)d %(message)s",
         datefmt="%X",
     )
