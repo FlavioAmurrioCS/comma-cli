@@ -7,15 +7,16 @@ import tarfile
 import zipfile
 from contextlib import contextmanager
 from tempfile import TemporaryDirectory
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import NamedTuple
-from typing import TYPE_CHECKING
 
 from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
     import requests
 
 
@@ -136,14 +137,12 @@ def progress_bar(*, total_size: int, filename: str) -> Generator[Callable[[int],
     # with tqdm(total=total_size, unit='iB', unit_scale=True) as progress_bar:
     #     yield lambda chunk_size: progress_bar.update(chunk_size)
 
-    from rich.progress import (
-        BarColumn,
-        DownloadColumn,
-        Progress,
-        TextColumn,
-        TimeRemainingColumn,
-        TransferSpeedColumn,
-    )
+    from rich.progress import BarColumn
+    from rich.progress import DownloadColumn
+    from rich.progress import Progress
+    from rich.progress import TextColumn
+    from rich.progress import TimeRemainingColumn
+    from rich.progress import TransferSpeedColumn
 
     progress = Progress(
         TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
@@ -191,7 +190,7 @@ def download_context(
                             progress_callback(len(chunk))
                             file.write(chunk)
                     except KeyboardInterrupt:
-                        raise SystemExit(1)  # noqa: TRY200, B904
+                        raise SystemExit(1)  # noqa: B904
         yield full_path
 
 

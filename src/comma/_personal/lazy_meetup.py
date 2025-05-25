@@ -23,8 +23,8 @@ from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from twilio.rest import Client
 
 if TYPE_CHECKING:
-    from selenium.webdriver.remote.webelement import WebElement
     from selenium.webdriver.remote.webdriver import WebDriver
+    from selenium.webdriver.remote.webelement import WebElement
 ###############################################################################
 
 FORMAT = "%(message)s"

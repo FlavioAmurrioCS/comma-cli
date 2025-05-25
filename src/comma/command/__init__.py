@@ -5,8 +5,8 @@ import os
 import shlex
 import shutil
 import subprocess
-from typing import NamedTuple
 from typing import TYPE_CHECKING
+from typing import NamedTuple
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -29,7 +29,7 @@ class Command(NamedTuple):
         logging.debug(self)
         try:
             return subprocess.run(
-                self.cmd,  # noqa: S603
+                self.cmd,
                 errors="ignore",
                 encoding="utf-8",
                 text=self.text,

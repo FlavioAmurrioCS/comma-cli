@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 import re
-from typing import Any
 from typing import TYPE_CHECKING
+from typing import Any
 from typing import Union
 
 from typing_extensions import TypeAlias
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
-    from collections.abc import Iterable
     from collections.abc import Generator
+    from collections.abc import Iterable
+    from collections.abc import Sequence
 
 
 JSON_TYPE: TypeAlias = Union[str, int, float, bool, None, list[Any], dict[str, Any]]

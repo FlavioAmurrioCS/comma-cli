@@ -5,20 +5,21 @@ import functools
 import inspect
 import json
 import re
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Generic
 from typing import Literal
-from typing import TYPE_CHECKING
 from typing import TypeVar
-
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
     from typing_extensions import ParamSpec
 
     P = ParamSpec("P")
     from typing import Annotated
+
     from typing_extensions import TypedDict
 
     class _ArgumentOptions(TypedDict, total=False):
@@ -89,7 +90,7 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _ArgumentOptions
         container_type = container_match.group(1).strip().lower()
         annotation = container_match.group(2).strip()
         if container_type == "literal":
-            choices = eval(annotation)  # noqa: S307, PGH001
+            choices = eval(annotation)  # noqa: S307
             annotation = type(choices[0]).__name__
         else:
             # WHICH ONE SHOULD I BE USING?
@@ -99,7 +100,7 @@ def _fun(var_name: str, param: inspect.Parameter) -> tuple[str, _ArgumentOptions
     if annotation == "bool":
         kwargs["action"] = "store_true" if default is True else "store_false"
     else:
-        kwargs["type"] = eval(annotation)  # noqa: S307, PGH001
+        kwargs["type"] = eval(annotation)  # noqa: S307
 
     # kwargs['help'] = help_text
 

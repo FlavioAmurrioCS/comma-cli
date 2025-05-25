@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 from contextlib import ExitStack
-from typing import TextIO
 from typing import TYPE_CHECKING
+from typing import TextIO
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
     from types import TracebackType
+
     from typing_extensions import Self
 
 

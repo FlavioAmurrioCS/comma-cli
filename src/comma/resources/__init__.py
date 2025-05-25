@@ -3,14 +3,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from importlib.resources import Package
 from importlib.resources import path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Generic
-from typing import TYPE_CHECKING
 from typing import TypeVar
 
 if TYPE_CHECKING:
-    from pathlib import Path
     from contextlib import AbstractContextManager
+    from pathlib import Path
 
 
 JSONT = TypeVar("JSONT", bound=str)

@@ -5,12 +5,12 @@ import os
 import sys
 
 import typer
+
 from comma._typer.reflection import TyperReflection
 from comma.devcon import app_devcon
 from comma.docker import app_docker
 from comma.misc.tmux import mux
 from comma.scratch import app_temp
-
 
 app_main: typer.Typer = typer.Typer(
     help="Set of tools made with flavor.", pretty_exceptions_show_locals=False

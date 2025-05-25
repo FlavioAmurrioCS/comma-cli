@@ -4,13 +4,14 @@ import functools
 import logging
 import time
 from contextlib import contextmanager
-from typing import Callable
 from typing import TYPE_CHECKING
+from typing import Callable
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing_extensions import ParamSpec
     from typing import TypeVar
+
+    from typing_extensions import ParamSpec
 
     P = ParamSpec("P")
     R = TypeVar("R")

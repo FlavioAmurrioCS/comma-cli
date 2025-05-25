@@ -5,10 +5,11 @@ import json
 import subprocess
 
 import pytest
-from gron import gron
-from gron import JSON_TYPE
-from gron import ungron
 from runtool import RUNTOOL_CONFIG
+
+from gron import JSON_TYPE
+from gron import gron
+from gron import ungron
 
 GRON_PROVIDER = RUNTOOL_CONFIG["gron"]
 
@@ -229,7 +230,7 @@ objs = (
 def test_gron(obj: JSON_TYPE) -> None:
     actual = gron(obj)
     expected = subprocess.run(
-        (GRON_PROVIDER.get_executable(),),  # noqa: S603
+        (GRON_PROVIDER.get_executable(),),
         input=json.dumps(obj),
         capture_output=True,
         text=True,
@@ -242,7 +243,7 @@ def test_gron(obj: JSON_TYPE) -> None:
     "original",
     (
         subprocess.run(
-            (GRON_PROVIDER.get_executable(),),  # noqa: S603
+            (GRON_PROVIDER.get_executable(),),
             capture_output=True,
             text=True,
             input=x,
@@ -255,7 +256,7 @@ def test_ungron(original: list[str]) -> None:
 
     expected = json.loads(
         subprocess.run(
-            (GRON_PROVIDER.get_executable(), "--ungron"),  # noqa: S603
+            (GRON_PROVIDER.get_executable(), "--ungron"),
             input="\n".join(original),
             capture_output=True,
             text=True,

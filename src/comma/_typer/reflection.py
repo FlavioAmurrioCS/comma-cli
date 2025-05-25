@@ -4,19 +4,20 @@ from __future__ import annotations
 import shutil
 import sys
 from contextlib import suppress
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import NamedTuple
-from typing import TYPE_CHECKING
 
 import typer
-from comma.command import Command
 from fzf import fzf
 from typer.models import ArgumentInfo
 
+from comma.command import Command
+
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from collections.abc import Generator
+    from collections.abc import Sequence
 
 
 class TyperNode(NamedTuple):
@@ -92,6 +93,7 @@ class TyperNode(NamedTuple):
             root_executable = (sys.argv[0],)
             with suppress(Exception):
                 import inspect
+
                 from comma import main
 
                 root_executable = (sys.executable, inspect.getfile(main))
@@ -114,7 +116,7 @@ class TyperReflection(NamedTuple):
     def _pick_node_(self) -> TyperNode | None:
         return fzf(
             self._traverse_nodes_(),
-            key=lambda x: f'{" ".join(x.path)} --> {x.doc.strip().splitlines()[0]}',
+            key=lambda x: f"{' '.join(x.path)} --> {x.doc.strip().splitlines()[0]}",
         )
 
     def show_func(self) -> None:
@@ -131,7 +133,7 @@ class TyperReflection(NamedTuple):
         width = max(len(" ".join(x.path)) for x in nodes)
         for x in nodes:
             print(
-                f'{" ".join(x.path):<{width}} --> {x.doc.strip().splitlines()[0]}',
+                f"{' '.join(x.path):<{width}} --> {x.doc.strip().splitlines()[0]}",
             )
 
     def run_func(

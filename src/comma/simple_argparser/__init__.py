@@ -4,13 +4,13 @@ import argparse
 import sys
 from contextlib import suppress
 from textwrap import dedent
+from typing import TYPE_CHECKING
 from typing import Literal
 from typing import overload
-from typing import TYPE_CHECKING
-
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
     from typing_extensions import Protocol  # python3.8+
     from typing_extensions import Self
 else:
@@ -50,11 +50,11 @@ class CLIApp(Protocol):
                 kwargs["action"] = "store_true"
             if hasattr(cls, field):
                 kwargs["default"] = getattr(cls, field)
-                field_arg = f'--{field.replace("_", "-")}'
+                field_arg = f"--{field.replace('_', '-')}"
             if "None" in ztype:
-                field_arg = f'--{field.replace("_", "-")}'
+                field_arg = f"--{field.replace('_', '-')}"
             if "Literal" in ztype:
-                kwargs["choices"] = eval(ztype.split("Literal")[1].split("[")[1].split("]")[0])  # noqa: S307, PGH001
+                kwargs["choices"] = eval(ztype.split("Literal")[1].split("[")[1].split("]")[0])  # noqa: S307
             parser.add_argument(field_arg, **kwargs)  # type:ignore
         return parser
 

@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Optional
 
 import typer
-from comma.misc.m_git import GitWorktree
 from fzf import fzf
+
+from comma.misc.m_git import GitWorktree
 
 app_wt: typer.Typer = typer.Typer(
     name="wt",

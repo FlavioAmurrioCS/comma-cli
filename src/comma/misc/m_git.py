@@ -5,12 +5,13 @@ import logging
 import os
 from dataclasses import dataclass
 from functools import cached_property
-from typing import Callable
 from typing import TYPE_CHECKING
+from typing import Callable
 
 if TYPE_CHECKING:
-    from collections.abc import Sequence
     from collections.abc import Generator
+    from collections.abc import Sequence
+
     from typing_extensions import Self
 
 from comma.command import Command

@@ -10,13 +10,13 @@ from textwrap import dedent
 from typing import NamedTuple
 
 import typer
+from persistent_cache.decorators import persistent_cache
+from typing_extensions import Literal
+
 from comma.command import Command
 from comma.config import comma_utils
 from comma.docker import DOCKER_CLIENT
 from comma.machine import SshMachine
-from persistent_cache.decorators import persistent_cache
-from typing_extensions import Literal
-
 
 _DOCKERFILE = os.path.join(comma_utils.opt_dir, "devcon", "Dockerfile")
 

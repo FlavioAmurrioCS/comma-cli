@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import re
-from typing import NamedTuple
 from typing import TYPE_CHECKING
+from typing import NamedTuple
 from urllib.parse import urljoin
 
 import requests
@@ -46,15 +46,15 @@ def extract_links(response: str, domain: str | None = None) -> Iterable[ATag]:
 @app_temp.command()
 def list_projects() -> None:
     choice = fzf(
-        extract_links(request_url(INDEX_ROOT), domain=INDEX_ROOT),  #
-        key=lambda x: x.text,  #
+        extract_links(request_url(INDEX_ROOT), domain=INDEX_ROOT),
+        key=lambda x: x.text,
     )
     if choice:
         print(f"https://pypi.org/project/{choice.text}/")
         print(choice.href)
         choice2 = fzf(
-            extract_links(request_url(choice.href), domain=choice.href),  #
-            key=lambda x: x.text,  #
+            extract_links(request_url(choice.href), domain=choice.href),
+            key=lambda x: x.text,
             _options={"tac": True},
         )
         if choice2:
