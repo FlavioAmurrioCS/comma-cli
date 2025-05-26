@@ -229,7 +229,7 @@ objs = (
 @pytest.mark.parametrize("obj", [json.loads(s) for s in objs])
 def test_gron(obj: JSON_TYPE) -> None:
     actual = gron(obj)
-    expected = subprocess.run(
+    expected = subprocess.run(  # noqa: S603
         (GRON_PROVIDER.get_executable(),),
         input=json.dumps(obj),
         capture_output=True,
@@ -242,7 +242,7 @@ def test_gron(obj: JSON_TYPE) -> None:
 @pytest.mark.parametrize(
     "original",
     (
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             (GRON_PROVIDER.get_executable(),),
             capture_output=True,
             text=True,
@@ -255,7 +255,7 @@ def test_ungron(original: list[str]) -> None:
     actual = ungron(original)
 
     expected = json.loads(
-        subprocess.run(
+        subprocess.run(  # noqa: S603
             (GRON_PROVIDER.get_executable(), "--ungron"),
             input="\n".join(original),
             capture_output=True,

@@ -4,12 +4,15 @@ import logging
 import shutil
 import subprocess
 from typing import TYPE_CHECKING
+from venv import logger
 
 import pytest
 import tomlkit
 
 if TYPE_CHECKING:
     from collections.abc import Generator
+
+logger.setLevel(logging.DEBUG)
 
 
 def entrypoints() -> Generator[tuple[str, str], None, None]:
@@ -23,8 +26,8 @@ def test_help(pair: tuple[str, str]) -> None:
     k, v = pair
     result = subprocess.run([k, "--help"], check=False, capture_output=True, text=True)  # noqa: S603
     if result.returncode != 0:
-        logging.error(shutil.which(k))
-        logging.error(result.stderr)
+        logger.error(shutil.which(k))
+        logger.error(result.stderr)
         msg = f"Error running {k} --help"
         raise AssertionError(msg)
     # print(k, v)
