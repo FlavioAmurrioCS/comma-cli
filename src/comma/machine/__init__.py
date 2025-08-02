@@ -5,7 +5,7 @@ from comma.machine.machine import Machine
 from comma.machine.ssh_machine import SshMachine
 
 __all__ = [
-    "SshMachine",
     "LocalMachine",
     "Machine",
+    "SshMachine",
 ]

@@ -1,3 +1,4 @@
+# flake8: noqa: E501
 from __future__ import annotations
 # import json
 # from inspect import _empty

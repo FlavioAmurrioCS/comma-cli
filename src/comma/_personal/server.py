@@ -5,8 +5,8 @@ from typing import Any
 
 def server() -> None:
     """Run a FastAPI server."""
-    from fastapi import FastAPI
     import uvicorn
+    from fastapi import FastAPI
 
     app = FastAPI()
 

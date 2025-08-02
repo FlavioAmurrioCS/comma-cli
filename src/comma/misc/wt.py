@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Optional
 
 import typer
-from comma.misc.m_git import GitWorktree
 from fzf import fzf
+
+from comma.misc.m_git import GitWorktree
 
 app_wt: typer.Typer = typer.Typer(
     name="wt",
@@ -36,7 +37,7 @@ def ls() -> None:
 
 
 @app_wt.command()
-def remove(worktree: Optional[str] = None) -> None:  # noqa: UP007
+def remove(worktree: Optional[str] = None) -> None:
     """Remove worktree."""
     g = GitWorktree.from_dir()
 

@@ -3,9 +3,10 @@ from __future__ import annotations
 from typing import Optional
 
 import typer
+from fzf import fzf
+
 from comma.machine import LocalMachine
 from comma.machine import SshMachine
-from fzf import fzf
 
 app_c: typer.Typer = typer.Typer(name="c")
 
@@ -17,13 +18,13 @@ def code_open(machine: LocalMachine | SshMachine, path: str | None = None) -> No
 
 
 @app_c.command()
-def c(path: Optional[str] = typer.Argument(None)) -> None:  # noqa: UP007
+def c(path: Optional[str] = typer.Argument(None)) -> None:
     """Open filepath in vscode."""
     code_open(LocalMachine(), path)
 
 
 @app_c.command()
-def rc(path: Optional[str] = typer.Argument(None)) -> None:  # noqa: UP007
+def rc(path: Optional[str] = typer.Argument(None)) -> None:
     """Open vscode remotely."""
     code_open(SshMachine(), path)
 

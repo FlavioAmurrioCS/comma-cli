@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import os
-from typing import NamedTuple
 from typing import TYPE_CHECKING
+from typing import NamedTuple
 
 from typing_extensions import Literal
 

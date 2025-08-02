@@ -16,9 +16,10 @@ from typing import Generic
 from typing import NamedTuple
 from typing import TypeVar
 
-from comma.command import Command
-from comma.typer.pair import Pair
 from typing_extensions import TypedDict
+
+from comma._typer.pair import Pair
+from comma.command import Command
 
 L = TypeVar("L")
 R = TypeVar("R")

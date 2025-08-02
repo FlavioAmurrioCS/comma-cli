@@ -11,9 +11,10 @@ from typing import NamedTuple
 from typing import Optional
 
 import typer
-from comma.command import Command
 from fzf import fzf
 from typing_extensions import TypedDict
+
+from comma.command import Command
 
 app_docker: typer.Typer = typer.Typer(
     name="docker",
@@ -141,10 +142,10 @@ class _DockerPlatform(str, Enum):
 
 @app_docker.command()
 def explore(
-    image: Optional[str] = typer.Argument(None),  # noqa: UP007
+    image: Optional[str] = typer.Argument(None),
     shell: str = "sh",
-    user: Optional[str] = None,  # noqa: UP007
-    platform: Optional[_DockerPlatform] = None,  # noqa: UP007
+    user: Optional[str] = None,
+    platform: Optional[_DockerPlatform] = None,
 ) -> None:
     """Run a container and enter it."""
     if not image:
@@ -170,7 +171,7 @@ def explore(
                 *((f"--platform=linux/{platform.value}",) if platform else ()),
                 "--entrypoint",
                 shell,
-                f'--name=docker-explore-{"".join(random.choices(string.ascii_lowercase + string.digits, k=8))}',  # noqa: S311, E501
+                f"--name=docker-explore-{''.join(random.choices(string.ascii_lowercase + string.digits, k=8))}",  # noqa: S311, E501
                 image,
             ),
         ).execvp()

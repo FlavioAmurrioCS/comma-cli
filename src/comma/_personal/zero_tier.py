@@ -2,14 +2,15 @@ from __future__ import annotations
 
 import logging
 import os
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
-from typing import TYPE_CHECKING
 
 import typer
-from comma.machine import SshMachine
 from fzf import fzf
 from persistent_cache.decorators import persistent_cache
+
+from comma.machine import SshMachine
 
 if TYPE_CHECKING:
     from requests import Session

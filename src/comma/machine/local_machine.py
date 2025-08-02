@@ -4,8 +4,9 @@ import itertools
 import os
 import shutil
 
-from comma.command import Command
 from persistent_cache.decorators import persistent_cache
+
+from comma.command import Command
 
 from .machine import Machine
 

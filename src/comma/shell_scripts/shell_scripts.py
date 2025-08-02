@@ -46,7 +46,7 @@ def sh(
     tool: str = typer.Argument(
         "dev.sh",
         autocompletion=lambda: __TOOLS__,
-        help=f'{" ".join(__TOOLS__)}',
+        help=f"{' '.join(__TOOLS__)}",
     ),
     which: bool = typer.Option(False, "--which", help="Print the command instead of running it."),  # noqa: FBT001, FBT003
 ) -> int:

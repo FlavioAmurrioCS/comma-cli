@@ -11,6 +11,7 @@ from typing_extensions import TypedDict
 
 if typing.TYPE_CHECKING:
     from types import TracebackType
+
     from rich.console import Console
     from rich.console import RenderableType
     from rich.style import StyleType
@@ -142,7 +143,7 @@ class FHalo(Status):
             speed=speed,
             refresh_per_second=refresh_per_second,
         )
-        self._success: str = f'{symbols["info"]} {status}'
+        self._success: str = f"{symbols['info']} {status}"
 
     def __enter__(self) -> Self:
         return typing.cast("Self", super().__enter__())
@@ -165,13 +166,13 @@ class FHalo(Status):
         return wrapped
 
     def succeed(self, text: str | None = None) -> None:
-        self._success = f'[green bold]{symbols["success"]}[/green bold] {text or self.status}'
+        self._success = f"[green bold]{symbols['success']}[/green bold] {text or self.status}"
 
     def fail(self, text: str | None = None) -> None:
-        self._success = f'[red bold]{symbols["error"]}[/red bold] {text or self.status}'
+        self._success = f"[red bold]{symbols['error']}[/red bold] {text or self.status}"
 
     def warn(self, text: str | None = None) -> None:
-        self._success = f'[yellow bold]{symbols["warning"]}[/yellow bold] {text or self.status}'
+        self._success = f"[yellow bold]{symbols['warning']}[/yellow bold] {text or self.status}"
 
 
 def spinner(

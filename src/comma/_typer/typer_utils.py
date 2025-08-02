@@ -1,13 +1,13 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Callable
 from typing import Optional
-from typing import TYPE_CHECKING
-
 
 if TYPE_CHECKING:
     from collections.abc import Sequence
+
     import typer
 
 
@@ -15,8 +15,8 @@ def typer_command_wrap(
     *,
     app: typer.Typer,
     func: Callable[[Sequence[str]], Any],
-    name: Optional[str] = None,  # noqa: UP007
-    help: Optional[str] = None,  # noqa: A002, UP007
+    name: Optional[str] = None,
+    help: Optional[str] = None,  # noqa: A002
 ) -> Callable[..., Any]:
     """Convert a regular function into a typer command."""
 

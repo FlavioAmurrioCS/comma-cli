@@ -69,9 +69,9 @@ class Proxy(IO[str]):
         if callable(attr):
 
             def newfunc(*args: Any, **kwargs: Any) -> Any:  # noqa: ANN401
-                print("before calling %s" % attr.__name__)
+                print(f"before calling {attr.__name__}")
                 result = attr(*args, **kwargs)
-                print("done calling %s" % attr.__name__)
+                print(f"done calling {attr.__name__}")
                 return result
 
             return newfunc

@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from dataclasses import astuple
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Generic
 from typing import NamedTuple
-from typing import TYPE_CHECKING
 from typing import TypeVar
 
 if TYPE_CHECKING:

@@ -1,23 +1,26 @@
 from __future__ import annotations
 
 import logging
-import shutil
 import subprocess
+import sys
 from typing import TYPE_CHECKING
-from venv import logger
 
 import pytest
-import tomlkit
+
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib  # type: ignore[import-not-found,unused-ignore]
+
 
 if TYPE_CHECKING:
     from collections.abc import Generator
-
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 
 def entrypoints() -> Generator[tuple[str, str], None, None]:
     with open("pyproject.toml", "rb") as f:
-        pyproject = tomlkit.load(f)
+        pyproject = tomllib.load(f)
     yield from pyproject["project"]["scripts"].items()
 
 
@@ -26,8 +29,6 @@ def test_help(pair: tuple[str, str]) -> None:
     k, v = pair
     result = subprocess.run([k, "--help"], check=False, capture_output=True, text=True)  # noqa: S603
     if result.returncode != 0:
-        logger.error(shutil.which(k))
         logger.error(result.stderr)
         msg = f"Error running {k} --help"
         raise AssertionError(msg)
-    # print(k, v)
