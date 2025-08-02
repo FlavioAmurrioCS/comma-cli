@@ -15,8 +15,8 @@ def typer_command_wrap(
     *,
     app: typer.Typer,
     func: Callable[[Sequence[str]], Any],
-    name: Optional[str] = None,  # noqa: UP007
-    help: Optional[str] = None,  # noqa: A002, UP007
+    name: Optional[str] = None,
+    help: Optional[str] = None,  # noqa: A002
 ) -> Callable[..., Any]:
     """Convert a regular function into a typer command."""
 

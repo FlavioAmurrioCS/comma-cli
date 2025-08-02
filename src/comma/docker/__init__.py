@@ -142,10 +142,10 @@ class _DockerPlatform(str, Enum):
 
 @app_docker.command()
 def explore(
-    image: Optional[str] = typer.Argument(None),  # noqa: UP007
+    image: Optional[str] = typer.Argument(None),
     shell: str = "sh",
-    user: Optional[str] = None,  # noqa: UP007
-    platform: Optional[_DockerPlatform] = None,  # noqa: UP007
+    user: Optional[str] = None,
+    platform: Optional[_DockerPlatform] = None,
 ) -> None:
     """Run a container and enter it."""
     if not image:

@@ -38,10 +38,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-types = [
-]
 tests = [
-  "comma-cli[types]",
+  "pytest",
+  "tomli ; python_version < '3.11'",
 ]
 personal = [
   "fastapi",
@@ -51,6 +50,21 @@ personal = [
   "twilio",
   "uvicorn[standard]",
 ]
+types = [
+  "comma-cli[tests]",
+  "comma-cli[personal]",
+  "typing-extensions",
+  "mypy",
+  "pyrefly",
+  "pyright[nodejs]",
+  "ty",
+  "types-requests",
+]
+
+[project.urls]
+Documentation = "https://github.com/FlavioAmurrioCS/comma-cli#readme"
+Issues = "https://github.com/FlavioAmurrioCS/comma-cli/issues"
+Source = "https://github.com/FlavioAmurrioCS/comma-cli"
 
 [project.scripts]
 dev = "comma.main:app_main"
@@ -64,11 +78,6 @@ dev = "comma.main:app_main"
 ',sh-script' = "comma.shell_scripts.shell_scripts:app_shell_scripts"
 ',bored' = "bored.cli:app"
 
-[project.urls]
-Documentation = "https://github.com/FlavioAmurrioCS/comma-cli#readme"
-Issues = "https://github.com/FlavioAmurrioCS/comma-cli/issues"
-Source = "https://github.com/FlavioAmurrioCS/comma-cli"
-
 ###############################################################################
 # region: hatch
 ###############################################################################
@@ -77,6 +86,14 @@ source = "vcs"
 
 [tool.hatch.build.hooks.vcs]
 version-file = "src/comma/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+  "src/comma",
+  "src/gron",
+  "src/gum",
+  "src/bored",
+]
 
 [tool.hatch.envs.hatch-test]
 extra-dependencies = [
@@ -91,6 +108,16 @@ extra-dependencies = [
 
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/comma tests}"
+
+[[tool.hatch.envs.hatch-test.matrix]]
+python = [
+  "3.9",
+  "3.10",
+  "3.11",
+  "3.12",
+  "3.13",
+  "3.14",
+]
 ###############################################################################
 # endregion: hatch
 ###############################################################################
@@ -130,14 +157,6 @@ exclude_lines = [
   "no cov",
   "if __name__ == .__main__.:",
   "if TYPE_CHECKING:",
-]
-
-[tool.hatch.build.targets.wheel]
-packages = [
-  "src/comma",
-  "src/gron",
-  "src/gum",
-  "src/bored",
 ]
 ###############################################################################
 # endregion: coverage
@@ -185,13 +204,14 @@ select = [
   "ALL",
 ]
 ignore = [
-  "COM812", # missing-trailing-comma
-  "D",      # pydocstyle
-  "ERA001", # commented-out-code
-  "EXE003", # shebang-missing-python
-  "ISC001", # single-line-implicit-string-concatenation
-  "PTH",    # flake8-use-pathlib
-  "T20",    # flake8-print
+  "COM812",  # missing-trailing-comma
+  "D",       # pydocstyle
+  "ERA001",  # commented-out-code
+  "EXE003",  # shebang-missing-python
+  "ISC001",  # single-line-implicit-string-concatenation
+  "PTH",     # flake8-use-pathlib
+  "T20",     # flake8-print
+  "PLC0415", # import-outside-top-level
 ]
 
 [tool.ruff.format]

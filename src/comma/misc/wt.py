@@ -37,7 +37,7 @@ def ls() -> None:
 
 
 @app_wt.command()
-def remove(worktree: Optional[str] = None) -> None:  # noqa: UP007
+def remove(worktree: Optional[str] = None) -> None:
     """Remove worktree."""
     g = GitWorktree.from_dir()
 
